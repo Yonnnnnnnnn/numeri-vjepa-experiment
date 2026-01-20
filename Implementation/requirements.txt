@@ -1,0 +1,38 @@
+torch
+torchvision
+transformers
+accelerate
+bitsandbytes
+qwen-vl-utils
+triton; platform_system!="Windows"
+numpy
+opencv-python-headless
+pillow
+decord
+# V-JEPA Dependencies
+timm
+einops
+webdataset
+submitit
+braceexpand
+pyyaml
+# Segmentation Pipeline
+scikit-learn
+hydra-core
+iopath
+ftfy
+regex
+sentencepiece
+protobuf
+v2e
+dv-processing
+engineering-notation
+easygui
+numba
+plyer
+scikit-image
+tqdm
+argcomplete
+screeninfo
+colored
+h5py
