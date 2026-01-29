@@ -99,7 +99,26 @@ class LogicGate:
         self.low_conf = low_confidence_threshold
         self.unexplained_threshold = unexplained_area_threshold
         self.residue_threshold = residue_threshold
+        self.residue_threshold = residue_threshold
         self.max_loop_count = max_loop_count
+
+    @staticmethod
+    def check_volumetric_anomaly(
+        n_visible: int, n_volumetric_range: Tuple[int, int]
+    ) -> bool:
+        """
+        Check if visual count contradicts volumetric estimate.
+        """
+        if n_volumetric_range == (0, 0):
+            return False  # No volumetric data available
+
+        min_v, max_v = n_volumetric_range
+
+        # If visual count is OUTSIDE the volumetric range, it's an anomaly.
+        if n_visible < min_v or n_visible > max_v:
+            return True
+
+        return False
 
     def evaluate(
         self,

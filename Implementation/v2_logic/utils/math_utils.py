@@ -459,7 +459,7 @@ class MathUtils:
     ) -> float:
         """
         Estimate volume from depth map using point cloud back-projection.
-        Uses camera intrinsics for 3D projection.
+        Uses camera intrinsics for 3D projection (Vectorized).
 
         Args:
             depth_map: 2D array of depth values (in meters).
@@ -482,20 +482,35 @@ class MathUtils:
         # Apply mask
         masked_depth = depth_map * mask
 
-        # Back-project to 3D (simplified convex hull volume)
-        valid_points = []
-        for v in range(h):
-            for u in range(w):
-                z = masked_depth[v, u]
-                if z > 0:
-                    x = (u - cx) * z / fx
-                    y = (v - cy) * z / fy
-                    valid_points.append([x, y, z])
+        # Vectorized Grid Generation
+        u = np.arange(w)
+        v = np.arange(h)
+        uu, vv = np.meshgrid(u, v)
+
+        # Vectorized Back-projection
+        # Valid points mask (z > 0 and in object mask)
+        valid_mask = masked_depth > 0
+
+        if not np.any(valid_mask):
+            return 0.0
+
+        z = masked_depth[valid_mask]
+        x = (uu[valid_mask] - cx) * z / fx
+        y = (vv[valid_mask] - cy) * z / fy
+
+        # Stack into (N, 3) array
+        valid_points = np.stack((x, y, z), axis=1)
+
+        # Downsample if too many points (for ConvexHull performance)
+        if len(valid_points) > 10000:
+            # Simple random sampling for speed vs VoxelGrid
+            indices = np.random.choice(len(valid_points), 5000, replace=False)
+            valid_points = valid_points[indices]
 
         if len(valid_points) < 4:
             return 0.0
 
-        return MathUtils.calculate_convex_hull_volume(valid_points)
+        return MathUtils.calculate_convex_hull_volume(valid_points.tolist())
 
     @staticmethod
     def calculate_bbox_overlap(

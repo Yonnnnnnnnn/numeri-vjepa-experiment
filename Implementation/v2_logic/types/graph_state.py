@@ -62,6 +62,13 @@ class GlobalContext(BaseModel):
     max_loop_count: int = Field(
         default=3, description="Maximum recursive loops before forced exit"
     )
+    # Phase 4: Volumetric Priors
+    unit_volume_prior: float = Field(
+        default=0.001, description="Estimated volume of a single target object (m^3)"
+    )
+    depth_scale_factor: float = Field(
+        default=10.0, description="Conversion factor from relative depth to meters"
+    )
 
 
 # =============================================================================

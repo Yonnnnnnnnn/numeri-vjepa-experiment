@@ -206,6 +206,94 @@ def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
     )  # Intent is in Context, which is immutable-ish for main_intent list content but we assume static for now.
 
 
+def countgd_executor_node(state: RecursiveFlowState) -> Dict[str, Any]:
+    """
+    Execute zero-shot counting using CountGD.
+    Returns N_visible (visual count).
+
+    Phase 0: Placeholder - Returns mock count.
+    """
+    intent = state["ctx"].main_intent
+    logger.info("[countgd_executor_node] Counting objects matching intent: %s", intent)
+
+    engine = get_countgd_engine()
+    # In a real implementation:
+    # counts, detections = engine.count(state['perception'].image, intent)
+
+    # Placeholder: Mock detection
+    updated_perception = state["perception"].model_copy(
+        update={
+            "n_visible": 0,  # Placeholder
+            "raw_detections": [],
+        }
+    )
+    return {"perception": updated_perception}
+
+
+def sam2_depth_node(state: RecursiveFlowState) -> Dict[str, Any]:
+    """
+    Segment objects (SAM2) and estimate depth (DepthAnything V2).
+    Returns 3D point cloud summary and volumetric count range.
+    """
+    logger.info(
+        "[sam2_depth_node] Generating point cloud for frame %d",
+        state["perception"].current_frame_idx,
+    )
+
+    seg_engine = get_segmentation_engine()
+    depth_engine = get_depth_engine()
+    perception = state["perception"]
+    ctx = state["ctx"]
+
+    updates = {}
+
+    # Needs actual image in state, for now assuming it's available or mocked
+    # In a real integration, perception.image would be populated
+    # For this prototype, we'll check if engines are loaded and mock the output if image is missing
+
+    # 1. Depth Estimation
+    depth_map = None
+    if depth_engine:
+        # Need image here. Assuming placeholder for now if execution environment doesn't have it.
+        # In real flow: image = perception.image
+        image = np.zeros((480, 640, 3), dtype=np.uint8)  # Placeholder
+
+        depth_res = depth_engine.estimate_depth(image)
+        if depth_res.has_depth:
+            depth_map = depth_res.depth_map
+            updates["depth_map_stats"] = depth_res.stats
+
+    # 2. Volumetric Estimation (if Segmentation + Depth available)
+    if seg_engine and depth_map is not None:
+        # Assuming we have masks from somewhere (e.g., from segmentation engine output stored in perception)
+
+        # Run Segmentation (Placeholder logic for calling engine)
+        masks = []
+        # masks = seg_engine.segment(image) ...
+
+        # If we had masks:
+        total_volume = 0.0
+        # for mask in masks:
+        #     vol = MathUtils.estimate_volume_heuristic(
+        #         depth_map=depth_map,
+        #         mask=mask.astype(bool),
+        #         fx=500.0, fy=500.0
+        #     )
+        #     total_volume += vol * ctx.depth_scale_factor # Scale to meters
+
+        # 3. Lattice Counting
+        min_c, max_c = MathUtils.lattice_counting(total_volume, ctx.unit_volume_prior)
+        updates["n_volumetric_range"] = (min_c, max_c)
+        updates["point_cloud_summary"] = {"total_volume": total_volume}
+
+    # Start Phase 4: Default fallback if engines not running
+    if "n_volumetric_range" not in updates:
+        updates["n_volumetric_range"] = (0, 0)
+
+    updated_perception = perception.model_copy(update=updates)
+    return {"perception": updated_perception}
+
+
 def fusion_engine_node(state: RecursiveFlowState) -> Dict[str, Any]:
     """
     Fuse spike data with SAM2 masks and TRACK objects.
@@ -267,6 +355,13 @@ def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
         total_energy = perception.spike_energy if perception.spike_energy > 0 else 1.0
         residue_ratio = perception.residual_spike_energy / total_energy
 
+        # Determine anomalies dynamically (Phase 4)
+        is_vol_anomaly = False
+        if hasattr(engine, "check_volumetric_anomaly"):
+            is_vol_anomaly = engine.check_volumetric_anomaly(
+                perception.n_visible, perception.n_volumetric_range
+            )
+
         # Determine anomalies (simplified check)
         gate_decision = engine.evaluate(
             n_visible=perception.n_visible,
@@ -276,7 +371,7 @@ def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
             detection_confidence=0.9,  # Placeholder
             current_loop_count=decision.loop_count,
             has_spatial_anomaly=residue_ratio > 0.15,  # Example threshold
-            has_volumetric_anomaly=False,
+            has_volumetric_anomaly=is_vol_anomaly,
         )
 
         new_decision = decision.model_copy(
