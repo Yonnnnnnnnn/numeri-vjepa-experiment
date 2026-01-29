@@ -79,6 +79,7 @@ _countgd_engine: Optional["CountGDEngine"] = None
 _fusion_engine: Optional["FusionEngineV2"] = None
 _logic_gate: Optional["LogicGate"] = None
 _slm_engine: Optional["SLMEngine"] = None  # New in Phase 2
+_reid_engine: Optional["ReIDEngine"] = None  # New in Phase 3
 
 
 def get_segmentation_engine():
@@ -165,45 +166,90 @@ def get_slm_engine():
     return _slm_engine
 
 
+def get_reid_engine():
+    """Lazy-load ReIDEngine (Phase 3)."""
+    global _reid_engine
+    if _reid_engine is None:
+        try:
+            from ..models.reid_engine import ReIDEngine
+
+            _reid_engine = ReIDEngine()
+            logger.info("[Engines] ReIDEngine initialized")
+        except Exception as e:
+            logger.warning("[Engines] Failed to load ReIDEngine: %s", e)
+    return _reid_engine
+
+
 # ... (Node Definitions until Fusion)
+
+
+def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
+    """
+    Generate or update intent list based on V-JEPA latent.
+    Acts as the "Sutradara" (Director) of the system.
+    """
+    ctx = state["ctx"]
+    decision = state["decision"]
+
+    current_intent = ctx.main_intent
+
+    # Phase 3: Adaptive Intent Update
+    if decision.slm_hypothesis:
+        logger.info("[director] SLM Hypothesis received: %s", decision.slm_hypothesis)
+        # In a real implementation, we would parse the hypothesis to refine the intent.
+        # E.g., "Check behind the pile" -> Add "occluded_pile" to intent?
+        # For now, we just log it and potentially flag a specialized search strategy.
+        pass
+
+    return (
+        {}
+    )  # Intent is in Context, which is immutable-ish for main_intent list content but we assume static for now.
 
 
 def fusion_engine_node(state: RecursiveFlowState) -> Dict[str, Any]:
     """
-    Fuse spike data with SAM2 masks to detect residual spikes.
-    Implements Motion Compensation to filter camera jitter.
+    Fuse spike data with SAM2 masks and TRACK objects.
+    Implements Re-ID to maintain consistent counts across loops.
     """
-    logger.info("[fusion_engine_node] Fusing sensor data")
+    logger.info("[fusion_engine_node] Fusing sensor data & Tracking")
 
-    engine = get_fusion_engine()
+    fusion_engine = get_fusion_engine()
+    reid_engine = get_reid_engine()
     perception = state["perception"]
 
-    if engine and perception.v2e_spike_map is not None:
-        # Assuming masks are available (mock or real)
-        # In Phase 2, we would use real masks if SAM2 ran
-        # For now, we use a placeholder or previous masks
+    updates = {}
 
-        # Convert list of masks to list of numpy arrays if needed
+    # 1. Fusion (Spike-Mask)
+    if fusion_engine and perception.v2e_spike_map is not None:
         masks = perception.masks if perception.masks else []
-
-        result = engine.fuse_spike_mask(
+        result = fusion_engine.fuse_spike_mask(
             spike_map=perception.v2e_spike_map,
             masks=masks,
             n_visible=perception.n_visible,
             n_volumetric_range=perception.n_volumetric_range,
         )
+        updates["residual_spike_energy"] = result.residual_spike_energy
+        updates["unexplained_blobs"] = result.unexplained_blobs
 
-        updated_perception = perception.model_copy(
-            update={
-                "residual_spike_energy": result.residual_spike_energy,
-                "unexplained_blobs": result.unexplained_blobs,
-            }
+    # 2. Re-Identification (Phase 3)
+    if reid_engine:
+        current_detections = perception.raw_detections
+        matched, new_dets = reid_engine.match_detections(
+            current_detections, perception.current_frame_idx
         )
 
-        # Also update decision state context with fusion results
-        return {"perception": updated_perception}
+        # Combine for final tracked list
+        all_tracked = matched + new_dets
+        updates["tracked_objects"] = all_tracked
 
-    return {}
+        # Update N_visible based on unique tracks if needed,
+        # but usually CountGD gives the raw count.
+        # If we loop, we rely on the tracked list size?
+        # For now, let's keep n_visible as CountGD's output,
+        # but OutputAccumulator should use tracked objects count.
+
+    updated_perception = perception.model_copy(update=updates)
+    return {"perception": updated_perception}
 
 
 def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
@@ -317,6 +363,30 @@ def route_after_logic_gate(
         return "exit"
     else:
         return "targeted_slm_node"
+
+
+def interpolation_node(state: RecursiveFlowState) -> Dict[str, Any]:
+    """
+    State Interpolation.
+    Projects previous state/hypothesis to current frame coordinates.
+    """
+    logger.info("[interpolation_node] Interpolating state to current frame")
+
+    decision = state["decision"]
+
+    # Phase 3 Logic:
+    # If camera moved (which we don't track explicitly yet),
+    # we would transform tracked_objects bboxes here.
+    # For now, we assume static camera or essentially 'pass-through'
+    # to prepare for the next loop.
+
+    new_decision = decision.model_copy(
+        update={
+            "loop_count": decision.loop_count + 1,
+            "status": "looping",
+        }
+    )
+    return {"decision": new_decision}
 
 
 # =============================================================================

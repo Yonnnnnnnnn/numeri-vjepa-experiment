@@ -117,6 +117,10 @@ class PerceptionState(BaseModel):
         default_factory=list,
         description="List of unexplained blob regions with coordinates",
     )
+    tracked_objects: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="List of tracked objects with consistent IDs across loops",
+    )
 
 
 # =============================================================================
