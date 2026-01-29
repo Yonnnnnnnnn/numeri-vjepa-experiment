@@ -80,12 +80,27 @@ class ReIDEngine:
             Tuple(matches_list, new_detections_list)
         """
         if not self.tracks:
-            return [], detections
+            # Initialize tracks for all detections
+            new_detections = []
+            for det in detections:
+                new_id = self.next_id
+                self.next_id += 1
+                new_track = Track(
+                    track_id=new_id,
+                    bbox=det["bbox"],
+                    features=det.get("features"),
+                    confidence=det["score"],
+                )
+                self.tracks.append(new_track)
+                new_detections.append({**det, "track_id": new_id})
+            return [], new_detections
 
         if not detections:
             # Mark all tracks as missed
             for track in self.tracks:
                 track.missed += 1
+            # Cleanup dead tracks
+            self.tracks = [t for t in self.tracks if t.missed < self.max_missed]
             return [], []
 
         # Cost Matrix: Rows = Tracks, Cols = Detections

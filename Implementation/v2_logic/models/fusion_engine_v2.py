@@ -212,7 +212,7 @@ class FusionEngineV2:
             List of blob dictionaries with position and energy.
         """
         try:
-            import cv2
+            import cv2  # pylint: disable=import-outside-toplevel
 
             # Threshold residual map
             threshold = 0.1  # 10% of max energy
@@ -220,22 +220,22 @@ class FusionEngineV2:
             binary = (residual_map > max_val * threshold).astype(np.uint8)
 
             # Find contours
-            contours, _ = cv2.findContours(
-                binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+            contours, _ = cv2.findContours(  # type: ignore[attr-defined]
+                binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE  # type: ignore[attr-defined]
             )
 
             blobs = []
             for contour in contours:
-                area = cv2.contourArea(contour)
+                area = cv2.contourArea(contour)  # type: ignore[attr-defined]
                 if area >= self.min_blob_area:
-                    M = cv2.moments(contour)
-                    if M["m00"] > 0:
-                        cx = int(M["m10"] / M["m00"])
-                        cy = int(M["m01"] / M["m00"])
+                    moments = cv2.moments(contour)  # type: ignore[attr-defined]
+                    if moments["m00"] > 0:
+                        cx = int(moments["m10"] / moments["m00"])
+                        cy = int(moments["m01"] / moments["m00"])
 
                         # Calculate blob energy
                         mask = np.zeros_like(residual_map, dtype=np.uint8)
-                        cv2.drawContours(mask, [contour], 0, 1, -1)
+                        cv2.drawContours(mask, [contour], 0, 1, -1)  # type: ignore[attr-defined]
                         energy = float(np.sum(residual_map * mask))
 
                         blobs.append(
@@ -252,8 +252,8 @@ class FusionEngineV2:
         except ImportError:
             logger.warning("[FusionV2] OpenCV not available for blob detection")
             return []
-        except Exception as e:
-            logger.warning("[FusionV2] Blob detection error: %s", e)
+        except Exception:  # pylint: disable=broad-except
+            logger.warning("[FusionV2] Blob detection error")
             return []
 
     def reset_motion_state(self) -> None:
