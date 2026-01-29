@@ -1,3 +1,31 @@
+"""
+refactor_imports.py
+
+Utility script.
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : Script (this file)
+
+Non-Terminals   :
+  ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <Main>           → Script entry point                                    │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <Imports>        ← External dependencies                                 │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : str, int, etc.
+
+Production Rules:
+  Script          → Imports + Main
+═══════════════════════════════════════════════════════════════════════════════
+
+Pattern: Script
+- Standalone executable for utility/testing purposes.
+
+"""
 import os
 
 ROOT_DIR = r"d:\Antigravity\Test VJEPA EVENTBASED LLM\Implementation\vjepa_src"

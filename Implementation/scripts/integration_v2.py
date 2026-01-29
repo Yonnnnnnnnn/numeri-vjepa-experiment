@@ -1,11 +1,32 @@
-"""
-Glide-and-Count Integration Script (V2 Architecture)
+"""Glide-and-Count Integration Script (V2 Architecture)
 
 Orchestrates the 4 layers:
 1. v2e (Input)
 2. VL-JEPA (Director)
 3. V-JEPA (Brain)
 4. CountGD (Executor)
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : Script (this file)
+
+Non-Terminals   :
+  ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <Main>           → Script entry point                                    │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <Imports>        ← External dependencies                                 │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : str, int, etc.
+
+Production Rules:
+  Script          → Imports + Main
+═══════════════════════════════════════════════════════════════════════════════
+
+Pattern: Script
+- Standalone executable for utility/testing purposes.
 """
 
 import logging

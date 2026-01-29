@@ -1,8 +1,29 @@
-"""
-Test Stateful Event Kernels
+"""Test Stateful Event Kernels
 
 Verifies that the EventGeneratorTorch correctly maintains state and generates events
 across a sequence of frames.
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : Script (this file)
+
+Non-Terminals   :
+  ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <Main>           → Script entry point                                    │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <Imports>        ← External dependencies                                 │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : str, int, etc.
+
+Production Rules:
+  Script          → Imports + Main
+═══════════════════════════════════════════════════════════════════════════════
+
+Pattern: Script
+- Standalone executable for utility/testing purposes.
 """
 
 import torch

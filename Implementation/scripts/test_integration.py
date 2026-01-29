@@ -1,5 +1,4 @@
-"""
-Integration Test for Vision Pipeline
+"""Integration Test for Vision Pipeline
 
 CFG Structure:
 ═══════════════════════════════════════════════════════════════════════════════
@@ -20,6 +19,28 @@ Terminals       : str, int, list, np.ndarray
 Production Rules:
   TestIntegration → imports + <test_integration>
 ═══════════════════════════════════════════════════════════════════════════════
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : Script (this file)
+
+Non-Terminals   :
+  ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <Main>           → Script entry point                                    │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <Imports>        ← External dependencies                                 │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : str, int, etc.
+
+Production Rules:
+  Script          → Imports + Main
+═══════════════════════════════════════════════════════════════════════════════
+
+Pattern: Script
+- Standalone executable for utility/testing purposes.
 """
 
 import sys

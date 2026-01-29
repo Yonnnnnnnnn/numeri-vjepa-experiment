@@ -1,7 +1,28 @@
-"""
-Test V-JEPA Engine
+"""Test V-JEPA Engine
 
 Verifies weight loading and latent encoding for Layer 3.
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : Script (this file)
+
+Non-Terminals   :
+  ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <Main>           → Script entry point                                    │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <Imports>        ← External dependencies                                 │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : str, int, etc.
+
+Production Rules:
+  Script          → Imports + Main
+═══════════════════════════════════════════════════════════════════════════════
+
+Pattern: Script
+- Standalone executable for utility/testing purposes.
 """
 
 import logging

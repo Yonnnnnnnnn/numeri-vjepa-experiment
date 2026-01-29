@@ -1,11 +1,32 @@
-"""
-Download Model Weights
+"""Download Model Weights
 
 Fetches weights for all V2 layers:
 - Layer 1: Done (v2e)
 - Layer 2: via VLJEPAEngine (Transformers)
 - Layer 3: V-JEPA (Meta FAIR)
 - Layer 4: CountGD
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : Script (this file)
+
+Non-Terminals   :
+  ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <Main>           → Script entry point                                    │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <Imports>        ← External dependencies                                 │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : str, int, etc.
+
+Production Rules:
+  Script          → Imports + Main
+═══════════════════════════════════════════════════════════════════════════════
+
+Pattern: Script
+- Standalone executable for utility/testing purposes.
 """
 
 import os

@@ -1,6 +1,31 @@
 """
 Main Entry Point for Inference Visualizer
+
 CLI for running video-to-event inference using Hybrid V-JEPA.
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : MainVisualizer (this file)
+
+Non-Terminals   :
+  ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <MainFunction>   → main CLI entry point                                  │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <argparse>       ← from stdlib (Argument Parsing)                        │
+  │  <run_v2_visualizer> ← from v2_logic.pipeline.engine_v2                   │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : str, float, args
+
+Production Rules:
+  MainVisualizer → imports + <MainFunction>
+  <MainFunction> → parse_args + run_v2_visualizer
+═══════════════════════════════════════════════════════════════════════════════
+
+Pattern: Command (Script)
+- Acts as the CLI entry point invoking the pipeline command.
 """
 
 import argparse
