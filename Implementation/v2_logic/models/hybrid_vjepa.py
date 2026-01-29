@@ -1,6 +1,33 @@
 """
 Hybrid V-JEPA Model Definition
+
 Combines Frozen V-JEPA 2 Backbone (Event) + RGB Encoder (CLIP/SigLIP) + Zero-Shot LLM Head.
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : HybridVJEPA (this module)
+
+Non-Terminals   :
+  ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <HybridInferenceModel>  → Main hybrid model combining visual towers      │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <CLIPVisionModel>      ← from transformers (RGB Encoder)                │
+  │  <AutoModelForCausalLM> ← from transformers (LLM Head)                   │
+  │  <vit_huge>             ← from vjepa_src (V-JEPA Backbone)               │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : torch.Tensor, str, int
+
+Production Rules:
+  HybridVJEPA          → imports + HybridInferenceModel
+  HybridInferenceModel → __init__ + freeze_backbones + forward_features + predict
+═══════════════════════════════════════════════════════════════════════════════
+
+Pattern: Composite
+- Composes multiple visual encoders (RGB + Event) into a unified model.
+- Fuses features before feeding to LLM head for zero-shot inference.
 """
 
 import torch

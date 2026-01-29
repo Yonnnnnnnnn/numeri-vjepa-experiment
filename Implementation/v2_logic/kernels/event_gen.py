@@ -1,7 +1,35 @@
 """
 Event Generation Kernels
+
 Implements converting RGB Frames to Event representations (Log-Diff)
 using both Pure PyTorch and OpenAI Triton for L40S acceleration.
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : EventGenKernels (this module)
+
+Non-Terminals   :
+  ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <EventGeneratorTorch>  → Stateful DVS emulator using PyTorch            │
+  │  <rgb_to_event_torch>   → Stateless log-diff function                    │
+  │  <rgb_to_event_triton>  → Triton-accelerated kernel (if available)       │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <torch>    ← from torch (Tensor operations)                             │
+  │  <triton>   ← from triton (GPU kernels, optional)                        │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : torch.Tensor, float, int
+
+Production Rules:
+  EventGenKernels   → EventGeneratorTorch + rgb_to_event_torch + rgb_to_event_triton
+  EventGeneratorTorch → __init__ + reset + process_frame
+═══════════════════════════════════════════════════════════════════════════════
+
+Pattern: Adapter
+- Adapts RGB frame input to event-based spike representation.
+- Provides both stateful (DVS emulator) and stateless (log-diff) interfaces.
 """
 
 import torch

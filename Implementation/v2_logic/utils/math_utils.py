@@ -1,3 +1,34 @@
+"""
+Math Utilities Module
+
+Utility class for mathematical operations supporting State Estimation framework.
+Organized by their role in the Grand Equation: P(S_t | O_{1:t})
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : MathUtils (this module)
+
+Non-Terminals   :
+  ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <MathUtils>  → Static utility class with mathematical operations        │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <numpy>       ← from numpy (Array operations)                           │
+  │  <ConvexHull>  ← from scipy.spatial (Volume calculations)                │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : numpy.ndarray, float, int, Dict, List, Tuple
+
+Production Rules:
+  MathUtils → static methods for similarity, state prediction, volume, IoU, etc.
+═══════════════════════════════════════════════════════════════════════════════
+
+Pattern: Utility
+- Collection of pure static functions with no internal state.
+- Used across multiple components for mathematical computations.
+"""
+
 import numpy as np
 from scipy.spatial import ConvexHull
 from typing import Dict, List, Tuple, Optional
