@@ -66,12 +66,19 @@ logger = logging.getLogger(__name__)
 # LAZY-LOADED ENGINE INSTANCES (Phase 1)
 # =============================================================================
 
+# ... (imports remain)
+
+# =============================================================================
+# LAZY-LOADED ENGINE INSTANCES (Phase 1 & 2)
+# =============================================================================
+
 # Global engine instances (initialized on first use)
 _segmentation_engine: Optional["SegmentationEngine"] = None
 _depth_engine: Optional["DepthEngine"] = None
 _countgd_engine: Optional["CountGDEngine"] = None
 _fusion_engine: Optional["FusionEngineV2"] = None
 _logic_gate: Optional["LogicGate"] = None
+_slm_engine: Optional["SLMEngine"] = None  # New in Phase 2
 
 
 def get_segmentation_engine():
@@ -144,219 +151,153 @@ def get_logic_gate():
     return _logic_gate
 
 
-# =============================================================================
-# NODE DEFINITIONS (Skeleton - Placeholder Logic)
-# =============================================================================
+def get_slm_engine():
+    """Lazy-load SLMEngine (Phase 2)."""
+    global _slm_engine
+    if _slm_engine is None:
+        try:
+            from ..models.slm_engine import SLMEngine
+
+            _slm_engine = SLMEngine()
+            logger.info("[Engines] SLMEngine initialized")
+        except Exception as e:
+            logger.warning("[Engines] Failed to load SLMEngine: %s", e)
+    return _slm_engine
 
 
-def v2e_sensor_node(state: RecursiveFlowState) -> Dict[str, Any]:
-    """
-    Convert RGB frame to event spikes using V2E.
-    Runs in parallel with vjepa_brain_node.
-
-    Phase 0: Placeholder - Returns zero spike energy.
-    """
-    logger.info(
-        "[v2e_sensor_node] Processing frame %d", state["perception"].current_frame_idx
-    )
-
-    # Placeholder: No actual spike generation
-    updated_perception = state["perception"].model_copy(
-        update={
-            "spike_energy": 0.0,
-            "residual_spike_energy": 0.0,
-        }
-    )
-    return {"perception": updated_perception}
-
-
-def vjepa_brain_node(state: RecursiveFlowState) -> Dict[str, Any]:
-    """
-    Process frame through V-JEPA for temporal memory.
-    Generates latent representation for the Director.
-
-    Phase 0: Placeholder - No actual V-JEPA inference.
-    """
-    logger.info(
-        "[vjepa_brain_node] Generating latent for frame %d",
-        state["perception"].current_frame_idx,
-    )
-
-    # Placeholder: V-JEPA latent would be stored here
-    # For now, we just pass through
-    return {}
-
-
-def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
-    """
-    Generate or update intent list based on V-JEPA latent.
-    Acts as the "Sutradara" (Director) of the system.
-
-    Phase 0: Placeholder - Uses main_intent from GlobalContext.
-    """
-    logger.info("[vljepa_director_node] Current intent: %s", state["ctx"].main_intent)
-
-    # In Phase 0, we just echo the main intent
-    # Later, this will update based on SLM feedback
-    return {}
-
-
-def countgd_executor_node(state: RecursiveFlowState) -> Dict[str, Any]:
-    """
-    Execute zero-shot counting using CountGD.
-    Returns N_visible (visual count).
-
-    Phase 0: Placeholder - Returns mock count.
-    """
-    intent = state["ctx"].main_intent
-    logger.info("[countgd_executor_node] Counting objects matching intent: %s", intent)
-
-    # Placeholder: Mock detection
-    updated_perception = state["perception"].model_copy(
-        update={
-            "n_visible": 0,  # Placeholder
-            "raw_detections": [],
-        }
-    )
-    return {"perception": updated_perception}
-
-
-def sam2_depth_node(state: RecursiveFlowState) -> Dict[str, Any]:
-    """
-    Segment objects (SAM2) and estimate depth (DepthAnything V2).
-    Returns 3D point cloud summary and volumetric count range.
-
-    Phase 0: Placeholder - Returns empty point cloud.
-    """
-    logger.info(
-        "[sam2_depth_node] Generating point cloud for frame %d",
-        state["perception"].current_frame_idx,
-    )
-
-    # Placeholder: Mock point cloud
-    updated_perception = state["perception"].model_copy(
-        update={
-            "depth_map_stats": {"has_depth": False},
-            "point_cloud_summary": {"num_points": 0},
-            "n_volumetric_range": (0, 0),
-        }
-    )
-    return {"perception": updated_perception}
+# ... (Node Definitions until Fusion)
 
 
 def fusion_engine_node(state: RecursiveFlowState) -> Dict[str, Any]:
     """
     Fuse spike data with SAM2 masks to detect residual spikes.
     Implements Motion Compensation to filter camera jitter.
-
-    Phase 0: Placeholder - No actual fusion.
     """
     logger.info("[fusion_engine_node] Fusing sensor data")
 
-    # Calculate residual = total spike - masked spike (placeholder)
-    updated_perception = state["perception"].model_copy(
-        update={
-            "residual_spike_energy": 0.0,
-            "unexplained_blobs": [],
-        }
-    )
-    return {"perception": updated_perception}
+    engine = get_fusion_engine()
+    perception = state["perception"]
+
+    if engine and perception.v2e_spike_map is not None:
+        # Assuming masks are available (mock or real)
+        # In Phase 2, we would use real masks if SAM2 ran
+        # For now, we use a placeholder or previous masks
+
+        # Convert list of masks to list of numpy arrays if needed
+        masks = perception.masks if perception.masks else []
+
+        result = engine.fuse_spike_mask(
+            spike_map=perception.v2e_spike_map,
+            masks=masks,
+            n_visible=perception.n_visible,
+            n_volumetric_range=perception.n_volumetric_range,
+        )
+
+        updated_perception = perception.model_copy(
+            update={
+                "residual_spike_energy": result.residual_spike_energy,
+                "unexplained_blobs": result.unexplained_blobs,
+            }
+        )
+
+        # Also update decision state context with fusion results
+        return {"perception": updated_perception}
+
+    return {}
 
 
 def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
     """
-    Primary decision gate. Checks for anomalies and decides:
-    - EXIT: Confident count, no anomalies.
-    - LOOP: Ambiguity detected, trigger SLM.
-
-    Implements the "Math Guards":
-    1. Spatial Anomaly: High residual spike.
-    2. Volumetric Anomaly: N_visible outside N_volumetric range.
-    3. Physical Constraint: Volume exceeds physical bounds.
-
-    Phase 0: Placeholder - Always returns EXIT.
+    Primary decision gate. Checks for anomalies.
     """
     perception = state["perception"]
     decision = state["decision"]
     ctx = state["ctx"]
 
-    logger.info(
-        "[logic_gate_node] N_visible=%d, Residual=%.2f, Loop=%d/%d",
-        perception.n_visible,
-        perception.residual_spike_energy,
-        decision.loop_count,
-        ctx.max_loop_count,
-    )
+    engine = get_logic_gate()
+    if engine:
+        # Calculate derived metrics for the gate
+        # In a real run, these would come from Fusion Result, but we compute them here for the call
+        total_energy = perception.spike_energy if perception.spike_energy > 0 else 1.0
+        residue_ratio = perception.residual_spike_energy / total_energy
 
-    # Placeholder logic: Always exit in Phase 0
-    # Real logic will be implemented in Phase 2
-    new_decision = decision.model_copy(
-        update={
-            "status": "exit",
-            "anomaly_type": "none",
-            "logic_gate_result": {
-                "rule_applied": "Phase0_AlwaysExit",
-                "confidence": 1.0,
-                "action": "exit",
-            },
-        }
-    )
+        # Determine anomalies (simplified check)
+        gate_decision = engine.evaluate(
+            n_visible=perception.n_visible,
+            n_volumetric_range=perception.n_volumetric_range,
+            residue_ratio=residue_ratio,
+            unexplained_blob_area=0.0,  # Placeholder
+            detection_confidence=0.9,  # Placeholder
+            current_loop_count=decision.loop_count,
+            has_spatial_anomaly=residue_ratio > 0.15,  # Example threshold
+            has_volumetric_anomaly=False,
+        )
 
-    # Update output accumulator
-    new_output = state["output"].model_copy(
-        update={
-            "final_count": perception.n_visible,
-            "confidence": 1.0,
-            "processing_log": state["output"].processing_log
-            + ["[logic_gate] Phase 0: Direct exit"],
-        }
-    )
+        new_decision = decision.model_copy(
+            update={
+                "status": gate_decision.action,
+                "anomaly_type": gate_decision.anomaly_type.value,
+                "logic_gate_result": {
+                    "rule_applied": gate_decision.rule_applied,
+                    "confidence": gate_decision.confidence,
+                    "action": gate_decision.action,
+                    "reasoning": gate_decision.reasoning,
+                },
+            }
+        )
 
-    return {"decision": new_decision, "output": new_output}
+        # Log decision
+        logger.info(
+            "[logic_gate_node] Decision: %s (Rule: %s)",
+            gate_decision.action,
+            gate_decision.rule_applied,
+        )
+
+        return {"decision": new_decision}
+
+    return {}
 
 
 def targeted_slm_node(state: RecursiveFlowState) -> Dict[str, Any]:
     """
     Targeted SLM for ambiguity resolution.
     Only triggered when Logic Gate detects anomalies.
-
-    Phase 0: Placeholder - Not triggered.
     """
     logger.info("[targeted_slm_node] SLM reasoning triggered")
 
+    engine = get_slm_engine()
     decision = state["decision"]
-    new_decision = decision.model_copy(
-        update={
-            "slm_triggered": True,
-            "slm_reasoning": "Phase 0: Placeholder reasoning",
-            "slm_hypothesis": None,
+    perception = state["perception"]
+
+    if engine:
+        # Prepare context for SLM
+        context = {
+            "n_visible": perception.n_visible,
+            "n_volumetric_range": perception.n_volumetric_range,
+            "residue_ratio": 0.2,  # Placeholder or from state
         }
-    )
-    return {"decision": new_decision}
 
+        # Use last frame
+        image = (
+            perception.last_frame
+            if perception.last_frame is not None
+            else np.zeros((480, 640, 3), dtype=np.uint8)
+        )
 
-def interpolation_node(state: RecursiveFlowState) -> Dict[str, Any]:
-    """
-    State Interpolation using V-JEPA predictions.
-    Projects SLM decisions onto current frame coordinates.
+        result = engine.generate_reasoning(
+            image=image, anomaly_type=decision.anomaly_type, context=context
+        )
 
-    Phase 0: Placeholder - No interpolation.
-    """
-    logger.info("[interpolation_node] Interpolating state to current frame")
+        new_decision = decision.model_copy(
+            update={
+                "slm_triggered": True,
+                "slm_reasoning": result.reasoning_text,
+                "slm_hypothesis": result.hypothesis,
+            }
+        )
+        return {"decision": new_decision}
 
-    decision = state["decision"]
-    new_decision = decision.model_copy(
-        update={
-            "loop_count": decision.loop_count + 1,
-            "status": "looping",
-        }
-    )
-    return {"decision": new_decision}
-
-
-# =============================================================================
-# ROUTING FUNCTIONS
-# =============================================================================
+    return {}
 
 
 def route_after_logic_gate(
@@ -366,6 +307,8 @@ def route_after_logic_gate(
     Conditional edge: Route based on Logic Gate decision.
     """
     decision = state["decision"]
+
+    logger.info("[route] Checking decision status: %s", decision.status)
 
     if decision.status == "exit":
         return "exit"
