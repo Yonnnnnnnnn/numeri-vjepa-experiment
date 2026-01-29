@@ -23,6 +23,12 @@ Non-Terminals   :
   │  <StateGraph>              ← from langgraph.graph (Graph Builder)         │
   │  <RecursiveFlowState>      ← from types.graph_state (State Container)     │
   │  <END>                     ← from langgraph.graph (Terminal Node)         │
+  │  --- Phase 1 Engines ---                                                  │
+  │  <SegmentationEngine>      ← from models.segmentation_engine              │
+  │  <DepthEngine>             ← from models.depth_engine                     │
+  │  <CountGDEngine>           ← from models.count_gd_engine                  │
+  │  <FusionEngineV2>          ← from models.fusion_engine_v2                 │
+  │  <LogicGate>               ← from models.logic_gate                       │
   └───────────────────────────────────────────────────────────────────────────┘
 
 Terminals       : "v2e_sensor", "vjepa_brain", "vljepa_director", etc.
@@ -40,7 +46,9 @@ Pattern: Builder
 """
 
 import logging
-from typing import Any, Dict, Literal
+from typing import Any, Dict, Literal, Optional
+
+import numpy as np
 
 from langgraph.graph import END, START, StateGraph
 
@@ -53,6 +61,87 @@ from ..types.graph_state import (
 )
 
 logger = logging.getLogger(__name__)
+
+# =============================================================================
+# LAZY-LOADED ENGINE INSTANCES (Phase 1)
+# =============================================================================
+
+# Global engine instances (initialized on first use)
+_segmentation_engine: Optional["SegmentationEngine"] = None
+_depth_engine: Optional["DepthEngine"] = None
+_countgd_engine: Optional["CountGDEngine"] = None
+_fusion_engine: Optional["FusionEngineV2"] = None
+_logic_gate: Optional["LogicGate"] = None
+
+
+def get_segmentation_engine():
+    """Lazy-load SegmentationEngine (SAM2)."""
+    global _segmentation_engine
+    if _segmentation_engine is None:
+        try:
+            from ..models.segmentation_engine import SegmentationEngine
+
+            _segmentation_engine = SegmentationEngine()
+            logger.info("[Engines] SegmentationEngine initialized")
+        except Exception as e:
+            logger.warning("[Engines] Failed to load SegmentationEngine: %s", e)
+    return _segmentation_engine
+
+
+def get_depth_engine():
+    """Lazy-load DepthEngine (DepthAnything V2)."""
+    global _depth_engine
+    if _depth_engine is None:
+        try:
+            from ..models.depth_engine import DepthEngine
+
+            _depth_engine = DepthEngine(encoder="vits")
+            logger.info("[Engines] DepthEngine initialized")
+        except Exception as e:
+            logger.warning("[Engines] Failed to load DepthEngine: %s", e)
+    return _depth_engine
+
+
+def get_countgd_engine():
+    """Lazy-load CountGDEngine."""
+    global _countgd_engine
+    if _countgd_engine is None:
+        try:
+            from ..models.count_gd_engine import CountGDEngine
+
+            _countgd_engine = CountGDEngine()
+            logger.info("[Engines] CountGDEngine initialized")
+        except Exception as e:
+            logger.warning("[Engines] Failed to load CountGDEngine: %s", e)
+    return _countgd_engine
+
+
+def get_fusion_engine():
+    """Lazy-load FusionEngineV2."""
+    global _fusion_engine
+    if _fusion_engine is None:
+        try:
+            from ..models.fusion_engine_v2 import FusionEngineV2
+
+            _fusion_engine = FusionEngineV2()
+            logger.info("[Engines] FusionEngineV2 initialized")
+        except Exception as e:
+            logger.warning("[Engines] Failed to load FusionEngineV2: %s", e)
+    return _fusion_engine
+
+
+def get_logic_gate():
+    """Lazy-load LogicGate."""
+    global _logic_gate
+    if _logic_gate is None:
+        try:
+            from ..models.logic_gate import LogicGate
+
+            _logic_gate = LogicGate()
+            logger.info("[Engines] LogicGate initialized")
+        except Exception as e:
+            logger.warning("[Engines] Failed to load LogicGate: %s", e)
+    return _logic_gate
 
 
 # =============================================================================
