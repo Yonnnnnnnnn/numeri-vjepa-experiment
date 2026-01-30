@@ -70,19 +70,18 @@ if setup_repo():
     !pip install timm einops submitit sentencepiece protobuf scikit-learn bitsandbytes accelerate -q
     !pip install huggingface_hub[hf_xet] addict yapf langgraph pydantic pydantic-settings scipy -q
 
-    print("\n✅ Instalasi Selesai!")
-    print("⚠️ HARAP TUNGGU: Melakukan 'Hard Restart' otomatis agar NumPy 1.x aktif...")
+    import numpy as np
+    print(f"📊 NumPy Version installed: {np.__version__}")
+    if np.__version__.startswith("2"):
+         print("⚠️ WARNING: NumPy masih 2.x terbaca di kernel ini.")
 
-    # Nuclear Restart: Memaksa Colab me-reload seluruh library dari disk.
-    import os
-    os.kill(os.getpid(), 9)
+    print("\n✅ Instalasi Selesai!")
+    print("🚀 PENTING: Lakukan RESTART MANUAL SEKARANG.")
+    print("Menu: Runtime -> Restart session")
 
 else:
     print("❌ Setup gagal.")
 ```
-
-> [!NOTE]
-> Setelah menjalankan cell di atas, Anda akan melihat pesan **"Your session crashed. This is normal"**. Ini disengaja agar Colab memuat NumPy 1.26.4 yang baru diinstal. Silakan lanjut ke **Langkah 2**.
 
 ---
 
@@ -96,10 +95,11 @@ import numpy as np
 
 # 1. Cek NumPy
 print(f"📊 NumPy Version: {np.__version__}")
-if np.__version__.startswith("2"):
-    print("❌ ERROR: NumPy masih versi 2.x! Jalankan: !pip install 'numpy<2.0' lalu RESTART lagi.")
+# Numba 0.60 mendukung NumPy 2.0.x, tapi bermasalah di 2.1+ atau 2.4+
+if np.__version__.startswith("2") and not (np.__version__.startswith("2.0") or np.__version__.startswith("2.1")):
+    print("❌ ERROR: NumPy versi 2.x (selain 2.0/2.1) terdeteksi! Jalankan: !pip install 'numpy<2.1' lalu RESTART lagi.")
 else:
-    print("✅ NumPy versi kompatibel (1.x).")
+    print("✅ NumPy versi kompatibel.")
 
 # 2. Masuk ke folder project
 PROJECT_DIR = "/content/numeri-vjepa-experiment"
@@ -203,8 +203,22 @@ if not os.path.exists(depth_vits_path):
 else:
     print("✅ Depth-Anything V2 weights sudah ada.")
 
-print("\n✅ Semua checkpoint siap!")
+# 4.4 Download Demo Video (Wajib untuk Langkah 5)
+video_dir = f"{PROJECT_DIR}/Techs/sam2-main/sam2-main/demo/data/gallery"
+os.makedirs(video_dir, exist_ok=True)
+video_path = f"{video_dir}/02_cups.mp4"
+
+if not os.path.exists(video_path):
+    print("📥 Mengunduh Demo Video (02_cups.mp4)...")
+    subprocess.run(["wget", "-q", "-O", video_path, "https://raw.githubusercontent.com/facebookresearch/sam2/main/demo/data/gallery/02_cups.mp4"], check=False)
+    if os.path.exists(video_path) and os.path.getsize(video_path) < 1000:
+        print("⚠️ GitHub LFS detected. Mengunduh dari source alternatif...")
+        subprocess.run(["wget", "-q", "-O", video_path, "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/tasks/segmentation_sample.mp4"], check=True)
+        print("✅ Video alternatif berhasil diunduh.")
+
+print("\n✅ Semua checkpoint & video siap!")
 !ls -la {CHECKPOINTS_DIR}
+!ls -la {video_dir}
 !ls -la {depth_dir}
 ```
 
