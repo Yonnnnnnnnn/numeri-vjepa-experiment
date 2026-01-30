@@ -218,6 +218,23 @@ class DepthEngine:
                 has_depth=False,
             )
 
+    def visualize_depth(self, depth_map: np.ndarray) -> np.ndarray:
+        """
+        Convert a depth map to a colorized BGR image for display.
+
+        Args:
+            depth_map: Normalized depth map (0-1).
+
+        Returns:
+            Colorized BGR image (H, W, 3).
+        """
+        # pylint: disable=no-member
+        import cv2
+
+        depth_8bit = (depth_map * 255).astype(np.uint8)
+        color_depth = cv2.applyColorMap(depth_8bit, cv2.COLORMAP_MAGMA)
+        return color_depth
+
 
 if __name__ == "__main__":
     # Quick test

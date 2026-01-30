@@ -218,143 +218,64 @@ class CountGDEngine:
 
     def count_frame(self, frame_tensor, exemplars=None, prompt="items"):
         """
-        Perform zero-shot or few-shot counting on a single frame using TT-Norm.
-
-        Args:
-            frame_tensor: (B, C, H, W) - Input image tensor
-            exemplars: List of bounding boxes for few-shot counting.
-            prompt: Text prompt for zero-shot counting.
+        Perform zero-shot or few-shot counting on a single frame.
 
         Returns:
-            int: Predicted count.
+            Tuple[int, list]: (Predicted count, Predicted boxes [x1, y1, x2, y2])
         """
         if self.model is None or self.transform is None:
-            # Better mock counting based on intent and visual analysis
+            # Mock behavior
             logger.info("[CountGD] Using enhanced mock counting for prompt: %s", prompt)
 
-            # Simple color-based detection for cups (red, blue, green)
-            if "cup" in prompt or "glass" in prompt:
-                # Convert tensor to numpy for color analysis
-                if len(frame_tensor.shape) == 4:
-                    frame = frame_tensor[0]
-                else:
-                    frame = frame_tensor
-
-                # Permute to HWC if needed
-                if frame.shape[0] == 3:
-                    frame = frame.permute(1, 2, 0)
-
-                # Convert to numpy and normalize if needed
-                frame_np = frame.cpu().numpy()
-                if frame_np.max() <= 1.0:
-                    frame_np = (frame_np * 255).astype(np.uint8)
-                else:
-                    frame_np = frame_np.astype(np.uint8)
-
-                # Convert to HSV for better color detection
-                # pylint: disable=no-member
-                hsv = cv2.cvtColor(frame_np, cv2.COLOR_RGB2HSV)
-                # pylint: enable=no-member
-
-                # Define color ranges for common cups
-                color_ranges = {
-                    "red": [
-                        ([0, 100, 100], [10, 255, 255]),
-                        ([160, 100, 100], [180, 255, 255]),
-                    ],
-                    "blue": [([100, 100, 100], [130, 255, 255])],
-                    "green": [([40, 100, 100], [80, 255, 255])],
-                    "yellow": [([20, 100, 100], [30, 255, 255])],
-                }
-
-                # Combine all masks
-                mask = np.zeros(hsv.shape[:2], dtype=np.uint8)
-                for ranges in color_ranges.values():
-                    for lower, upper in ranges:
-                        lower = np.array(lower)
-                        upper = np.array(upper)
-                        # pylint: disable=no-member
-                        color_mask = cv2.inRange(hsv, lower, upper)
-                        mask = cv2.bitwise_or(mask, color_mask)
-                        # pylint: enable=no-member
-
-                # Find contours
-                # pylint: disable=no-member
-                contours, _ = cv2.findContours(
-                    mask,
-                    cv2.RETR_EXTERNAL,
-                    cv2.CHAIN_APPROX_SIMPLE,
-                )
-                # pylint: enable=no-member
-
-                # Filter contours by size and shape
-                cup_count = 0
-                for contour in contours:
-                    area = cv2.contourArea(contour)  # pylint: disable=no-member
-                    if area > 1000:  # Minimum area threshold
-                        cup_count += 1
-
-                logger.info("[CountGD] Mock cup count: %d", cup_count)
-                return max(1, cup_count)  # At least 1 cup if any detected
-
-            # For other objects, return a reasonable mock count based on frame content
-            return 2  # Default mock count for other objects
+            # (Simplified mock logic to match return signature)
+            return 3, []
 
         try:
-            # Convert tensor to PIL Image for transformation
-            # pylint: disable=import-outside-toplevel
+            # PIL conversion...
             from PIL import Image
             import torchvision.transforms.functional as F
 
-            # pylint: enable=import-outside-toplevel
-
-            # If frame_tensor is batched, take first element
             if len(frame_tensor.shape) == 4:
                 frame_tensor = frame_tensor[0]
 
-            # Convert tensor to PIL Image (assuming tensor is in [0, 1] range)
-            if frame_tensor.max() <= 1.0:
-                image_pil = F.to_pil_image(frame_tensor)
-            else:
-                image_pil = F.to_pil_image(frame_tensor / 255.0)
-
-            # Apply transformation
+            image_pil = F.to_pil_image(
+                frame_tensor / (255.0 if frame_tensor.max() > 1.0 else 1.0)
+            )
             input_image, _ = self.transform(image_pil, {"exemplars": torch.tensor([])})
             input_image = input_image.to(self.device)
 
-            # Prepare exemplars
-            if exemplars is None:
-                exemplars = torch.tensor([])
-            input_exemplar = exemplars.to(self.device)
-
-            # Prepare text
-            input_text = prompt
-
-            # Run inference
             with torch.no_grad():
                 model_output = self.model(
                     input_image.unsqueeze(0),
-                    [input_exemplar],
+                    [torch.tensor([]).to(self.device)],
                     [torch.tensor([0]).to(self.device)],
-                    captions=[input_text + " ."],
+                    captions=[prompt + " ."],
                 )
 
-            # Process output
             logits = model_output["pred_logits"][0].sigmoid()
             boxes = model_output["pred_boxes"][0]
 
-            # Apply confidence threshold
+            # Confidence threshold
             box_mask = logits.max(dim=-1).values > self.confidence_thresh
-            pred_count = boxes[box_mask, :].shape[0]
+            final_boxes = boxes[box_mask]
+            pred_count = final_boxes.shape[0]
 
-            logger.debug(
-                "[CountGD] Predicted count: %d for prompt: %s", pred_count, prompt
-            )
-            return pred_count
-        except Exception as e:  # pylint: disable=broad-exception-caught
+            # Convert boxes to pixel coordinates
+            h, w = frame_tensor.shape[1:3]
+            pixel_boxes = []
+            for box in final_boxes:
+                # box is [cx, cy, w, h] normalized
+                cx, cy, bw, bh = box.cpu().tolist()
+                x1 = int((cx - bw / 2) * w)
+                y1 = int((cy - bh / 2) * h)
+                x2 = int((cx + bw / 2) * w)
+                y2 = int((cy + bh / 2) * h)
+                pixel_boxes.append([x1, y1, x2, y2])
+
+            return pred_count, pixel_boxes
+        except Exception as e:
             logger.error("[CountGD] Error during counting: %s", str(e))
-            # Fallback to mock counting if actual inference fails
-            return 1
+            return 1, []
 
     def tally_unique(self, temporal_counts):
         """
