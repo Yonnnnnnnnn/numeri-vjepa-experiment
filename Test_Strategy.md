@@ -9,12 +9,12 @@ This document outlines the strategy for verifying the Antigravity V2 pipeline.
 
 ## 2. Integration Testing
 
-- **Inference Loop**: Verify that SAM2 masks and Depth maps are correctly used for volumetric counting.
-- **Recursive Intent**: Use the `run_recursive_system.py` runner to verify end-to-end flow on sample video data.
-- **Logic Gate**: Unit test the anomaly detection rules (Spatial vs Volumetric).
+- **Recursive Flow**: Verify end-to-end execution from raw video to final count using `run_recursive_system.py`.
+- **Hybrid Decision Gate**: Validate that Logic Gate correctly routes frames based on spatial (V2E) and volumetric (SAM2+Depth) anomalies.
+- **V-JEPA Memory**: Verify that temporal latents provide consistent context for the countgd_executor_node.
 
 ## 3. Performance Metrics
 
 - **Accuracy**: Counting error percentage in high-occlusion scenarios.
-- **Latency**: End-to-end inference time per frame step (Target <100ms on L40S).
-- **Permanence**: Time duration an object can be "remembered" while occluded.
+- **Latency**: End-to-end inference time per frame step (Target <150ms on T4/L4).
+- **Volumetric Precision**: Discrepancy between $N_{visible}$ and $N_{volumetric}$ in stacked scenarios.

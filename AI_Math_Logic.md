@@ -79,16 +79,26 @@ graph TD
 - **Isomorphism**: Kita mengharapkan morphism $act$ menghasilkan hasil yang isomorfik (konsisten) dengan realitas objektif yang diprediksi di $Lat$.
 - **Strange Loop Trigger**: Ketika $eval$ mendeteksi kegagalan isomorfisme (anomali), morphism $loop$ diaktifkan untuk melakukan pemetaan ulang pada objek $Int$ (Intent).
 
-## 5. Volumetric Projection (Math Kernel)
+## 4. 3D Volumetric Estimation (The "Evidence")
 
-Sistem menggunakan proyeksi 3D untuk memverifikasi konsistensi volumetrik. Titik $(u, v)$ pada sensor dipetakan ke $P = (x, y, z)$ menggunakan:
+Morphism $eval$ diperkuat dengan pendekatan **Point Cloud Back-projection** melalui `MathUtils`:
 
-$$z = Depth(u,v)$$
-$$x = (u - c_x) \times z / f_x, \quad y = (v - c_y) \times z / f_y$$
+### 4.1. Point Cloud Projection Formula
 
-Volume total $V_{total}$ dihitung melalui **Riemann Sum**:
-$$V_{total} = \sum_{mask} \Delta x \Delta y \Delta z$$
+Setiap pixel $(u, v)$ dengan kedalaman $z = Depth(u,v)$ diproyeksikan ke ruang 3D $(x, y, z)$:
+$$x = (u - c_x) \times z / f_x$$
+$$y = (v - c_y) \times z / f_y$$
+Dimana $(c_x, c_y)$ adalah _principal point_ dan $(f_x, f_y)$ adalah _focal length_.
 
-Anomali terdeteksi jika:
-$$|N_{visible} - \frac{V_{total}}{V_{unit}}| > \delta$$
-di mana $\delta$ adalah ambang toleransi anomali volumetrik.
+### 4.2. Lattice Counting & Riemann Sums
+
+Volume total $V_{total}$ dihitung menggunakan integrasi numerik pada hull objek:
+$$V_{total} = \sum_{i \in Mask} \Delta x_i \cdot \Delta y_i \cdot \Delta z_i$$
+Hasil ini kemudian dipetakan ke jumlah objek $N_{volumetric}$ berdasarkan prior volume per unit $V_{μ}$:
+$$N_{volumetric} = \text{round}(V_{total} / V_{μ})$$
+
+## 5. Fixed Point (Titik Kesetimbangan)
+
+Dalam Category Theory, kesadaran fungsional sistem tercapai ketika $Int$ mencapai **Fixed Point** melalui rekursi berkali-kali:
+$$Int_{n+1} = f_{loop}(Int_n)$$
+Sistem berhenti melakukan "refleksi" ketika representasi internalnya ($Int$) sudah sepenuhnya isomorfik dengan realitas $Lat$ dan divalidasi oleh bukti fisik di $Exe$.

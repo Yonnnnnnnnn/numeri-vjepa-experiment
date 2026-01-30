@@ -24,33 +24,37 @@ This document defines the interfaces between the core modules of the Antigravity
 
 ## 1. Engine Interfaces
 
-### 1.1. V-JEPA Engine (`VJEPAEngine`)
+### 1.1. Input & Spikes (`V2EEngine`)
+
+- **`generate_events(frame: np.ndarray, timestamp: float) -> np.ndarray`**
+  - Input: Raw RGB frame and relative timestamp.
+  - Output: Event spike array (x, y, p, t).
+
+### 1.2. Brain (`VJEPAEngine`)
 
 - **`encode(frame_tensor: Tensor) -> Latent`**
   - Input: Normalized RGB frame or event-reconstructed frame (B, 3, 224, 224).
   - Output: Latent representation (B, N, 1024).
-- **`predict_next_state(steps: int) -> LatentPrediction`**
-  - Purpose: Occlusion reasoning via temporal prediction.
 
-### 1.2. Director (`VLJEPAEngine`)
+### 1.3. Director (`VLJEPAEngine`)
 
+- **`identify_intent(frame: np.ndarray) -> str`**
+  - Input: Initial RGB frame.
+  - Output: Textual intent (e.g., "cup").
 - **`generate_intent(latent: Latent, prompt: str) -> Intent`**
   - Input: V-JEPA latent features and a high-level task description.
-  - Output: Structured instruction for the Executor (e.g., "Count Milk cartons").
+  - Output: Structured instruction for the Executor.
 
-### 1.4. Depth Engine (`DepthEngine`)
+### 1.4. Executor (`CountGDEngine` & `SegmentationEngine`)
 
-- **`estimate_depth(image: np.ndarray) -> DepthResult`**
-  - Input: RGB image.
-  - Output: Relative depth map and statistics.
-
-### 1.5. Logic Gate (`LogicGate`)
-
-- **`evaluate(perception: PerceptionState) -> GateDecision`**
-  - Input: Current perception metrics (N_visible, spikes, volume).
-  - Output: Action (Exit/Loop) and reasoning.
+- **`count(image: np.ndarray, prompt: str) -> (count, detections)`**
+  - Input: Raw frame and textual prompt.
+  - Output: Integer count and detection metadata.
+- **`segment_frame(image: np.ndarray) -> SegmentResult`**
+  - Input: Raw frame.
+  - Output: List of binary masks and bounding boxes.
 
 ## 2. Feedback Loops (Recursive Intent)
 
-- **`recursive_loop(state: FlowState) -> FlowState`**
-  - Orchestrated by LangGraph to trigger SLM reasoning and intent updates.
+- **`update_intent(failure_signal: Reflection) -> NewIntent`**
+  - Triggered when the Executor detects an anomaly or low-confidence match.

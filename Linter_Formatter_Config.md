@@ -26,6 +26,7 @@ This project adheres to the standards defined in the Global Project Rules.
 
 - **Formatter**: Black (88 chars line length)
 - **Linter**: Pylint (configured in `.pylintrc`)
+- **OpenCV Handling**: Suppress `no-member` for `cv2` calls due to C-extension false positives.
 - **Naming**: PEP 8 (snake_case for functions/variables, PascalCase for classes)
 
 ## Enforced Rules

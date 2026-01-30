@@ -166,5 +166,3 @@ tmp/
 *.log
 v2e_data/
 jepa_data/
-Techs/
- status.txt

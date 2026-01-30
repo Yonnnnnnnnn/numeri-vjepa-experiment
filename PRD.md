@@ -48,12 +48,13 @@ Inventory tracking in dynamic environments (warehouses, retail) suffers from:
 
 - [x] Successfully merge fragmented clusters using Semantic Reasoning.
 - [x] Correctly count 4/4 items in scanning video despite occlusion.
+- [x] Activate Recursive Intent (Hybrid Path) for real-time anomaly handling.
 - [ ] Achieve <5% counting error on high-density product videos.
 - [ ] VLM successfully identifies specific brands without manual labeling.
 
 ## 6. Roadmap
 
 1.  **Phase 1: Robust Perceiver (DONE)**: SAM2 + DINOv2 + DBSCAN + Reasoning Layer.
-2.  **Phase 2: Occlusion Mastery (DONE)**: V-JEPA Temporal Memory integration.
-3.  **Phase 3: VLM Expansion (NEXT)**: Integrate Qwen2.5-VL for "Chat with Video".
-4.  **Phase 4: Deployment**: Real-time optimization on RunPod.
+2.  **Phase 2: Occlusion Mastery (DONE)**: V-JEPA Temporal Memory + Depth V2.
+3.  **Phase 3: Recursive Intent Activation (DONE)**: Hybrid Logic Gate + Targeted SLM.
+4.  **Phase 4: VLM Expansion (NEXT)**: Integrate Qwen2.5-VL for "Chat with Video".

@@ -23,21 +23,27 @@ Logic flow for the real-time vision pipeline.
 
 ```mermaid
 flowchart TD
-    Start([Start Loop]) --> V2E[Receive Spike Events]
-    V2E --> VJEPA_Enc[Encode V-JEPA Latents]
-    VJEPA_Enc --> Perception[Perception Exec: CountGD + SAM2 + Depth]
+    Start([Start Loop]) --> v2e_sensor_node[v2e_sensor_node: Spike Energy]
+    Start --> vjepa_brain_node[vjepa_brain_node: Temporal Latent]
 
-    Perception --> LogicGate{Anomaly Detected?}
+    vjepa_brain_node --> vljepa_director_node[vljepa_director_node: Intent]
 
-    LogicGate -- No (Spatial & Volume OK) --> End([Output Final Count])
+    vljepa_director_node --> countgd_executor_node[countgd_executor_node: N_visible]
+    vljepa_director_node --> sam2_depth_node[sam2_depth_node: 3D Point Cloud]
 
-    LogicGate -- Yes (Spatial Anomaly) --> Discovery[Discovery: Find New Target]
-    LogicGate -- Yes (Volume Anomaly) --> Refinement[Refinement: Inspect Occlusion]
+    countgd_executor_node --> fusion_engine_node[fusion_engine_node: Anomaly Calc]
+    sam2_depth_node --> fusion_engine_node
+    v2e_sensor_node --> fusion_engine_node
 
-    Discovery --> SLM[SLM Hypothesizer]
-    Refinement --> SLM
+    fusion_engine_node --> logic_gate_node{Logic Gate Decision}
 
-    SLM --> VLJEPA[Director: Update Intent]
-    VLJEPA --> Interpolate[State Interpolation: V-JEPA Projection]
-    Interpolate --> Start
+    logic_gate_node -- "Confident (Exit)" --> End([Final Inventory Audit])
+
+    logic_gate_node -- "Anomaly (Loop)" --> targeted_slm_node[Targeted SLM: Reasoning]
+
+    targeted_slm_node --> interpolation_node[interpolation_node: State Mapping]
+
+    interpolation_node --> vljepa_director_node
+
+    logic_gate_node -- "Max Loops" --> End
 ```

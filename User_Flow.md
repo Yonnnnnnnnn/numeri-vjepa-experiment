@@ -4,13 +4,13 @@ The end-user (Auditor) interacts with the system through a high-level natural la
 
 ```mermaid
 graph LR
-    User([Auditor]) --> Prompt["'Audit the pallet of milk'"]
-    Prompt --> System[V2 System Starts]
-    System --> Live["Visual Feedback (SAM2 Overlays)"]
-    Live --> Audit["Live Inventory Count"]
-    Audit --> Anomaly["System Detects Occlusion/Discrepancy"]
-    Anomaly --> Notify["'I lost track of a item, checking memory...'"]
-    Notify --> Resolved["Final Report Generated"]
+    User([Auditor]) --> Prompt["'Audit the cups'"]
+    Prompt --> vljepa_director_node[Identify Intent]
+    vljepa_director_node --> Perception[v2e + SAM2 + Depth + CountGD]
+    Perception --> logic_gate_node{Check Anomaly}
+    logic_gate_node -- "Confident" --> Resolved[Final Audit Report]
+    logic_gate_node -- "Anomaly" --> targeted_slm_node[Self-Reflection]
+    targeted_slm_node -- "New Intent" --> vljepa_director_node
     Resolved --> User
 ```
 
