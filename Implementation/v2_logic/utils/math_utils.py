@@ -30,7 +30,7 @@ Pattern: Utility
 """
 
 import numpy as np
-from scipy.spatial import ConvexHull
+from scipy.spatial import ConvexHull  # pylint: disable=no-name-in-module
 from typing import Dict, List, Tuple, Optional
 
 

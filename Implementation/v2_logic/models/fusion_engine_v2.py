@@ -220,22 +220,26 @@ class FusionEngineV2:
             binary = (residual_map > max_val * threshold).astype(np.uint8)
 
             # Find contours
-            contours, _ = cv2.findContours(  # type: ignore[attr-defined]
-                binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE  # type: ignore[attr-defined]
+            contours, _ = cv2.findContours(  # pylint: disable=no-member
+                binary,
+                cv2.RETR_EXTERNAL,
+                cv2.CHAIN_APPROX_SIMPLE,  # pylint: disable=no-member
             )
 
             blobs = []
             for contour in contours:
-                area = cv2.contourArea(contour)  # type: ignore[attr-defined]
+                area = cv2.contourArea(contour)  # pylint: disable=no-member
                 if area >= self.min_blob_area:
-                    moments = cv2.moments(contour)  # type: ignore[attr-defined]
+                    moments = cv2.moments(contour)  # pylint: disable=no-member
                     if moments["m00"] > 0:
                         cx = int(moments["m10"] / moments["m00"])
                         cy = int(moments["m01"] / moments["m00"])
 
                         # Calculate blob energy
                         mask = np.zeros_like(residual_map, dtype=np.uint8)
-                        cv2.drawContours(mask, [contour], 0, 1, -1)  # type: ignore[attr-defined]
+                        cv2.drawContours(
+                            mask, [contour], 0, 1, -1
+                        )  # pylint: disable=no-member
                         energy = float(np.sum(residual_map * mask))
 
                         blobs.append(
