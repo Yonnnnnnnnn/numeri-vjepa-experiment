@@ -3,6 +3,30 @@ Run Recursive Intent System
 
 Main execution script for the end-to-end Recursive Intent system.
 Orchestrates LangGraph execution on real video data.
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : RunRecursiveSystem (this script)
+
+Non-Terminals   :
+  ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <MainLoop>        → Frame-by-frame orchestration loop                    │
+  │  <InitialState>    → State initialization                                 │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
+  │  <RecursiveFlow>   ← from v2_logic.controllers.recursive_flow             │
+  │  <GraphState>       ← from v2_logic.types.graph_state                      │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : cv2, numpy, time, logging
+
+Production Rules:
+  RunRecursiveSystem → setup_logging + <InitialState> + <MainLoop>
+═══════════════════════════════════════════════════════════════════════════════
+
+Pattern: Command (Script)
+- Acts as the main entry point to invoke the recursive intent pipeline.
 """
 
 import os
@@ -11,6 +35,8 @@ import logging
 import cv2
 import time
 import numpy as np
+
+import argparse
 
 # Add Implementation root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".")))
@@ -30,17 +56,30 @@ def main():
     setup_logging()
     logger = logging.getLogger("run_recursive_system")
 
+    # 0. Parse Arguments
+    parser = argparse.ArgumentParser(description="Run Recursive Intent System")
+    parser.add_argument(
+        "--video",
+        type=str,
+        help="Path to input video file",
+        default="Techs/sam2-main/sam2-main/demo/data/gallery/02_cups.mp4",
+    )
+    args = parser.parse_args()
+
     # 1. Initialize Graph
     logger.info("Building Recursive Intent Graph...")
     app = create_recursive_flow_app()
 
     # 2. Input Source
-    video_path = os.path.abspath(
-        "Techs/sam2-main/sam2-main/demo/data/gallery/02_cups.mp4"
-    )
+    video_path = os.path.abspath(args.video)
     if not os.path.exists(video_path):
-        logger.error(f"Video not found: {video_path}")
-        return
+        # Specific fallback for Colab if default path fails
+        colab_fallback = "/content/numeri-vjepa-experiment/Techs/sam2-main/sam2-main/demo/data/gallery/02_cups.mp4"
+        if os.path.exists(colab_fallback):
+            video_path = colab_fallback
+        else:
+            logger.error(f"Video not found: {video_path}")
+            return
 
     cap = cv2.VideoCapture(video_path)  # pylint: disable=no-member
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0  # pylint: disable=no-member

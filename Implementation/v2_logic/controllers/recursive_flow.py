@@ -679,13 +679,16 @@ def build_recursive_graph() -> StateGraph:
     graph.add_edge("targeted_slm_node", "interpolation_node")
     graph.add_edge("interpolation_node", "vljepa_director_node")
 
-    logger.info("[build_recursive_graph] Graph topology:")
-    try:
-        graph.get_graph().print_ascii()
-    except Exception as e:
-        logger.warning("Could not print graph: %s", e)
+    logger.info("[build_recursive_graph] Graph compiled.")
+    app = graph.compile()
 
-    return graph.compile()
+    try:
+        # Use .get_graph() on the compiled app
+        app.get_graph().print_ascii()
+    except Exception as e:
+        logger.debug("Could not print graph: %s", e)
+
+    return app
 
 
 # =============================================================================
