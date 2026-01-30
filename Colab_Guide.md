@@ -10,6 +10,11 @@ Panduan menjalankan **V2 Inference Pipeline** di Google Colab dengan clone langs
 
 ---
 
+## Langkah 0: Bersihkan Runtime (Opsional tapi Disarankan)
+
+Jika Anda mendapatkan error NumPy 2.x, lakukan ini:
+**Menu: Runtime -> Disconnect and delete runtime.** Lalu hubungkan kembali.
+
 ## Langkah 1: Clone Repository & Instalasi (PENTING)
 
 Jalankan cell ini. Jika repository Anda **Private**, masukkan **GitHub Token** saat diminta.
@@ -53,6 +58,10 @@ if setup_repo():
 
     # 3. Install Python Dependencies
     print("🐍 Installing python dependencies...")
+
+    # [CRITICAL] Force Install NumPy 1.26.4 PERTAMA KALI
+    !pip install numpy==1.26.4 --force-reinstall -q
+
     # Force install stable torch stack
     !pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 -q
     !pip install --upgrade transformers -q
@@ -61,15 +70,10 @@ if setup_repo():
     !pip install timm einops submitit sentencepiece protobuf scikit-learn bitsandbytes accelerate -q
     !pip install huggingface_hub[hf_xet] addict yapf langgraph pydantic pydantic-settings scipy -q
 
-    # [CRITICAL] Downgrade NumPy < 2.0 (Last step)
-    print("⚠️ Downgrade NumPy for Numba compatibility...")
-    !pip install "numpy<2.0" -q
-
-    # Verify NumPy Version
     import numpy as np
     print(f"📊 NumPy Version installed: {np.__version__}")
     if np.__version__.startswith("2"):
-        print("❌ WARNING: NumPy 2.x detected! You MUST restart runtime and run 'pip install numpy<2.0' lagi.")
+         print("⚠️ WARNING: NumPy masih 2.x terbaca di kernel ini.")
 
     print("\n✅ Instalasi Selesai!")
     print("🚀 PENTING: Lakukan RESTART MANUAL SEKARANG.")
