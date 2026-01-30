@@ -70,18 +70,19 @@ if setup_repo():
     !pip install timm einops submitit sentencepiece protobuf scikit-learn bitsandbytes accelerate -q
     !pip install huggingface_hub[hf_xet] addict yapf langgraph pydantic pydantic-settings scipy -q
 
-    import numpy as np
-    print(f"📊 NumPy Version installed: {np.__version__}")
-    if np.__version__.startswith("2"):
-         print("⚠️ WARNING: NumPy masih 2.x terbaca di kernel ini.")
-
     print("\n✅ Instalasi Selesai!")
-    print("🚀 PENTING: Lakukan RESTART MANUAL SEKARANG.")
-    print("Menu: Runtime -> Restart session")
+    print("⚠️ HARAP TUNGGU: Melakukan 'Hard Restart' otomatis agar NumPy 1.x aktif...")
+
+    # Nuclear Restart: Memaksa Colab me-reload seluruh library dari disk.
+    import os
+    os.kill(os.getpid(), 9)
 
 else:
     print("❌ Setup gagal.")
 ```
+
+> [!NOTE]
+> Setelah menjalankan cell di atas, Anda akan melihat pesan **"Your session crashed. This is normal"**. Ini disengaja agar Colab memuat NumPy 1.26.4 yang baru diinstal. Silakan lanjut ke **Langkah 2**.
 
 ---
 
