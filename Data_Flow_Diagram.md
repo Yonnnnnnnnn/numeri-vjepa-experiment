@@ -26,15 +26,15 @@ sequenceDiagram
     participant S as Sensor (v2e)
     participant B as Brain (V-JEPA)
     participant D as Director (VL-JEPA)
-    participant E as Executor (CountGD)
-    participant R as Reflection (FusionEngine)
+    participant E as Executor (CountGD + SAM2 + Depth)
+    participant L as Logic Gate (Math Guard)
+    participant R as Razonamiento (Targeted SLM)
 
-    S->>B: Spike Stream (Temporal-Visual Data)
-    B->>D: Latent Context (Spatial Memory)
-    D->>E: Semantic Intent ("Count Object X")
-    B->>E: Visual Patches (Cropped Features)
-    E->>R: Raw Counts & Bboxes
-    R->>D: Anomaly Detection (Recursive Intent Trigger)
-    D->>E: Refined Intent (Self-Correction)
-    E->>User: Final Inventory Audit
+    S->>L: Spike Map (Residual Energy)
+    B->>E: Latent Context
+    D->>E: Semantic Intent
+    E->>L: N_visible & N_volumetric
+    L->>R: Trigger reasoning on anomaly
+    R->>D: Hipotesis / Refined Intent
+    L->>User: Final Count
 ```

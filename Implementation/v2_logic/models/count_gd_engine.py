@@ -199,6 +199,23 @@ class CountGDEngine:
             logger.error("[CountGD] Using mock counting as fallback")
             self.model = None
 
+    def count(self, image: np.ndarray, prompt: str = "items"):
+        """
+        Convenience method for the LangGraph controller.
+        Handles numpy to tensor conversion.
+        """
+        import torch
+
+        # Convert numpy to tensor [B, C, H, W]
+        # image is (H, W, 3) BGR
+        rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        tensor = torch.from_numpy(rgb).permute(2, 0, 1).float().unsqueeze(0) / 255.0
+
+        count_val = self.count_frame(tensor, prompt=prompt)
+
+        # Return count and empty detections (detections are not yet fully implemented in CountGD wrapper)
+        return count_val, []
+
     def count_frame(self, frame_tensor, exemplars=None, prompt="items"):
         """
         Perform zero-shot or few-shot counting on a single frame using TT-Norm.

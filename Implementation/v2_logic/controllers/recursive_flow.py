@@ -78,8 +78,10 @@ _depth_engine: Optional["DepthEngine"] = None
 _countgd_engine: Optional["CountGDEngine"] = None
 _fusion_engine: Optional["FusionEngineV2"] = None
 _logic_gate: Optional["LogicGate"] = None
-_slm_engine: Optional["SLMEngine"] = None  # New in Phase 2
-_reid_engine: Optional["ReIDEngine"] = None  # New in Phase 3
+_slm_engine: Optional["SLMEngine"] = None
+_reid_engine: Optional["ReIDEngine"] = None
+_v2e_engine: Optional["V2EEngine"] = None
+_vjepa_engine: Optional["VJEPAEngine"] = None
 
 
 def get_segmentation_engine():
@@ -180,6 +182,108 @@ def get_reid_engine():
     return _reid_engine
 
 
+def get_v2e_engine():
+    """Lazy-load V2EEngine."""
+    global _v2e_engine
+    if _v2e_engine is None:
+        try:
+            from ..models.v2e_engine import V2EEngine
+
+            _v2e_engine = V2EEngine()
+            logger.info("[Engines] V2EEngine initialized")
+        except Exception as e:
+            logger.warning("[Engines] Failed to load V2EEngine: %s", e)
+    return _v2e_engine
+
+
+def get_vjepa_engine():
+    """Lazy-load VJEPAEngine."""
+    global _vjepa_engine
+    if _vjepa_engine is None:
+        try:
+            from ..models.v_jepa_engine import VJEPAEngine
+
+            _vjepa_engine = VJEPAEngine()
+            logger.info("[Engines] VJEPAEngine initialized")
+        except Exception as e:
+            logger.warning("[Engines] Failed to load VJEPAEngine: %s", e)
+    return _vjepa_engine
+
+
+# =============================================================================
+# NODE DEFINITIONS
+# =============================================================================
+
+
+def v2e_sensor_node(state: RecursiveFlowState) -> Dict[str, Any]:
+    """
+    Generate synthetic events from RGB frame using V2E.
+    Produces high-temporal 'spikes' for fusion.
+    """
+    logger.info("[v2e_sensor_node] Generating events")
+    v2e = get_v2e_engine()
+    perception = state["perception"]
+
+    if v2e and perception.image is not None:
+        timestamp = perception.current_frame_idx / 30.0  # Assume 30 FPS
+        events = v2e.generate_events(perception.image, timestamp)
+
+        # Process events into a summary spike map
+        h, w = perception.image.shape[:2]
+        spike_map = np.zeros((h, w), dtype=np.float32)
+        if events is not None and len(events) > 0:
+            # Simple summation for the node update
+            xs, ys, ps = (
+                events[:, 1].astype(int),
+                events[:, 2].astype(int),
+                events[:, 3],
+            )
+            mask = (xs >= 0) & (xs < w) & (ys >= 0) & (ys < h)
+            np.add.at(spike_map, (ys[mask], xs[mask]), np.abs(ps[mask]))
+
+        updated_perception = perception.model_copy(
+            update={
+                "v2e_spike_map": spike_map,
+                "spike_energy": float(np.sum(spike_map)),
+            }
+        )
+        return {"perception": updated_perception}
+
+    return {}
+
+
+def vjepa_brain_node(state: RecursiveFlowState) -> Dict[str, Any]:
+    """
+    Encode frame into V-JEPA latent space.
+    Maintains world context for permanence.
+    """
+    logger.info("[vjepa_brain_node] Encoding latent context")
+    vjepa = get_vjepa_engine()
+    perception = state["perception"]
+
+    if vjepa and perception.image is not None:
+        # Preprocess image to tensor [1, 3, 224, 224] for V-JEPA
+        import torch
+
+        img = perception.image
+        if img.shape[0] != 224 or img.shape[1] != 224:
+            import cv2
+
+            img = cv2.resize(img, (224, 224))
+
+        tensor = torch.from_numpy(img).permute(2, 0, 1).float().unsqueeze(0) / 255.0
+        # V-JEPA expects frames=16 for full encode,
+        # but the wrapper 'VJEPAEngine.encode' handles single or multi frames
+        # through its vision transformer implementation.
+        _ = vjepa.encode(tensor)
+
+        # For now, we don't store the latent in state to save memory,
+        # but the engine instance maintains the context.
+        return {}
+
+    return {}
+
+
 # ... (Node Definitions until Fusion)
 
 
@@ -210,24 +314,26 @@ def countgd_executor_node(state: RecursiveFlowState) -> Dict[str, Any]:
     """
     Execute zero-shot counting using CountGD.
     Returns N_visible (visual count).
-
-    Phase 0: Placeholder - Returns mock count.
     """
     intent = state["ctx"].main_intent
     logger.info("[countgd_executor_node] Counting objects matching intent: %s", intent)
 
     engine = get_countgd_engine()
-    # In a real implementation:
-    # counts, detections = engine.count(state['perception'].image, intent)
+    perception = state["perception"]
 
-    # Placeholder: Mock detection
-    updated_perception = state["perception"].model_copy(
-        update={
-            "n_visible": 0,  # Placeholder
-            "raw_detections": [],
-        }
-    )
-    return {"perception": updated_perception}
+    if engine and perception.image is not None:
+        # Real CountGD call
+        count_val, detections = engine.count(perception.image, intent)
+
+        updated_perception = perception.model_copy(
+            update={
+                "n_visible": count_val,
+                "raw_detections": detections,
+            }
+        )
+        return {"perception": updated_perception}
+
+    return {}
 
 
 def sam2_depth_node(state: RecursiveFlowState) -> Dict[str, Any]:
@@ -245,48 +351,45 @@ def sam2_depth_node(state: RecursiveFlowState) -> Dict[str, Any]:
     perception = state["perception"]
     ctx = state["ctx"]
 
-    updates = {}
+    if perception.image is None:
+        return {}
 
-    # Needs actual image in state, for now assuming it's available or mocked
-    # In a real integration, perception.image would be populated
-    # For this prototype, we'll check if engines are loaded and mock the output if image is missing
+    updates = {}
+    image = perception.image
 
     # 1. Depth Estimation
     depth_map = None
     if depth_engine:
-        # Need image here. Assuming placeholder for now if execution environment doesn't have it.
-        # In real flow: image = perception.image
-        image = np.zeros((480, 640, 3), dtype=np.uint8)  # Placeholder
-
         depth_res = depth_engine.estimate_depth(image)
         if depth_res.has_depth:
             depth_map = depth_res.depth_map
             updates["depth_map_stats"] = depth_res.stats
 
-    # 2. Volumetric Estimation (if Segmentation + Depth available)
-    if seg_engine and depth_map is not None:
-        # Assuming we have masks from somewhere (e.g., from segmentation engine output stored in perception)
+    # 2. Segmentation
+    masks = []
+    if seg_engine:
+        seg_res = seg_engine.segment_frame(image)
+        masks = seg_res.masks
+        updates["masks"] = masks
 
-        # Run Segmentation (Placeholder logic for calling engine)
-        masks = []
-        # masks = seg_engine.segment(image) ...
-
-        # If we had masks:
+    # 3. Volumetric Estimation
+    if depth_map is not None and len(masks) > 0:
         total_volume = 0.0
-        # for mask in masks:
-        #     vol = MathUtils.estimate_volume_heuristic(
-        #         depth_map=depth_map,
-        #         mask=mask.astype(bool),
-        #         fx=500.0, fy=500.0
-        #     )
-        #     total_volume += vol * ctx.depth_scale_factor # Scale to meters
+        from ..utils.math_utils import MathUtils
 
-        # 3. Lattice Counting
+        for mask in masks:
+            vol = MathUtils.estimate_volume_heuristic(
+                depth_map=depth_map,
+                mask=mask.astype(bool),
+                fx=500.0,
+                fy=500.0,  # Generic focal lengths
+            )
+            total_volume += vol * ctx.depth_scale_factor  # Scale to meters
+
         min_c, max_c = MathUtils.lattice_counting(total_volume, ctx.unit_volume_prior)
         updates["n_volumetric_range"] = (min_c, max_c)
-        updates["point_cloud_summary"] = {"total_volume": total_volume}
+        updates["point_cloud_summary"] = {"total_volume": float(total_volume)}
 
-    # Start Phase 4: Default fallback if engines not running
     if "n_volumetric_range" not in updates:
         updates["n_volumetric_range"] = (0, 0)
 

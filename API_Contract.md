@@ -38,13 +38,19 @@ This document defines the interfaces between the core modules of the Antigravity
   - Input: V-JEPA latent features and a high-level task description.
   - Output: Structured instruction for the Executor (e.g., "Count Milk cartons").
 
-### 1.3. Executor (`CountGDEngine`)
+### 1.4. Depth Engine (`DepthEngine`)
 
-- **`count_objects(frame: Tensor, intent: Intent) -> Results`**
-  - Input: Raw frame and structured visual prompt.
-  - Output: Bounding boxes, confidence scores, and instance counts.
+- **`estimate_depth(image: np.ndarray) -> DepthResult`**
+  - Input: RGB image.
+  - Output: Relative depth map and statistics.
+
+### 1.5. Logic Gate (`LogicGate`)
+
+- **`evaluate(perception: PerceptionState) -> GateDecision`**
+  - Input: Current perception metrics (N_visible, spikes, volume).
+  - Output: Action (Exit/Loop) and reasoning.
 
 ## 2. Feedback Loops (Recursive Intent)
 
-- **`update_intent(failure_signal: Reflection) -> NewIntent`**
-  - Triggered when the Executor detects an anomaly or low-confidence match.
+- **`recursive_loop(state: FlowState) -> FlowState`**
+  - Orchestrated by LangGraph to trigger SLM reasoning and intent updates.

@@ -25,22 +25,19 @@ Logic flow for the real-time vision pipeline.
 flowchart TD
     Start([Start Loop]) --> V2E[Receive Spike Events]
     V2E --> VJEPA_Enc[Encode V-JEPA Latents]
-    VJEPA_Enc --> SAM2[Segment Current Frame]
-    SAM2 --> DINO[Extract DINOv2 Features]
-    DINO --> DBSCAN[Cluster Objects]
+    VJEPA_Enc --> Perception[Perception Exec: CountGD + SAM2 + Depth]
 
-    DBSCAN --> OccCheck{Check for Missing Items?}
-    OccCheck -- Yes --> VJEPA_Pred[Predict Future States]
-    VJEPA_Pred --> RecMatch[Reconcile Memory with Masks]
-    RecMatch --> UpdateInv[Update Inventory State]
+    Perception --> LogicGate{Anomaly Detected?}
 
-    OccCheck -- No --> UpdateInv
-    UpdateInv --> VLM_Audit[VLM Audit Head]
-    VLM_Audit --> Anomaly{Anomaly Detected?}
+    LogicGate -- No (Spatial & Volume OK) --> End([Output Final Count])
 
-    Anomaly -- Yes --> RecIntent[Trigger Recursive Intent]
-    RecIntent --> VLJEPA[Update Director Instructions]
-    VLJEPA --> Start
+    LogicGate -- Yes (Spatial Anomaly) --> Discovery[Discovery: Find New Target]
+    LogicGate -- Yes (Volume Anomaly) --> Refinement[Refinement: Inspect Occlusion]
 
-    Anomaly -- No --> End([Output Final Count])
+    Discovery --> SLM[SLM Hypothesizer]
+    Refinement --> SLM
+
+    SLM --> VLJEPA[Director: Update Intent]
+    VLJEPA --> Interpolate[State Interpolation: V-JEPA Projection]
+    Interpolate --> Start
 ```

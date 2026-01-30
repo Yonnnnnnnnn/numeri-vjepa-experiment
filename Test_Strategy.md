@@ -9,8 +9,9 @@ This document outlines the strategy for verifying the Antigravity V2 pipeline.
 
 ## 2. Integration Testing
 
-- **Inference Loop**: Verify that SAM2 masks are correctly passed to DINOv2 and then to the DBSCAN clusterer.
-- **Recursive Intent**: Use mock anomalies to verify that the Director (VL-JEPA) generates a new instruction.
+- **Inference Loop**: Verify that SAM2 masks and Depth maps are correctly used for volumetric counting.
+- **Recursive Intent**: Use the `run_recursive_system.py` runner to verify end-to-end flow on sample video data.
+- **Logic Gate**: Unit test the anomaly detection rules (Spatial vs Volumetric).
 
 ## 3. Performance Metrics
 

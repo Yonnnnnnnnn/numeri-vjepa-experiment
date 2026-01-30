@@ -79,8 +79,16 @@ graph TD
 - **Isomorphism**: Kita mengharapkan morphism $act$ menghasilkan hasil yang isomorfik (konsisten) dengan realitas objektif yang diprediksi di $Lat$.
 - **Strange Loop Trigger**: Ketika $eval$ mendeteksi kegagalan isomorfisme (anomali), morphism $loop$ diaktifkan untuk melakukan pemetaan ulang pada objek $Int$ (Intent).
 
-## 4. Fixed Point (Titik Kesetimbangan)
+## 5. Volumetric Projection (Math Kernel)
 
-Dalam Category Theory, kesadaran fungsional sistem tercapai ketika $Int$ mencapai **Fixed Point** melalui rekursi berkali-kali:
-$$Int_{n+1} = f_{loop}(Int_n)$$
-Sistem berhenti melakukan "refleksi" ketika representasi internalnya ($Int$) sudah sepenuhnya isomorfik dengan realitas $Lat$.
+Sistem menggunakan proyeksi 3D untuk memverifikasi konsistensi volumetrik. Titik $(u, v)$ pada sensor dipetakan ke $P = (x, y, z)$ menggunakan:
+
+$$z = Depth(u,v)$$
+$$x = (u - c_x) \times z / f_x, \quad y = (v - c_y) \times z / f_y$$
+
+Volume total $V_{total}$ dihitung melalui **Riemann Sum**:
+$$V_{total} = \sum_{mask} \Delta x \Delta y \Delta z$$
+
+Anomali terdeteksi jika:
+$$|N_{visible} - \frac{V_{total}}{V_{unit}}| > \delta$$
+di mana $\delta$ adalah ambang toleransi anomali volumetrik.

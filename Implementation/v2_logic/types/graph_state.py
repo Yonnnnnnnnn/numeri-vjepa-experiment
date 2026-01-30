@@ -86,6 +86,18 @@ class PerceptionState(BaseModel):
     """
 
     current_frame_idx: int = Field(default=0, description="Current frame index")
+    image: Optional[Any] = Field(
+        default=None, description="Current RGB frame (numpy array)"
+    )
+    last_frame: Optional[Any] = Field(
+        default=None, description="Previous RGB frame (numpy array)"
+    )
+    masks: Optional[Any] = Field(
+        default=None, description="SAM2 masks (list of arrays)"
+    )
+    v2e_spike_map: Optional[Any] = Field(
+        default=None, description="Event spike map (numpy array)"
+    )
 
     # --- CountGD Output ---
     n_visible: int = Field(
