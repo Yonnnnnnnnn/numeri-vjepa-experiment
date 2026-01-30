@@ -108,6 +108,11 @@ class VJEPAEngine:
             frame_tensor: (B, C, H, W) normalized [0,1]
         """
         with torch.no_grad():
+            # V-JEPA (vit_large for video) expects 5D: (B, C, T, H, W)
+            # We unsqueeze T=1 since we process frame-by-frame
+            if frame_tensor.ndim == 4:
+                frame_tensor = frame_tensor.unsqueeze(2)
+
             latent = self.encoder(frame_tensor.to(self.device))
             self.latent_context = latent
         return latent
