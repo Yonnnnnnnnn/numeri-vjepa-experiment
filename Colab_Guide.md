@@ -57,21 +57,17 @@ if setup_repo():
     !apt-get update && apt-get install -y ffmpeg libsm6 libxext6 -qq
 
     # 3. Install Python Dependencies
-    print("🐍 Installing python dependencies...")
+    print("🐍 Installing python dependencies (duduk manis, ini butuh 1-2 menit)...")
 
-    # [CRITICAL] Force Install NumPy 1.26.4 PERTAMA KALI
-    !pip install numpy==1.26.4 --force-reinstall -q
-
-    # [CRITICAL] Update Build Tools to avoid 'tokenizers' build failure
+    # [CRITICAL] Update Pip & Install Core Binaries First
     !pip install --upgrade pip setuptools wheel -q
-    !pip install tokenizers -q
 
-    # [CRITICAL] Dependencies for SAM2 & DepthAnything
+    # [CRITICAL] Force Install NumPy 1.26.4 & Transformers stack using pre-built binaries
+    # Ini mencegah error 'Failed building wheel for tokenizers'
+    !pip install numpy==1.26.4 transformers tokenizers --prefer-binary -q
+
+    # [CRITICAL] Dependencies for Model Engines
     !pip install hydra-core omegaconf -q
-
-    # Use modern stable transformers (robustified by bertwarper.py fix)
-    !pip install transformers -q
-
     !pip install -e Techs/v2e-master/v2e-master -q
     !pip install -e Techs/sam2-main/sam2-main -q
     !pip install timm einops submitit sentencepiece protobuf scikit-learn bitsandbytes accelerate -q
@@ -80,7 +76,7 @@ if setup_repo():
     import numpy as np
     print(f"📊 NumPy Version installed: {np.__version__}")
     if np.__version__.startswith("2"):
-         print("⚠️ WARNING: NumPy masih 2.x terbaca di kernel ini.")
+         print("⚠️ WARNING: NumPy masih 2.x terbaca di kernel ini. Pastikan RESTART SESSION dilakukan.")
 
     print("\n✅ Instalasi Selesai!")
     print("🚀 PENTING: Lakukan RESTART MANUAL SEKARANG.")
