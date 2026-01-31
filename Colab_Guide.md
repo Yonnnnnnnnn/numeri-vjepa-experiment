@@ -10,19 +10,19 @@ Panduan menjalankan **V2 Inference Pipeline** di Google Colab dengan clone langs
 
 ---
 
-## Langkah 0: Bersihkan & Siapkan Runtime (WAJIB)
+## Langkah 0: Bersihkan & Siapkan Runtime (WAJIB - Python 3.12 Compat)
 
 Untuk menghindari konflik **NumPy 2.x** dan **Torchvision**, jalankan ini di cell pertama:
 
 ```python
-# 1. Uninstall paket bermasalah sepenuhnya
+# 1. Uninstall paket bermasalah sepenuhnya (Python 3.12 di Colab)
 !pip uninstall -y numpy torch torchvision torchaudio jax jaxlib
 
-# 2. Install versi stabil (Legacy Compat - CU121 adalah standard Colab T4)
-# Kita gunakan versi yang dijamin kompatibel satu sama lain
+# 2. Install versi stabil (Python 3.12 & SAM-2 Compat)
+# Kita gunakan Torch 2.5.1 karena SAM-2 membutuhkannya (torch >= 2.5.1)
 !pip install numpy==1.26.4
-!pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cu121
-!pip install jax==0.4.33 jaxlib==0.4.33
+!pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu121
+!pip install jax==0.4.35 jaxlib==0.4.35
 ```
 
 ## Langkah 1: Clone Repository & Instalasi (PENTING)
@@ -81,8 +81,9 @@ if setup_repo():
     print("🐍 Installing python dependencies...")
     !pip install --upgrade pip setuptools wheel -q
 
-    # Pre-install transformers with binary focus to avoid build errors
-    !pip install transformers==4.33.0 tokenizers --prefer-binary -q
+    # [CRITICAL] Fix for 'Failed building wheel for tokenizers' on Python 3.12
+    # Kita force install binary dan gunakan versi yang mendukung Python 3.12
+    !pip install "tokenizers>=0.19" "transformers>=4.44.0" --only-binary :all: -q
 
     # Dependencies for Model Engines
     !pip install hydra-core omegaconf -q
@@ -92,11 +93,12 @@ if setup_repo():
     !pip install huggingface_hub[hf_xet] addict yapf langgraph pydantic pydantic-settings scipy -q
 
     import numpy as np
-    print(f"✅ Instalasi Selesai! NumPy: {np.__version__}")
+    import torch
+    print(f"✅ Instalasi Selesai! NumPy: {np.__version__}, Torch: {torch.__version__}")
     print("🚀 PENTING: Lakukan RESTART SESSION (Menu: Runtime -> Restart session)")
 ```
 
----
+## ,StartLine:75,TargetContent:
 
 ## Langkah 2: Verifikasi & Path (Jalankan SETELAH Restart)
 
