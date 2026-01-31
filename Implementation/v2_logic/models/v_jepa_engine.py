@@ -109,9 +109,13 @@ class VJEPAEngine:
         """
         with torch.no_grad():
             # V-JEPA (vit_large for video) expects 5D: (B, C, T, H, W)
-            # We unsqueeze T=1 since we process frame-by-frame
+            # We must provide at least 'tubelet_size' frames, ideally matched to num_frames (16).
+            # If we only have 1 frame, we repeat it to avoid interpolating to D=0.
             if frame_tensor.ndim == 4:
-                frame_tensor = frame_tensor.unsqueeze(2)
+                # Expects (B, C, T, H, W)
+                frame_tensor = frame_tensor.unsqueeze(2).repeat(1, 1, 16, 1, 1)
+            elif frame_tensor.ndim == 5 and frame_tensor.shape[2] == 1:
+                frame_tensor = frame_tensor.repeat(1, 1, 16, 1, 1)
 
             latent = self.encoder(frame_tensor.to(self.device))
             self.latent_context = latent
