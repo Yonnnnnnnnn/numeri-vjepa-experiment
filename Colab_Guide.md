@@ -10,22 +10,47 @@ Panduan menjalankan **V2 Inference Pipeline** di Google Colab dengan clone langs
 
 ---
 
-## Langkah 0: Bersihkan Runtime (Opsional tapi Disarankan)
+## Langkah 0: Bersihkan & Siapkan Runtime (WAJIB)
 
-Jika Anda mendapatkan error NumPy 2.x, lakukan ini:
-**Menu: Runtime -> Disconnect and delete runtime.** Lalu hubungkan kembali.
+Untuk menghindari konflik **NumPy 2.x** dan **Torch**, jalankan ini di cell pertama:
+
+```python
+# 1. Uninstall paket bermasalah
+!pip uninstall -y numpy torch torchvision torchaudio jax jaxlib
+
+# 2. Install versi stabil (Legacy Compat)
+!pip install numpy==1.26.4
+!pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cu121
+!pip install jax==0.4.33 jaxlib==0.4.33
+```
 
 ## Langkah 1: Clone Repository & Instalasi (PENTING)
 
 Jalankan cell ini. Jika repository Anda **Private**, masukkan **GitHub Token** saat diminta.
 
 ```python
+import sys
 import os
 import subprocess
 
-# 1. Konfigurasi
-REPO_URL = "https://github.com/Yonnnnnnnnn/numeri-vjepa-experiment.git"
-PROJECT_DIR = "/content/numeri-vjepa-experiment"
+# Base path
+REPO_PATH = "/content/numeri-vjepa-experiment"
+PROJECT_DIR = REPO_PATH # Alias for consistency with existing code
+REPO_URL = "https://github.com/Yonnnnnnnnn/numeri-vjepa-experiment.git" # Keep original REPO_URL
+
+# 1. Fix Depth-Anything V2 Package (ensure __init__.py exists)
+DEPTH_PKG_PATH = f"{REPO_PATH}/Techs/Depth-Anything-V2-main/Depth-Anything-V2-main/depth_anything_v2"
+if os.path.exists(DEPTH_PKG_PATH):
+    init_file = os.path.join(DEPTH_PKG_PATH, "__init__.py")
+    if not os.path.exists(init_file):
+        with open(init_file, 'w') as f:
+            f.write("# Auto-generated package init\n")
+        print("✅ Created missing __init__.py for depth_anything_v2")
+
+# 2. Add all Techs to path
+sys.path.append(REPO_PATH)
+sys.path.append(f"{REPO_PATH}/Implementation")
+
 
 def setup_repo():
     if os.path.exists(PROJECT_DIR):

@@ -50,6 +50,15 @@ DEPTH_ANYTHING_PATH = os.path.abspath(
 if DEPTH_ANYTHING_PATH not in sys.path:
     sys.path.insert(0, DEPTH_ANYTHING_PATH)
 
+# Ensure depth_anything_v2 is a valid package (fix for missing __init__.py in some environments)
+_pkg_init = os.path.join(DEPTH_ANYTHING_PATH, "depth_anything_v2/__init__.py")
+if os.path.exists(os.path.dirname(_pkg_init)) and not os.path.exists(_pkg_init):
+    try:
+        with open(_pkg_init, "w") as f:
+            f.write("# Auto-generated package init\n")
+    except Exception:
+        pass
+
 
 @dataclass
 class DepthResult:

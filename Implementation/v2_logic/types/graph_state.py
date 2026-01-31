@@ -45,8 +45,14 @@ def merge_perception(
     old: "PerceptionState", new: "PerceptionState"
 ) -> "PerceptionState":
     """Reducer to merge perception state updates."""
-    # We use model_copy with update to merge the pydantic model fields
-    # Fields in 'new' that are not None/default will override 'old'
+    # Updates from 'new' override 'old' for non-None/unset fields
+    updates = new.model_dump(exclude_unset=True)
+    return old.model_copy(update=updates)
+
+
+def merge_decision(old: "DecisionState", new: "DecisionState") -> "DecisionState":
+    """Reducer to merge decision state updates."""
+    # Updates from 'new' override 'old' for non-None/unset fields
     updates = new.model_dump(exclude_unset=True)
     return old.model_copy(update=updates)
 
@@ -247,7 +253,7 @@ class RecursiveFlowState(TypedDict):
 
     ctx: GlobalContext
     perception: Annotated[PerceptionState, merge_perception]
-    decision: DecisionState
+    decision: Annotated[DecisionState, merge_decision]
     output: OutputAccumulator
 
 
