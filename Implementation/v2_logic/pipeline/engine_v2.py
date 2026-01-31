@@ -199,44 +199,67 @@ def run_v2_visualizer(
         frame_buffer.append(frame_tensor_resized)
         status = "Active Planning"
 
-        if len(frame_buffer) == 16:
+        if len(frame_buffer) == 16 or frame_idx == 1:
             status = "Analysis Loop"
-            input_batch = (
-                torch.stack(frame_buffer).permute(1, 0, 2, 3).unsqueeze(0).to(device)
-            )
+            # For the very first frame, we use it directly as the "batch" for visualization
+            if frame_idx == 1:
+                input_batch = (
+                    frame_tensor_resized.unsqueeze(0)
+                    .unsqueeze(2)
+                    .repeat(1, 1, 16, 1, 1)
+                    .to(device)
+                )
+            else:
+                input_batch = (
+                    torch.stack(frame_buffer)
+                    .permute(1, 0, 2, 3)
+                    .unsqueeze(0)
+                    .to(device)
+                )
 
             # Run Brain & Executor
-            _ = brain.encode(input_batch)
-            current_count, boxes = executor.count_frame(
-                input_batch[:, :, -1, :, :], prompt=intent
-            )
+            try:
+                _ = brain.encode(input_batch)
+                current_count, boxes = executor.count_frame(
+                    input_batch[:, :, -1, :, :], prompt=intent
+                )
+            except Exception as e:
+                logger.error("[Brain/Executor] Error: %s", e)
+                boxes = []
 
             # Run SAM2 Segmentation
-            seg_result = segmenter.segment_frame(frame)
-            ai_overlay = segmenter.visualize_masks(frame, seg_result)
+            try:
+                seg_result = segmenter.segment_frame(frame)
+                ai_overlay = segmenter.visualize_masks(frame, seg_result)
 
-            # Draw CountGD Boxes on top of SAM2 masks
-            for box in boxes:
-                cv2.rectangle(
-                    ai_overlay, (box[0], box[1]), (box[2], box[3]), (0, 255, 255), 2
-                )
-                cv2.putText(
-                    ai_overlay,
-                    intent,
-                    (box[0], box[1] - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.4,
-                    (0, 255, 255),
-                    1,
-                )
+                # Draw CountGD Boxes on top of SAM2 masks
+                for box in boxes:
+                    cv2.rectangle(
+                        ai_overlay, (box[0], box[1]), (box[2], box[3]), (0, 255, 255), 2
+                    )
+                    cv2.putText(
+                        ai_overlay,
+                        intent,
+                        (box[0], box[1] - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.4,
+                        (0, 255, 255),
+                        1,
+                    )
+            except Exception as e:
+                logger.error("[Segmentation] Error: %s", e)
 
             # Run Depth Estimation
-            depth_result = depther.estimate_depth(frame)
-            depth_overlay = depther.visualize_depth(depth_result.depth_map)
+            try:
+                depth_result = depther.estimate_depth(frame)
+                depth_overlay = depther.visualize_depth(depth_result.depth_map)
+            except Exception as e:
+                logger.error("[Depth] Error: %s", e)
 
-            temporal_counts.append((timestamp, current_count))
-            final_tally = executor.tally_unique(temporal_counts)
-            frame_buffer = []
+            if frame_idx > 1:
+                temporal_counts.append((timestamp, current_count))
+                final_tally = executor.tally_unique(temporal_counts)
+                frame_buffer = []
 
         # 3. Assemble 2x2 Grid
         dash_frame = draw_dashboard(frame, intent, current_count, final_tally, status)
