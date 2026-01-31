@@ -12,13 +12,14 @@ Panduan menjalankan **V2 Inference Pipeline** di Google Colab dengan clone langs
 
 ## Langkah 0: Bersihkan & Siapkan Runtime (WAJIB)
 
-Untuk menghindari konflik **NumPy 2.x** dan **Torch**, jalankan ini di cell pertama:
+Untuk menghindari konflik **NumPy 2.x** dan **Torchvision**, jalankan ini di cell pertama:
 
 ```python
-# 1. Uninstall paket bermasalah
+# 1. Uninstall paket bermasalah sepenuhnya
 !pip uninstall -y numpy torch torchvision torchaudio jax jaxlib
 
-# 2. Install versi stabil (Legacy Compat)
+# 2. Install versi stabil (Legacy Compat - CU121 adalah standard Colab T4)
+# Kita gunakan versi yang dijamin kompatibel satu sama lain
 !pip install numpy==1.26.4
 !pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cu121
 !pip install jax==0.4.33 jaxlib==0.4.33
@@ -35,45 +36,40 @@ import subprocess
 
 # Base path
 REPO_PATH = "/content/numeri-vjepa-experiment"
-PROJECT_DIR = REPO_PATH # Alias for consistency with existing code
-REPO_URL = "https://github.com/Yonnnnnnnnn/numeri-vjepa-experiment.git" # Keep original REPO_URL
-
-# 1. Fix Depth-Anything V2 Package (ensure __init__.py exists)
-DEPTH_PKG_PATH = f"{REPO_PATH}/Techs/Depth-Anything-V2-main/Depth-Anything-V2-main/depth_anything_v2"
-if os.path.exists(DEPTH_PKG_PATH):
-    init_file = os.path.join(DEPTH_PKG_PATH, "__init__.py")
-    if not os.path.exists(init_file):
-        with open(init_file, 'w') as f:
-            f.write("# Auto-generated package init\n")
-        print("✅ Created missing __init__.py for depth_anything_v2")
-
-# 2. Add all Techs to path
-sys.path.append(REPO_PATH)
-sys.path.append(f"{REPO_PATH}/Implementation")
-
+PROJECT_DIR = REPO_PATH
+REPO_URL = "https://github.com/Yonnnnnnnnn/numeri-vjepa-experiment.git"
 
 def setup_repo():
     if os.path.exists(PROJECT_DIR):
         print(f"✅ Repository sudah ada di: {PROJECT_DIR}")
         %cd $PROJECT_DIR
         !git pull origin master
-        return True
-
-    print("📥 Cloning repository...")
-    # Coba clone publik dulu
-    res = subprocess.run(["git", "clone", REPO_URL, PROJECT_DIR])
-
-    if res.returncode != 0:
-        print("\n⚠️ ERROR: Gagal clone. Repo mungkin private.")
-        token = input("Masukkan GitHub Personal Access Token (PAT): ").strip()
-        if token:
+    else:
+        print("📥 Cloning repository...")
+        res = subprocess.run(["git", "clone", REPO_URL, PROJECT_DIR])
+        if res.returncode != 0:
+            token = input("Masukkan GitHub PAT: ").strip()
             REPO_URL_TOKEN = REPO_URL.replace("https://", f"https://{token}@")
             !git clone {REPO_URL_TOKEN} {PROJECT_DIR}
-        else:
-            print("❌ Tidak ada token. Proses dibatalkan.")
-            return False
+        %cd $PROJECT_DIR
 
-    %cd $PROJECT_DIR
+    # 1. Fix Depth-Anything V2 Package (ensure __init__.py exists)
+    # Ini krusial agar 'import depth_anything_v2' tidak gagal
+    DEPTH_PKG_PATH = f"{PROJECT_DIR}/Techs/Depth-Anything-V2-main/Depth-Anything-V2-main/depth_anything_v2"
+    if os.path.exists(DEPTH_PKG_PATH):
+        init_file = os.path.join(DEPTH_PKG_PATH, "__init__.py")
+        if not os.path.exists(init_file):
+            with open(init_file, 'w') as f:
+                f.write("# Auto-generated package init\n")
+            print("✅ Created missing __init__.py for depth_anything_v2")
+
+    # 2. Add to sys.path
+    if PROJECT_DIR not in sys.path:
+        sys.path.append(PROJECT_DIR)
+        sys.path.append(os.path.join(PROJECT_DIR, "Implementation"))
+        # Add DepthAnything direct parent so it can be imported as a package
+        sys.path.append(os.path.join(PROJECT_DIR, "Techs/Depth-Anything-V2-main/Depth-Anything-V2-main"))
+
     return True
 
 if setup_repo():
@@ -82,16 +78,13 @@ if setup_repo():
     !apt-get update && apt-get install -y ffmpeg libsm6 libxext6 -qq
 
     # 3. Install Python Dependencies
-    print("🐍 Installing python dependencies (duduk manis, ini butuh 1-2 menit)...")
-
-    # [CRITICAL] Update Pip & Install Core Binaries First
+    print("🐍 Installing python dependencies...")
     !pip install --upgrade pip setuptools wheel -q
 
-    # [CRITICAL] Force Install NumPy 1.26.4 & Transformers stack using pre-built binaries
-    # Ini mencegah error 'Failed building wheel for tokenizers'
-    !pip install numpy==1.26.4 transformers tokenizers --prefer-binary -q
+    # Pre-install transformers with binary focus to avoid build errors
+    !pip install transformers==4.33.0 tokenizers --prefer-binary -q
 
-    # [CRITICAL] Dependencies for Model Engines
+    # Dependencies for Model Engines
     !pip install hydra-core omegaconf -q
     !pip install -e Techs/v2e-master/v2e-master -q
     !pip install -e Techs/sam2-main/sam2-main -q
@@ -99,16 +92,8 @@ if setup_repo():
     !pip install huggingface_hub[hf_xet] addict yapf langgraph pydantic pydantic-settings scipy -q
 
     import numpy as np
-    print(f"📊 NumPy Version installed: {np.__version__}")
-    if np.__version__.startswith("2"):
-         print("⚠️ WARNING: NumPy masih 2.x terbaca di kernel ini. Pastikan RESTART SESSION dilakukan.")
-
-    print("\n✅ Instalasi Selesai!")
-    print("🚀 PENTING: Lakukan RESTART MANUAL SEKARANG.")
-    print("Menu: Runtime -> Restart session")
-
-else:
-    print("❌ Setup gagal.")
+    print(f"✅ Instalasi Selesai! NumPy: {np.__version__}")
+    print("🚀 PENTING: Lakukan RESTART SESSION (Menu: Runtime -> Restart session)")
 ```
 
 ---

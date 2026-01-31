@@ -211,10 +211,11 @@ class CountGDEngine:
         rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         tensor = torch.from_numpy(rgb).permute(2, 0, 1).float().unsqueeze(0) / 255.0
 
-        count_val = self.count_frame(tensor, prompt=prompt)
+        # count_frame returns (pred_count, pixel_boxes)
+        count_val, detections = self.count_frame(tensor, prompt=prompt)
 
-        # Return count and empty detections (detections are not yet fully implemented in CountGD wrapper)
-        return count_val, []
+        # Return just the count and detections to the node
+        return int(count_val), detections
 
     def count_frame(self, frame_tensor, exemplars=None, prompt="items"):
         """
