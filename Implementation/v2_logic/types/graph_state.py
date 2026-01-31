@@ -35,9 +35,20 @@ Pattern: Data Transfer Object (DTO)
 - Provides validation and serialization via Pydantic.
 """
 
-from typing import Any, Dict, List, Literal, Optional, Tuple, TypedDict
+import operator
+from typing import Annotated, Any, Dict, List, Literal, Optional, Tuple, TypedDict
 
 from pydantic import BaseModel, Field
+
+
+def merge_perception(
+    old: "PerceptionState", new: "PerceptionState"
+) -> "PerceptionState":
+    """Reducer to merge perception state updates."""
+    # We use model_copy with update to merge the pydantic model fields
+    # Fields in 'new' that are not None/default will override 'old'
+    updates = new.model_dump(exclude_unset=True)
+    return old.model_copy(update=updates)
 
 
 # =============================================================================
@@ -235,7 +246,7 @@ class RecursiveFlowState(TypedDict):
     """
 
     ctx: GlobalContext
-    perception: PerceptionState
+    perception: Annotated[PerceptionState, merge_perception]
     decision: DecisionState
     output: OutputAccumulator
 

@@ -24,9 +24,27 @@ class BertModelWarper(nn.Module):
         self.encoder = bert_model.encoder
         self.pooler = bert_model.pooler
 
-        self.get_extended_attention_mask = bert_model.get_extended_attention_mask
-        self.invert_attention_mask = bert_model.invert_attention_mask
-        self.get_head_mask = bert_model.get_head_mask
+        self.get_extended_attention_mask = getattr(
+            bert_model, "get_extended_attention_mask", None
+        )
+        self.invert_attention_mask = getattr(bert_model, "invert_attention_mask", None)
+        self.get_head_mask = getattr(bert_model, "get_head_mask", None)
+
+        # Fallback for newer transformers versions where these are private or moved
+        if self.get_head_mask is None:
+            self.get_head_mask = getattr(bert_model, "_get_head_mask", None)
+
+        # If still missing, provide a dummy helper
+        if self.get_head_mask is None:
+
+            def dummy_get_head_mask(
+                head_mask, num_hidden_layers, is_attention_chunked=False
+            ):
+                if head_mask is not None:
+                    return head_mask
+                return [None] * num_hidden_layers
+
+            self.get_head_mask = dummy_get_head_mask
 
     def forward(
         self,
@@ -65,14 +83,18 @@ class BertModelWarper(nn.Module):
             decoding (see :obj:`past_key_values`).
         """
         output_attentions = (
-            output_attentions if output_attentions is not None else self.config.output_attentions
+            output_attentions
+            if output_attentions is not None
+            else self.config.output_attentions
         )
         output_hidden_states = (
             output_hidden_states
             if output_hidden_states is not None
             else self.config.output_hidden_states
         )
-        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+        return_dict = (
+            return_dict if return_dict is not None else self.config.use_return_dict
+        )
 
         if self.config.is_decoder:
             use_cache = use_cache if use_cache is not None else self.config.use_cache
@@ -80,7 +102,9 @@ class BertModelWarper(nn.Module):
             use_cache = False
 
         if input_ids is not None and inputs_embeds is not None:
-            raise ValueError("You cannot specify both input_ids and inputs_embeds at the same time")
+            raise ValueError(
+                "You cannot specify both input_ids and inputs_embeds at the same time"
+            )
         elif input_ids is not None:
             input_shape = input_ids.size()
             batch_size, seq_length = input_shape
@@ -113,11 +137,15 @@ class BertModelWarper(nn.Module):
         # If a 2D or 3D attention mask is provided for the cross-attention
         # we need to make broadcastable to [batch_size, num_heads, seq_length, seq_length]
         if self.config.is_decoder and encoder_hidden_states is not None:
-            encoder_batch_size, encoder_sequence_length, _ = encoder_hidden_states.size()
+            encoder_batch_size, encoder_sequence_length, _ = (
+                encoder_hidden_states.size()
+            )
             encoder_hidden_shape = (encoder_batch_size, encoder_sequence_length)
             if encoder_attention_mask is None:
                 encoder_attention_mask = torch.ones(encoder_hidden_shape, device=device)
-            encoder_extended_attention_mask = self.invert_attention_mask(encoder_attention_mask)
+            encoder_extended_attention_mask = self.invert_attention_mask(
+                encoder_attention_mask
+            )
         else:
             encoder_extended_attention_mask = None
         # if os.environ.get('IPDB_SHILONG_DEBUG', None) == 'INFO':
@@ -151,7 +179,9 @@ class BertModelWarper(nn.Module):
             return_dict=return_dict,
         )
         sequence_output = encoder_outputs[0]
-        pooled_output = self.pooler(sequence_output) if self.pooler is not None else None
+        pooled_output = (
+            self.pooler(sequence_output) if self.pooler is not None else None
+        )
 
         if not return_dict:
             return (sequence_output, pooled_output) + encoder_outputs[1:]
@@ -197,7 +227,10 @@ def generate_masks_with_special_tokens(tokenized, special_tokens_list, tokenizer
 
     # generate attention mask and positional ids
     attention_mask = (
-        torch.eye(num_token, device=input_ids.device).bool().unsqueeze(0).repeat(bs, 1, 1)
+        torch.eye(num_token, device=input_ids.device)
+        .bool()
+        .unsqueeze(0)
+        .repeat(bs, 1, 1)
     )
     position_ids = torch.zeros((bs, num_token), device=input_ids.device)
     previous_col = 0
@@ -207,7 +240,9 @@ def generate_masks_with_special_tokens(tokenized, special_tokens_list, tokenizer
             attention_mask[row, col, col] = True
             position_ids[row, col] = 0
         else:
-            attention_mask[row, previous_col + 1 : col + 1, previous_col + 1 : col + 1] = True
+            attention_mask[
+                row, previous_col + 1 : col + 1, previous_col + 1 : col + 1
+            ] = True
             position_ids[row, previous_col + 1 : col + 1] = torch.arange(
                 0, col - previous_col, device=input_ids.device
             )
@@ -221,7 +256,9 @@ def generate_masks_with_special_tokens(tokenized, special_tokens_list, tokenizer
     return attention_mask, position_ids.to(torch.long)
 
 
-def generate_masks_with_special_tokens_and_transfer_map(tokenized, special_tokens_list, tokenizer):
+def generate_masks_with_special_tokens_and_transfer_map(
+    tokenized, special_tokens_list, tokenizer
+):
     """Generate attention mask between each pair of special tokens
     Args:
         input_ids (torch.Tensor): input ids. Shape: [bs, num_token]
@@ -241,7 +278,10 @@ def generate_masks_with_special_tokens_and_transfer_map(tokenized, special_token
 
     # generate attention mask and positional ids
     attention_mask = (
-        torch.eye(num_token, device=input_ids.device).bool().unsqueeze(0).repeat(bs, 1, 1)
+        torch.eye(num_token, device=input_ids.device)
+        .bool()
+        .unsqueeze(0)
+        .repeat(bs, 1, 1)
     )
     position_ids = torch.zeros((bs, num_token), device=input_ids.device)
     cate_to_token_mask_list = [[] for _ in range(bs)]
@@ -252,7 +292,9 @@ def generate_masks_with_special_tokens_and_transfer_map(tokenized, special_token
             attention_mask[row, col, col] = True
             position_ids[row, col] = 0
         else:
-            attention_mask[row, previous_col + 1 : col + 1, previous_col + 1 : col + 1] = True
+            attention_mask[
+                row, previous_col + 1 : col + 1, previous_col + 1 : col + 1
+            ] = True
             position_ids[row, previous_col + 1 : col + 1] = torch.arange(
                 0, col - previous_col, device=input_ids.device
             )

@@ -62,11 +62,18 @@ if setup_repo():
     # [CRITICAL] Force Install NumPy 1.26.4 PERTAMA KALI
     !pip install numpy==1.26.4 --force-reinstall -q
 
-    # Force install stable torch stack
-    !pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 -q
-    !pip install --upgrade transformers -q
+    # [CRITICAL] Update Build Tools to avoid 'tokenizers' build failure
+    !pip install --upgrade pip setuptools wheel -q
+    !pip install tokenizers -q
+
+    # [CRITICAL] Dependencies for SAM2 & DepthAnything
+    !pip install hydra-core omegaconf -q
+
+    # Use modern stable transformers (robustified by bertwarper.py fix)
+    !pip install transformers -q
 
     !pip install -e Techs/v2e-master/v2e-master -q
+    !pip install -e Techs/sam2-main/sam2-main -q
     !pip install timm einops submitit sentencepiece protobuf scikit-learn bitsandbytes accelerate -q
     !pip install huggingface_hub[hf_xet] addict yapf langgraph pydantic pydantic-settings scipy -q
 

@@ -12,7 +12,7 @@ Start Symbol : StrangeLoopPlan (this document)
 
 Non-Terminals :
 ┌─ INTERNAL (Implementation Strategies) ────────────────────────────────────┐
-│ <RecursiveIntent> → VL-JEPA ↔ CountGD feedback loop │
+│ <RecursiveIntent> → VL-JEPA ↔ (CountGD + SAM2) feedback loop │
 │ <SensoryPredictive> → v2e ↔ V-JEPA threshold adaptation │
 │ <SemanticKinetic> → VL-JEPA ↔ V-JEPA category reflection │
 │ <MetaCognitive> → FusionEngine self-monitoring & strategy shift │
@@ -22,7 +22,8 @@ Non-Terminals :
 │ <VLJEPAEngine> ← from v2_logic.models (Director) │
 │ <VJEPAEngine> ← from v2_logic.models (Brain/Predictor) │
 │ <V2EEngine> ← from v2_logic.models (Sensor) │
-│ <CountGDEngine> ← from v2_logic.models (Executor) │
+│ <CountGDEngine> ← from v2_logic.models (Visual Executor) │
+│ <SAM2Engine> ← from v2_logic.models (Volumetric Executor) │
 │ <FusionEngine> ← from v2_logic.models (Observer) │
 └───────────────────────────────────────────────────────────────────────────┘
 
@@ -38,17 +39,17 @@ StrangeLoopPlan → <RecursiveIntent> + <SensoryPredictive> +
 
 Untuk memastikan implementasi Strange Loop kita memiliki pondasi yang kuat sesuai buku _Gödel, Escher, Bach_, kita mengadopsi 5 konsep utama berikut:
 
-1. **Formal Systems**: AI kita (PaliGemma, CountGD) adalah sistem formal dengan aturan kaku (_weights_). Strange Loop memungkinkan sistem untuk "keluar" dari keterbatasan aturan kaku tersebut saat mendeteksi anomali.
-2. **Figure vs Ground**: Krusial untuk CountGD. Sistem harus mampu membedakan objek (_Figure_) dari latar belakang (_Ground_). Strange Loop membantu mendefinisikan ulang apa itu _Ground_ jika ada objek yang terlewat.
+1. **Formal Systems**: AI kita (PaliGemma, SAM2) adalah sistem formal dengan aturan kaku (_weights_). Strange Loop memungkinkan sistem untuk "keluar" dari keterbatasan aturan kaku tersebut saat mendeteksi anomali.
+2. **Figure vs Ground**: Krusial untuk SAM2. Sistem harus mampu membedakan objek (_Figure_) dari latar belakang (_Ground_). Strange Loop membantu mendefinisikan ulang apa itu _Ground_ jika ada objek yang terlewat.
 3. **Recursion**: Terwujud dalam _Recursive Intent_. Output dari satu proses (hasil hitung) menjadi input untuk memodifikasi proses itu sendiri di masa depan.
 4. **Levels of Description**: Sistem kita bergerak di antara level spike (v2e), level latent (V-JEPA), dan level semantik (VL-JEPA). Kesadaran fungsional muncul dari kemampuan translasi antar level ini.
 5. **Isomorphism**: Model dunia internal di V-JEPA harus _isomorfik_ (memiliki struktur yang sama) dengan dunia fisik nyata. Strange Loop dipicu ketika isomorphisme ini rusak (misal: prediksi gerakan tidak sesuai kenyataan).
 
 # Strange Loop Future Implementation List
 
-1. **Recursive Intent (VL-JEPA ↔ CountGD)**
-   - **Konsep**: Mekanisme umpan balik di mana hasil perhitungan CountGD (Executor) dapat mengubah identitas objek (Intent) yang ditetapkan oleh VL-JEPA (Director).
-   - **Tujuan**: Memperbaiki kesalahan klasifikasi awal dan memungkinkan **Multi-Object Counting** secara dinamis (sistem dapat menemukan dan menghitung lebih dari satu tipe objek meskipun tidak semua disebutkan di awal).
+1. **Recursive Intent (VL-JEPA ↔ CountGD/SAM2)**
+   - **Konsep**: Mekanisme umpan balik di mana hasil perhitungan CountGD (Visual) dan SAM2 (Volume) dapat mengubah identitas objek (Intent) yang ditetapkan oleh VL-JEPA (Director).
+   - **Tujuan**: Memperbaiki kesalahan klasifikasi awal dan memungkinkan **Multi-Object Counting** secara dinamis melalui validasi silang antara hitungan visual dan fisik.
 
 2. **Sensory-Predictive Loop (v2e ↔ V-JEPA)**
    - **Konsep**: Prediksi temporal dari V-JEPA (Otak) secara dinamis memodifikasi ambang batas (threshold) spike pada v2e (Mata).
@@ -61,3 +62,6 @@ Untuk memastikan implementasi Strange Loop kita memiliki pondasi yang kuat sesua
 4. **Meta-Cognitive Loop (FusionEngine Self-Monitoring)**
    - **Konsep**: FusionEngine memantau tingkat keraguan (low confidence) dan tingkat kejutan (high surprise) sistem secara keseluruhan untuk melakukan pergeseran strategi (misal: pelambatan gerakan atau peningkatan resolusi).
    - **Tujuan**: Kesadaran fungsional sistem tentang kinerjanya sendiri dan kemampuan untuk memodifikasi algoritmanya secara runtime.
+5. **PointBeam 3D Inference (Temporal 3D Projection)**
+   - **Konsep**: Mengadopsi teknik _PointBeam_ (WACV 2023) dengan memproyeksikan deteksi 2D ke dalam ruang 3D temporal yang dibangun dari akumulasi spike `v2e`.
+   - **Tujuan**: Menghitung objek yang tertutup (occluded) dalam tumpukan padat dengan menganalisis "kedalaman temporal" dan volume fitur geometris.

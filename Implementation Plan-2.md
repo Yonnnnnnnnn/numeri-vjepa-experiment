@@ -7,7 +7,7 @@ The following technologies have been verified in the `Techs/` directory and will
 - **Input Layer**: `Techs/v2e-master/v2e-master` ([SensorsINI/v2e](https://github.com/SensorsINI/v2e))
 - **The Director**: `Techs/VL-JEPA-main/VL-JEPA-main` ([JosefAlbers/VL-JEPA](https://github.com/JosefAlbers/VL-JEPA))
 - **The Brain**: `Techs/jepa-main/jepa-main` ([facebookresearch/jepa](https://github.com/facebookresearch/jepa))
-- **The Executor**: `Techs/CountGD-main/CountGD-main` ([niki-amini-naieni/CountGD](https://github.com/niki-amini-naieni/CountGD))
+- **The Executor**: `Techs/SAM2-main/SAM2-main` ([niki-amini-naieni/SAM2](https://github.com/niki-amini-naieni/SAM2))
 
 ---
 
@@ -58,14 +58,14 @@ Summary: Move from 2D temporal memory to a 3D persistent world model.
 
 ---
 
-### [Component] The Executor: Counting (CountGD)
+### [Component] The Executor: Counting (SAM2)
 
 Summary: Precise ID assignment and mathematical enumeration using Generalized Detection.
 
 #### [NEW] [countgd_executor.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/src/models/countgd_executor.py)
 
-- Context: Integrates `Techs/CountGD-main/CountGD-main` (GroundingDINO Engine).
-- Function: Performs temporal filtering and final tallying based on CountGD logic.
+- Context: Integrates `Techs/SAM2-main/SAM2-main` (GroundingDINO Engine).
+- Function: Performs temporal filtering and final tallying based on SAM2 logic.
 
 ---
 
@@ -75,7 +75,7 @@ Summary: Orchestrate the V2 flow and visualize spatial confidence.
 
 #### [MODIFY] [engine.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/src/pipeline/engine.py)
 
-- Rewrite orchestrator to execute: `v2e -> VL-JEPA -> V-JEPA 2 -> CountGD`.
+- Rewrite orchestrator to execute: `v2e -> VL-JEPA -> V-JEPA 2 -> SAM2`.
 
 #### [MODIFY] [main.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/main.py)
 

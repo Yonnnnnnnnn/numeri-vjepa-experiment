@@ -50,7 +50,7 @@ from typing import Any, Dict, Literal, Optional
 
 import numpy as np
 
-from langgraph.graph import END, START, StateGraph
+from langgraph.graph import END, START, StateGraph  # pylint: disable=import-error
 
 from ..types.graph_state import (
     DecisionState,
@@ -269,7 +269,7 @@ def vjepa_brain_node(state: RecursiveFlowState) -> Dict[str, Any]:
         if img.shape[0] != 224 or img.shape[1] != 224:
             import cv2
 
-            img = cv2.resize(img, (224, 224))
+            img = cv2.resize(img, (224, 224))  # pylint: disable=no-member
 
         tensor = torch.from_numpy(img).permute(2, 0, 1).float().unsqueeze(0) / 255.0
         # V-JEPA expects frames=16 for full encode,
