@@ -115,15 +115,17 @@ def setup_repo():
     needed_techs = {
         "Depth-Anything-V2-main/Depth-Anything-V2-main": "https://github.com/depth-anything/Depth-Anything-V2.git",
         "sam2-main/sam2-main": "https://github.com/facebookresearch/sam2.git",
-        "CountGD-main/CountGD-main": "https://github.com/YosuaNa/CountGD.git" # Asumsi repo backup/fork jika aslinya hilang
+        "v2e-master/v2e-master": "https://github.com/YosuaNa/v2e.git", # Fork with Python 3.12 fixes
+        "CountGD-main/CountGD-main": "https://github.com/niki-amini-naieni/CountGD.git"
     }
 
     for folder, url in needed_techs.items():
         full_path = os.path.join(TECHS_DIR, folder)
         if not os.path.exists(full_path):
             print(f"⚠️ Folder {folder} hilang! Mendownload dari source...")
-            target_path = os.path.dirname(full_path)
-            os.makedirs(target_path, exist_ok=True)
+            # Kita buat manual nested structure-nya agar cocok dengan path engine.py
+            target_parent = os.path.dirname(full_path)
+            os.makedirs(target_parent, exist_ok=True)
             !git clone {url} {full_path}
 
     # 2. Fix Techs Package Init
