@@ -175,7 +175,7 @@ if setup_repo():
     import numpy as np
     import torch
     print(f"✅ Instalasi Selesai! NumPy: {np.__version__}, Torch: {torch.__version__}")
-    if np.version.release[0] == '2':
+    if np.__version__.startswith('2'):
         print("⚠️ WARNING: NumPy ter-upgrade ke 2.x! Menjalankan Emergency Downgrade...")
         !pip install numpy==1.26.4 -q
         import importlib
