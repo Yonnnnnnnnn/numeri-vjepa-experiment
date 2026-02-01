@@ -128,20 +128,27 @@ if setup_repo():
     print("🐍 Installing python dependencies...")
     !pip install --upgrade pip setuptools wheel -q
 
+    # Kita paksa paksa numpy==1.26.4 di setiap install agar pip tidak meng-upgrade-nya
     # [CRITICAL] Fix for 'Failed building wheel for tokenizers' on Python 3.12
-    # Kita force install binary dan gunakan versi yang mendukung Python 3.12
-    !pip install "tokenizers>=0.19" "transformers>=4.44.0" --only-binary :all: -q
+    !pip install "tokenizers>=0.19" "transformers>=4.44.0" numpy==1.26.4 --only-binary :all: -q
 
     # Dependencies for Model Engines
-    !pip install hydra-core omegaconf -q
+    !pip install hydra-core omegaconf numpy==1.26.4 -q
     !pip install -e Techs/v2e-master/v2e-master -q
     !pip install -e Techs/sam2-main/sam2-main -q
-    !pip install timm einops submitit sentencepiece protobuf scikit-learn bitsandbytes accelerate -q
-    !pip install huggingface_hub[hf_xet] addict yapf langgraph pydantic pydantic-settings scipy -q
+    !pip install timm einops submitit sentencepiece protobuf scikit-learn bitsandbytes accelerate numpy==1.26.4 -q
+    !pip install huggingface_hub[hf_xet] addict yapf langgraph pydantic pydantic-settings scipy numpy==1.26.4 -q
 
     import numpy as np
     import torch
     print(f"✅ Instalasi Selesai! NumPy: {np.__version__}, Torch: {torch.__version__}")
+    if np.version.release[0] == '2':
+        print("⚠️ WARNING: NumPy ter-upgrade ke 2.x! Menjalankan Emergency Downgrade...")
+        !pip install numpy==1.26.4 -q
+        import importlib
+        importlib.reload(np)
+        print(f"✅ NumPy Downgraded: {np.__version__}")
+
     print("🚀 PENTING: Lakukan RESTART SESSION (Menu: Runtime -> Restart session)")
 ```
 
