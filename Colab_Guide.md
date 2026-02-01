@@ -80,6 +80,21 @@ PROJECT_DIR = REPO_PATH
 REPO_URL = "https://github.com/Yonnnnnnnnn/numeri-vjepa-experiment.git"
 
 def setup_repo():
+    # 0. Emergency Patch for Torchvision Circular Import
+    import sys
+    try:
+        import torchvision
+        import torchvision.ops
+        import torch.nn as nn
+        if not hasattr(torchvision.ops, 'StochasticDepth'):
+            print("🩹 Applying Emergency Patch: torchvision.ops.StochasticDepth")
+            class StochasticDepth(nn.Module):
+                def __init__(self, p=0.1, mode="batch"): super().__init__()
+                def forward(self, x): return x
+            torchvision.ops.StochasticDepth = StochasticDepth
+    except Exception:
+        pass
+
     if os.path.exists(PROJECT_DIR):
         print(f"✅ Repository sudah ada di: {PROJECT_DIR}")
         %cd $PROJECT_DIR
@@ -93,8 +108,25 @@ def setup_repo():
             !git clone {REPO_URL_TOKEN} {PROJECT_DIR}
         %cd $PROJECT_DIR
 
-    # 1. Fix Depth-Anything V2 & Techs Package Init
-    # Ini krusial agar 'import depth_anything_v2' tidak gagal
+    # 1. Pastikan folder Techs Lengkap (Auto-Clone jika hilang)
+    TECHS_DIR = os.path.join(PROJECT_DIR, "Techs")
+    os.makedirs(TECHS_DIR, exist_ok=True)
+
+    needed_techs = {
+        "Depth-Anything-V2-main/Depth-Anything-V2-main": "https://github.com/depth-anything/Depth-Anything-V2.git",
+        "sam2-main/sam2-main": "https://github.com/facebookresearch/sam2.git",
+        "CountGD-main/CountGD-main": "https://github.com/YosuaNa/CountGD.git" # Asumsi repo backup/fork jika aslinya hilang
+    }
+
+    for folder, url in needed_techs.items():
+        full_path = os.path.join(TECHS_DIR, folder)
+        if not os.path.exists(full_path):
+            print(f"⚠️ Folder {folder} hilang! Mendownload dari source...")
+            target_path = os.path.dirname(full_path)
+            os.makedirs(target_path, exist_ok=True)
+            !git clone {url} {full_path}
+
+    # 2. Fix Techs Package Init
     TECH_LIBS = [
         f"{PROJECT_DIR}/Techs/Depth-Anything-V2-main/Depth-Anything-V2-main/depth_anything_v2",
         f"{PROJECT_DIR}/Techs/CountGD-main/CountGD-main",
@@ -107,11 +139,10 @@ def setup_repo():
                     f.write("# Auto-generated package init\n")
                 print(f"✅ Created missing __init__.py for {os.path.basename(lib)}")
 
-    # 2. Add to sys.path
+    # 3. Add to sys.path
     if PROJECT_DIR not in sys.path:
         sys.path.append(PROJECT_DIR)
         sys.path.append(os.path.join(PROJECT_DIR, "Implementation"))
-        # Add DepthAnything direct parent so it can be imported as a package
         DEPTH_PARENT = os.path.join(PROJECT_DIR, "Techs/Depth-Anything-V2-main/Depth-Anything-V2-main")
         if DEPTH_PARENT not in sys.path:
             sys.path.append(DEPTH_PARENT)
