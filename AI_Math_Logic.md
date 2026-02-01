@@ -97,6 +97,13 @@ $$V_{total} = \sum_{i \in Mask} \Delta x_i \cdot \Delta y_i \cdot \Delta z_i$$
 Hasil ini kemudian dipetakan ke jumlah objek $N_{volumetric}$ berdasarkan prior volume per unit $V_{μ}$:
 $$N_{volumetric} = \text{round}(V_{total} / V_{μ})$$
 
+### 4.3. Isomorphic Coordinate Mapping (Scaling)
+
+Untuk sinkronisasi antara "Otak" (internal processing @ 224x224) dan "Mata" (Visualizer @ original resolution), kita menerapkan pemetaan isomorfik:
+$$u_{visual} = u_{latent} \times \frac{W_{video}}{W_{latent}}$$
+$$v_{visual} = v_{latent} \times \frac{H_{video}}{H_{latent}}$$
+Hal ini memastikan metadata anomali dari $Exe$ dipetakan kembali secara akurat ke ruang observasi $Obs$.
+
 ## 5. Fixed Point (Titik Kesetimbangan)
 
 Dalam Category Theory, kesadaran fungsional sistem tercapai ketika $Int$ mencapai **Fixed Point** melalui rekursi berkali-kali:

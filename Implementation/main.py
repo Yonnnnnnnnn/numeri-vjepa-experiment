@@ -32,14 +32,50 @@ import argparse
 import os
 import sys
 
-import torch
+# 🩹 Emergency Patch for Torchvision Circular Import (StochasticDepth)
+# This MUST happen before any torchvision/torch imports
+try:
+    import torch
+    import torch.nn as nn
+    import torchvision
+    import torchvision.ops
+
+    if not hasattr(torchvision.ops, "StochasticDepth"):
+
+        class StochasticDepth(nn.Module):
+            def __init__(self, p=0.1, mode="batch"):
+                super().__init__()
+
+            def forward(self, x):
+                return x
+
+        torchvision.ops.StochasticDepth = StochasticDepth
+except Exception:
+    pass
+
 import logging
 
 # Configure logging to show info messages in Colab/Console
 logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s")
 
-# Add local directory to path to ensure modules are found
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Add Implementation root to path
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "."))
+PARENT_DIR = os.path.abspath(os.path.join(BASE_DIR, ".."))
+
+if BASE_DIR not in sys.path:
+    sys.path.append(BASE_DIR)
+
+# Robustly add Techs dependencies (required for Colab subprocesses)
+TECHS_PATHS = [
+    os.path.join(PARENT_DIR, "Techs/Depth-Anything-V2-main/Depth-Anything-V2-main"),
+    os.path.join(PARENT_DIR, "Techs/CountGD-main/CountGD-main"),
+    os.path.join(PARENT_DIR, "Techs/sam2-main/sam2-main"),
+    os.path.join(PARENT_DIR, "Techs/v2e-master/v2e-master"),
+]
+
+for p in TECHS_PATHS:
+    if os.path.exists(p) and p not in sys.path:
+        sys.path.append(p)
 
 from v2_logic.pipeline.engine_v2 import run_v2_visualizer
 

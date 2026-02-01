@@ -47,9 +47,9 @@ This document defines the interfaces between the core modules of the Antigravity
 
 ### 1.4. Executor (`CountGDEngine` & `SegmentationEngine`)
 
-- **`count(image: np.ndarray, prompt: str) -> (count, detections)`**
-  - Input: Raw frame and textual prompt.
-  - Output: Integer count and detection metadata.
+- **`count(image: np.ndarray, prompt: str, target_size: Optional[Tuple[int, int]]) -> (count, detections)`**
+  - Input: Raw frame, textual prompt, and optional target size for coordinate scaling.
+  - Output: Integer count and detection metadata (scaled to target_size if provided).
 - **`segment_frame(image: np.ndarray) -> SegmentResult`**
   - Input: Raw frame.
   - Output: List of binary masks and bounding boxes.

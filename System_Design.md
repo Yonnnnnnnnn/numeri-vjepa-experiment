@@ -46,4 +46,13 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 ## 2. Strange Loop Implementation
 
 - **Recursive Intent**: The system self-corrects its "Intent" based on counting anomalies.
-- **Sensory-Predictive Loop**: Expectations from the Brain modify the sensitivity of the Eyes (v2e).
+
+## 3. Environment Stability & Coordination
+
+### 3.1. Infrastructure Patches
+
+Sistem menerapkan **StochasticDepth Patch** secara otomatis pada level paket (`v2_logic/__init__.py`) untuk memitigasi _circular import errors_ di sistem multi-proses (Google Colab/HPC).
+
+### 3.2. Coordinate Coordination
+
+Pemetaan spasial disinkronkan antara loop logika (224x224) dan visualizer (resolusi asli video) melalui transformasi koordinat linier untuk memastikan representasi anomali yang akurat.

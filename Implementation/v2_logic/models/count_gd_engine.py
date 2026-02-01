@@ -29,6 +29,7 @@ Production Rules:
 import logging
 import os
 import sys
+from typing import Dict, List, Optional, Tuple
 
 import cv2  # pylint: disable=no-member
 import numpy as np
@@ -199,13 +200,21 @@ class CountGDEngine:
             logger.error("[CountGD] Using mock counting as fallback")
             self.model = None
 
-    def count(self, image: np.ndarray, prompt: str = "items"):
+    def count(
+        self,
+        image: np.ndarray,
+        prompt: str = "items",
+        target_size: Optional[Tuple[int, int]] = None,
+    ):
         """
         Convenience method for the LangGraph controller.
         Handles numpy to tensor conversion.
-        """
-        import torch
 
+        Args:
+            image: BGR image.
+            prompt: Text prompt for counting.
+            target_size: Optional (width, height) to scale results back to.
+        """
         # Convert numpy to tensor [B, C, H, W]
         # image is (H, W, 3) BGR
         rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -213,6 +222,20 @@ class CountGDEngine:
 
         # count_frame returns (pred_count, pixel_boxes)
         count_val, detections = self.count_frame(tensor, prompt=prompt)
+
+        # Scale detections if target size is provided
+        if target_size and detections:
+            h_orig, w_orig = tensor.shape[2], tensor.shape[3]
+            w_target, h_target = target_size
+            scaled_detections = []
+            for box in detections:
+                x1, y1, x2, y2 = box
+                x1 = int(x1 * w_target / w_orig)
+                y1 = int(y1 * h_target / h_orig)
+                x2 = int(x2 * w_target / w_orig)
+                y2 = int(y2 * h_target / h_orig)
+                scaled_detections.append([x1, y1, x2, y2])
+            detections = scaled_detections
 
         # Return just the count and detections to the node
         return int(count_val), detections

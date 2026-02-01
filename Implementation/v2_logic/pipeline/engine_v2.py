@@ -220,8 +220,9 @@ def run_v2_visualizer(
             # Run Brain & Executor
             try:
                 _ = brain.encode(input_batch)
-                current_count, boxes = executor.count_frame(
-                    input_batch[:, :, -1, :, :], prompt=intent
+                # target_size=(w, h) ensures CountGD scales boxes from 224x224 back to video size
+                current_count, boxes = executor.count(
+                    frame, prompt=intent, target_size=(w, h)
                 )
             except Exception as e:
                 logger.error("[Brain/Executor] Error: %s", e)

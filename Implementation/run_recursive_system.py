@@ -31,15 +31,55 @@ Pattern: Command (Script)
 
 import os
 import sys
+
+# 🩹 Emergency Patch for Torchvision Circular Import (StochasticDepth)
+# This MUST happen before any torchvision/torch imports
+try:
+    import torch
+    import torch.nn as nn
+    import torchvision
+    import torchvision.ops
+
+    if not hasattr(torchvision.ops, "StochasticDepth"):
+
+        class StochasticDepth(nn.Module):
+            def __init__(self, p=0.1, mode="batch"):
+                super().__init__()
+
+            def forward(self, x):
+                return x
+
+        torchvision.ops.StochasticDepth = StochasticDepth
+except Exception:
+    pass
+
 import logging
 import cv2
 import time
 import numpy as np
-
 import argparse
 
 # Add Implementation root to path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".")))
+import os
+import sys
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "."))
+PARENT_DIR = os.path.abspath(os.path.join(BASE_DIR, ".."))
+
+if BASE_DIR not in sys.path:
+    sys.path.append(BASE_DIR)
+
+# Robustly add Techs dependencies (required for Colab subprocesses)
+TECHS_PATHS = [
+    os.path.join(PARENT_DIR, "Techs/Depth-Anything-V2-main/Depth-Anything-V2-main"),
+    os.path.join(PARENT_DIR, "Techs/CountGD-main/CountGD-main"),
+    os.path.join(PARENT_DIR, "Techs/sam2-main/sam2-main"),
+    os.path.join(PARENT_DIR, "Techs/v2e-master/v2e-master"),
+]
+
+for p in TECHS_PATHS:
+    if os.path.exists(p) and p not in sys.path:
+        sys.path.append(p)
 
 from v2_logic.controllers.recursive_flow import create_recursive_flow_app
 from v2_logic.types.graph_state import create_initial_state

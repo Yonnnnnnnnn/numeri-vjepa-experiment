@@ -322,8 +322,11 @@ def countgd_executor_node(state: RecursiveFlowState) -> Dict[str, Any]:
     perception = state["perception"]
 
     if engine and perception.image is not None:
-        # Real CountGD call
-        count_val, detections = engine.count(perception.image, intent)
+        # Real CountGD call - pass original image size as target for correct bboxes
+        h, w = perception.image.shape[:2]
+        count_val, detections = engine.count(
+            perception.image, intent, target_size=(w, h)
+        )
 
         updated_perception = perception.model_copy(
             update={
