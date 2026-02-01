@@ -247,6 +247,9 @@ except Exception:
 
 ```python
 !python Implementation/scripts/download_v2_weights.py
+
+> [!NOTE]
+> Per **2026-02-02**: Perbaikan "Visualizer vs Logic" (Coordinate Scaling & StochasticDepth Patch) sekarang sudah diinjeksi langsung ke dalam file `.py`. Anda tidak perlu lagi melakukan patching manual di cell Colab. Cukup jalankan Langkah 5 di bawah.
 ```
 
 ### 4.2 Download CountGD Checkpoints
