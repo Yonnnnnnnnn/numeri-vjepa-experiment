@@ -47,17 +47,23 @@ DEPTH_ANYTHING_PATH = os.path.abspath(
         "../../../Techs/Depth-Anything-V2-main/Depth-Anything-V2-main",
     )
 )
-if DEPTH_ANYTHING_PATH not in sys.path:
-    sys.path.insert(0, DEPTH_ANYTHING_PATH)
 
 # Ensure depth_anything_v2 is a valid package (fix for missing __init__.py in some environments)
-_pkg_init = os.path.join(DEPTH_ANYTHING_PATH, "depth_anything_v2/__init__.py")
-if os.path.exists(os.path.dirname(_pkg_init)) and not os.path.exists(_pkg_init):
+# This MUST happen before any attempt to import depth_anything_v2
+_pkg_root = os.path.join(DEPTH_ANYTHING_PATH, "depth_anything_v2")
+_pkg_init = os.path.join(_pkg_root, "__init__.py")
+if os.path.exists(_pkg_root) and not os.path.exists(_pkg_init):
     try:
+        # Create __init__.py if missing
         with open(_pkg_init, "w") as f:
             f.write("# Auto-generated package init\n")
-    except Exception:
-        pass
+        print(f"[DepthEngine] Created missing __init__.py at {_pkg_init}")
+    except Exception as e:
+        print(f"[DepthEngine] Warning: Could not create __init__.py: {e}")
+
+if DEPTH_ANYTHING_PATH not in sys.path:
+    sys.path.insert(0, DEPTH_ANYTHING_PATH)
+    print(f"[DepthEngine] Added {DEPTH_ANYTHING_PATH} to sys.path")
 
 
 @dataclass

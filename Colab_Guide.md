@@ -18,11 +18,29 @@ Untuk menghindari konflik **NumPy 2.x** dan **Torchvision**, jalankan ini di cel
 # 1. Uninstall paket bermasalah sepenuhnya (Python 3.12 di Colab)
 !pip uninstall -y numpy torch torchvision torchaudio jax jaxlib
 
+# Clear pip cache to handle corrupted downloads
+!pip cache purge
+
 # 2. Install versi stabil (Python 3.12 & SAM-2 Compat)
-# Kita gunakan Torch 2.5.1 karena SAM-2 membutuhkannya (torch >= 2.5.1)
+# Kita paksa install dari binary dan gunakan torch 2.5.1
 !pip install numpy==1.26.4
 !pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu121
-!pip install jax==0.4.35 jaxlib==0.4.35
+!pip install jax==0.4.33 jaxlib==0.4.33
+
+# 3. VERIFIKASI Torchvision (Crucial!)
+# Jika ini gagal, berarti ada circular import yang harus di-fix
+import torch
+import torchvision
+try:
+    from torchvision.ops import StochasticDepth
+    print("✅ Torchvision Ops verified!")
+except (ImportError, AttributeError) as e:
+    print(f"❌ Torchvision Ops Error: {e}")
+    print("Menjalankan emergency patch...")
+    !pip uninstall -y torchvision
+    !pip install torchvision==0.20.1 --no-deps
+    import torchvision.ops
+    print("✅ Torchvision Ops patched!")
 ```
 
 ## Langkah 1: Clone Repository & Instalasi (PENTING)
@@ -53,22 +71,29 @@ def setup_repo():
             !git clone {REPO_URL_TOKEN} {PROJECT_DIR}
         %cd $PROJECT_DIR
 
-    # 1. Fix Depth-Anything V2 Package (ensure __init__.py exists)
+    # 1. Fix Depth-Anything V2 & Techs Package Init
     # Ini krusial agar 'import depth_anything_v2' tidak gagal
-    DEPTH_PKG_PATH = f"{PROJECT_DIR}/Techs/Depth-Anything-V2-main/Depth-Anything-V2-main/depth_anything_v2"
-    if os.path.exists(DEPTH_PKG_PATH):
-        init_file = os.path.join(DEPTH_PKG_PATH, "__init__.py")
-        if not os.path.exists(init_file):
-            with open(init_file, 'w') as f:
-                f.write("# Auto-generated package init\n")
-            print("✅ Created missing __init__.py for depth_anything_v2")
+    TECH_LIBS = [
+        f"{PROJECT_DIR}/Techs/Depth-Anything-V2-main/Depth-Anything-V2-main/depth_anything_v2",
+        f"{PROJECT_DIR}/Techs/CountGD-main/CountGD-main",
+    ]
+    for lib in TECH_LIBS:
+        if os.path.exists(lib):
+            init_file = os.path.join(lib, "__init__.py")
+            if not os.path.exists(init_file):
+                with open(init_file, 'w') as f:
+                    f.write("# Auto-generated package init\n")
+                print(f"✅ Created missing __init__.py for {os.path.basename(lib)}")
 
     # 2. Add to sys.path
     if PROJECT_DIR not in sys.path:
         sys.path.append(PROJECT_DIR)
         sys.path.append(os.path.join(PROJECT_DIR, "Implementation"))
         # Add DepthAnything direct parent so it can be imported as a package
-        sys.path.append(os.path.join(PROJECT_DIR, "Techs/Depth-Anything-V2-main/Depth-Anything-V2-main"))
+        DEPTH_PARENT = os.path.join(PROJECT_DIR, "Techs/Depth-Anything-V2-main/Depth-Anything-V2-main")
+        if DEPTH_PARENT not in sys.path:
+            sys.path.append(DEPTH_PARENT)
+            print(f"✅ Added {DEPTH_PARENT} to sys.path")
 
     return True
 
