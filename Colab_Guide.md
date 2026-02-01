@@ -12,6 +12,8 @@ Panduan menjalankan **V2 Inference Pipeline** di Google Colab dengan clone langs
 
 ## Langkah 0: Bersihkan & Siapkan Runtime (WAJIB - Python 3.12 Compat)
 
+> ⚠️ **PENTING**: Setelah menjalankan cell ini, Anda **HARUS** melakukan `Runtime -> Restart session` **SEBELUM** menjalankan cell lain!
+
 Untuk menghindari konflik **NumPy 2.x** dan **Torchvision**, jalankan ini di cell pertama:
 
 ```python
@@ -27,20 +29,40 @@ Untuk menghindari konflik **NumPy 2.x** dan **Torchvision**, jalankan ini di cel
 !pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu121
 !pip install jax==0.4.33 jaxlib==0.4.33
 
-# 3. VERIFIKASI Torchvision (Crucial!)
-# Jika ini gagal, berarti ada circular import yang harus di-fix
+print("=" * 60)
+print("🚨 WAJIB: Klik Menu 'Runtime' -> 'Restart session' SEKARANG!")
+print("          Lalu lanjutkan ke Langkah 0.5 (Verifikasi)")
+print("=" * 60)
+```
+
+---
+
+## Langkah 0.5: Verifikasi Environment (Jalankan SETELAH Restart)
+
+> ⚠️ Jalankan cell ini **HANYA SETELAH** Anda melakukan Restart Session dari Langkah 0.
+
+```python
+# Verifikasi NumPy & Torch versions
+import numpy as np
 import torch
 import torchvision
+
+print(f"NumPy: {np.__version__} (expected: 1.26.4)")
+print(f"Torch: {torch.__version__} (expected: 2.5.1+cu121)")
+print(f"Torchvision: {torchvision.__version__} (expected: 0.20.1+cu121)")
+
+# Check CUDA availability
+if torch.cuda.is_available():
+    print(f"✅ CUDA: {torch.version.cuda} - GPU: {torch.cuda.get_device_name(0)}")
+else:
+    print("❌ CUDA not available! Make sure you're using a GPU runtime.")
+
+# Verify torchvision ops (this is the critical test)
 try:
     from torchvision.ops import StochasticDepth
     print("✅ Torchvision Ops verified!")
-except (ImportError, AttributeError) as e:
+except Exception as e:
     print(f"❌ Torchvision Ops Error: {e}")
-    print("Menjalankan emergency patch...")
-    !pip uninstall -y torchvision
-    !pip install torchvision==0.20.1 --no-deps
-    import torchvision.ops
-    print("✅ Torchvision Ops patched!")
 ```
 
 ## Langkah 1: Clone Repository & Instalasi (PENTING)
