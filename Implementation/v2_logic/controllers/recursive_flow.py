@@ -291,42 +291,176 @@ def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
     """
     Generate or update intent list based on V-JEPA latent.
     Acts as the "Sutradara" (Director) of the system.
+
+    Implements:
+    - Discovery Loop: Parse SLM hypothesis for new object labels
+    - Refinement Loop: Adjust sensitivity or set PointBeam ROI
     """
     ctx = state["ctx"]
     decision = state["decision"]
+    perception = state["perception"]
 
-    current_intent = ctx.main_intent
+    # Start with main_intent if active_intent is empty (first run)
+    current_intent = (
+        perception.active_intent if perception.active_intent else list(ctx.main_intent)
+    )
+    sensitivity = perception.sensitivity_modifier
+    focus_roi = perception.focus_roi
 
-    # Phase 3: Adaptive Intent Update
+    updates = {}
+
+    # Phase 9: Adaptive Intent Update from SLM Hypothesis
     if decision.slm_hypothesis:
+        hypothesis = decision.slm_hypothesis.lower()
         logger.info("[director] SLM Hypothesis received: %s", decision.slm_hypothesis)
-        # In a real implementation, we would parse the hypothesis to refine the intent.
-        # E.g., "Check behind the pile" -> Add "occluded_pile" to intent?
-        # For now, we just log it and potentially flag a specialized search strategy.
-        pass
 
-    return (
-        {}
-    )  # Intent is in Context, which is immutable-ish for main_intent list content but we assume static for now.
+        # --- DISCOVERY LOOP: Parse for new object labels ---
+        # Common object keywords to look for
+        discovery_keywords = [
+            "ball",
+            "sphere",
+            "bottle",
+            "mug",
+            "glass",
+            "plate",
+            "bowl",
+            "hand",
+            "finger",
+            "arm",
+            "person",
+            "box",
+            "container",
+        ]
+
+        discovered_labels = []
+        for keyword in discovery_keywords:
+            if keyword in hypothesis and keyword not in current_intent:
+                discovered_labels.append(keyword)
+
+        if discovered_labels:
+            # Type Guard: Ensure we're appending strings, not lists
+            for label in discovered_labels:
+                if isinstance(label, str) and label not in current_intent:
+                    current_intent.append(label)
+            logger.info(
+                "[director] DISCOVERY LOOP: Added new labels: %s", discovered_labels
+            )
+            updates["active_intent"] = current_intent
+
+        # --- REFINEMENT LOOP: Parse for occlusion/sensitivity hints ---
+        refinement_hints = [
+            "occluded",
+            "hidden",
+            "behind",
+            "blocked",
+            "covered",
+            "overlap",
+        ]
+        needs_refinement = any(hint in hypothesis for hint in refinement_hints)
+
+        if needs_refinement:
+            # Increase sensitivity for next pass
+            new_sensitivity = min(sensitivity * 1.2, 2.0)  # Cap at 2x
+            updates["sensitivity_modifier"] = new_sensitivity
+            logger.info(
+                "[director] REFINEMENT LOOP: Sensitivity adjusted to %.2f",
+                new_sensitivity,
+            )
+
+            # If "corner" or spatial hint is mentioned, set PointBeam ROI
+            if "corner" in hypothesis or "edge" in hypothesis:
+                # Example: Focus on bottom-right quadrant
+                h, w = (
+                    perception.image.shape[:2]
+                    if perception.image is not None
+                    else (480, 640)
+                )
+                focus_roi = (w // 2, h // 2, w, h)  # Bottom-right quadrant
+                updates["focus_roi"] = focus_roi
+                logger.info("[director] POINTBEAM: Set focus ROI to %s", focus_roi)
+            elif "left" in hypothesis:
+                h, w = (
+                    perception.image.shape[:2]
+                    if perception.image is not None
+                    else (480, 640)
+                )
+                focus_roi = (0, 0, w // 2, h)  # Left half
+                updates["focus_roi"] = focus_roi
+                logger.info("[director] POINTBEAM: Set focus ROI to %s", focus_roi)
+
+    # Always ensure active_intent is populated (even if no changes)
+    if "active_intent" not in updates and not perception.active_intent:
+        updates["active_intent"] = list(ctx.main_intent)
+
+    if updates:
+        updated_perception = perception.model_copy(update=updates)
+        return {"perception": updated_perception}
+
+    return {}
 
 
 def countgd_executor_node(state: RecursiveFlowState) -> Dict[str, Any]:
     """
     Execute zero-shot counting using CountGD.
     Returns N_visible (visual count).
+
+    Supports:
+    - Discovery Loop: Uses active_intent (dynamic, updated by director)
+    - Refinement Loop: Applies sensitivity_modifier and focus_roi (PointBeam)
     """
-    intent = state["ctx"].main_intent
+    perception = state["perception"]
+    ctx = state["ctx"]
+
+    # Use active_intent if available, fallback to main_intent
+    intent = perception.active_intent if perception.active_intent else ctx.main_intent
     logger.info("[countgd_executor_node] Counting objects matching intent: %s", intent)
 
     engine = get_countgd_engine()
-    perception = state["perception"]
 
     if engine and perception.image is not None:
-        # Real CountGD call - pass original image size as target for correct bboxes
-        h, w = perception.image.shape[:2]
+        image = perception.image
+        h, w = image.shape[:2]
+
+        # --- POINTBEAM: Crop to focus_roi if set ---
+        roi_offset = (0, 0)  # (x_offset, y_offset) for coordinate translation
+        if perception.focus_roi is not None:
+            x1, y1, x2, y2 = perception.focus_roi
+            # Ensure valid coordinates
+            x1 = max(0, min(x1, w - 1))
+            y1 = max(0, min(y1, h - 1))
+            x2 = max(x1 + 1, min(x2, w))
+            y2 = max(y1 + 1, min(y2, h))
+            image = image[y1:y2, x1:x2]
+            roi_offset = (x1, y1)
+            logger.info(
+                "[countgd_executor_node] POINTBEAM: Cropped to ROI %s",
+                perception.focus_roi,
+            )
+
+        # --- REFINEMENT: Adjust sensitivity if needed ---
+        # Note: sensitivity_modifier would need to be passed to engine.count()
+        # For now, we log it. CountGDEngine can be extended to accept threshold_shift.
+        sensitivity = perception.sensitivity_modifier
+        if sensitivity != 1.0:
+            logger.info(
+                "[countgd_executor_node] Sensitivity modifier: %.2f", sensitivity
+            )
+
+        # CountGD call
         count_val, detections = engine.count(
-            perception.image, intent, target_size=(w, h)
+            image, intent, target_size=(image.shape[1], image.shape[0])
         )
+
+        # Translate detections back to original image coordinates if ROI was applied
+        if roi_offset != (0, 0):
+            x_off, y_off = roi_offset
+            translated_detections = []
+            for det in detections:
+                x1, y1, x2, y2 = det
+                translated_detections.append(
+                    [x1 + x_off, y1 + y_off, x2 + x_off, y2 + y_off]
+                )
+            detections = translated_detections
 
         updated_perception = perception.model_copy(
             update={

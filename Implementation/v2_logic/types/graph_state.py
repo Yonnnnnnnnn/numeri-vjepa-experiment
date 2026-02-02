@@ -148,6 +148,20 @@ class PerceptionState(BaseModel):
         description="Spike energy outside detected mask areas (Anomaly Signal)",
     )
 
+    # --- Dynamic Intent (Discovery Loop) ---
+    active_intent: List[str] = Field(
+        default_factory=list,
+        description="Dynamic list of target labels, updated by Discovery Loop",
+    )
+    sensitivity_modifier: float = Field(
+        default=1.0,
+        description="Multiplier for detection sensitivity (Refinement Loop)",
+    )
+    focus_roi: Optional[Tuple[int, int, int, int]] = Field(
+        default=None,
+        description="PointBeam ROI [x1, y1, x2, y2] for focused re-counting",
+    )
+
     # --- Fusion Output ---
     unexplained_blobs: List[Dict[str, Any]] = Field(
         default_factory=list,
