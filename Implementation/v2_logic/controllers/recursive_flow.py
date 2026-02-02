@@ -430,21 +430,35 @@ def fusion_engine_node(state: RecursiveFlowState) -> Dict[str, Any]:
         current_detections = perception.raw_detections
 
         # Normalize detections: CountGD returns list of [x1,y1,x2,y2],
-        # but ReIDEngine expects list of {"bbox": [...], "score": ...}
+        # but ReIDEngine + MathUtils expect {"bbox": {"x":..., "y":..., "w":..., "h":...}, "score": ...}
         normalized_detections = []
         if current_detections:
             for det in current_detections:
-                if isinstance(det, list):
-                    # Convert plain list to dict format
+                if isinstance(det, list) and len(det) == 4:
+                    # Convert [x1, y1, x2, y2] to {x, y, w, h} format
+                    x1, y1, x2, y2 = det
                     normalized_detections.append(
                         {
-                            "bbox": det,
+                            "bbox": {
+                                "x": float(x1),
+                                "y": float(y1),
+                                "w": float(x2 - x1),
+                                "h": float(y2 - y1),
+                            },
                             "score": 0.95,  # CountGD doesn't return scores, use high default
                             "features": None,
                         }
                     )
                 elif isinstance(det, dict):
-                    # Already in correct format
+                    # Already in correct format (check if bbox needs conversion)
+                    if "bbox" in det and isinstance(det["bbox"], list):
+                        x1, y1, x2, y2 = det["bbox"]
+                        det["bbox"] = {
+                            "x": float(x1),
+                            "y": float(y1),
+                            "w": float(x2 - x1),
+                            "h": float(y2 - y1),
+                        }
                     normalized_detections.append(det)
 
         matched, new_dets = reid_engine.match_detections(
