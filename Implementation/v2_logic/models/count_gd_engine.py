@@ -247,6 +247,10 @@ class CountGDEngine:
         Returns:
             Tuple[int, list]: (Predicted count, Predicted boxes [x1, y1, x2, y2])
         """
+        # Normalize prompt: convert list to comma-separated string
+        if isinstance(prompt, list):
+            prompt = ", ".join(prompt) if prompt else "items"
+
         if self.model is None or self.transform is None:
             # Mock behavior
             logger.info("[CountGD] Using enhanced mock counting for prompt: %s", prompt)
