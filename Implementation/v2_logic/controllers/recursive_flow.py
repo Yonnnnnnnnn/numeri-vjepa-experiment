@@ -428,8 +428,27 @@ def fusion_engine_node(state: RecursiveFlowState) -> Dict[str, Any]:
     # 2. Re-Identification (Phase 3)
     if reid_engine:
         current_detections = perception.raw_detections
+
+        # Normalize detections: CountGD returns list of [x1,y1,x2,y2],
+        # but ReIDEngine expects list of {"bbox": [...], "score": ...}
+        normalized_detections = []
+        if current_detections:
+            for det in current_detections:
+                if isinstance(det, list):
+                    # Convert plain list to dict format
+                    normalized_detections.append(
+                        {
+                            "bbox": det,
+                            "score": 0.95,  # CountGD doesn't return scores, use high default
+                            "features": None,
+                        }
+                    )
+                elif isinstance(det, dict):
+                    # Already in correct format
+                    normalized_detections.append(det)
+
         matched, new_dets = reid_engine.match_detections(
-            current_detections, perception.current_frame_idx
+            normalized_detections, perception.current_frame_idx
         )
 
         # Combine for final tracked list
