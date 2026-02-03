@@ -270,13 +270,15 @@ class CountGDEngine:
                 frame_tensor / (255.0 if frame_tensor.max() > 1.0 else 1.0)
             )
             input_image, _ = self.transform(image_pil, {"exemplars": torch.tensor([])})
-            input_image = input_image.to(self.device)
+            # Use explicit device= keyword to avoid dtype= misinterpretation
+            device = torch.device(self.device)
+            input_image = input_image.to(device=device)
 
             with torch.no_grad():
                 model_output = self.model(
                     input_image.unsqueeze(0),
-                    [torch.tensor([]).to(self.device)],
-                    [torch.tensor([0]).to(self.device)],
+                    [torch.tensor([]).to(device=device)],
+                    [torch.tensor([0]).to(device=device)],
                     captions=[prompt + " ."],
                 )
 
