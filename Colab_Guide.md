@@ -410,6 +410,16 @@ VIDEO_FILE = "/content/my_video.mp4"
 !rm -f /content/*.mp4
 ```
 
+### Error Lama Masih Muncul di Log? (Stale Code)
+
+Jika Anda sudah melakukan `git pull` tapi error lama masih muncul:
+
+1. Klik menu **Runtime** -> **Restart session**.
+2. Jalankan ulang **Langkah 1**.
+3. Jalankan ulang perintah Anda.
+
+Ini karena Colab menyimpan kode lama di RAM sampai Anda me-restart session.
+
 ---
 
 ## Simpan Hasil ke Google Drive (Opsional)
