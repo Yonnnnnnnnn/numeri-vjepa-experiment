@@ -40,9 +40,8 @@ flowchart TD
     logic_gate_node -- "Confident (Exit)" --> End([Final Inventory Audit])
 
     logic_gate_node -- "Anomaly (Loop)" --> targeted_slm_node[Targeted SLM: Reasoning]
-
-    targeted_slm_node --> interpolation_node[interpolation_node: State Mapping]
-
+    targeted_slm_node --> calib[Auto-Calibration: Update V_unit]
+    calib --> interpolation_node[interpolation_node: State Mapping]
     interpolation_node --> vljepa_director_node
 
     logic_gate_node -- "Max Loops" --> End

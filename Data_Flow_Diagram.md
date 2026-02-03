@@ -28,13 +28,15 @@ sequenceDiagram
     participant D as Director (VL-JEPA)
     participant E as Executor (CountGD)
     participant R as Reflection (FusionEngine)
+    participant S2 as SLM (Reasoning)
 
     S->>B: Spike Stream (Temporal-Visual Data)
     B->>D: Latent Context (Spatial Memory)
     D->>E: Semantic Intent ("Count Object X")
     B->>E: Visual Patches (Cropped Features)
     E->>R: Raw Counts & Bboxes
-    R->>D: Anomaly Detection (Recursive Intent Trigger)
-    D->>E: Refined Intent (Self-Correction)
+    R->>S2: Anomaly Data (Surprise Trigger)
+    S2->>D: Refined Intent & Auto-Calibration
+    D->>E: Refined Intent (Internal Update)
     E->>User: Final Inventory Audit
 ```

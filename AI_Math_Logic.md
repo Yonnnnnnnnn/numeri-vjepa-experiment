@@ -97,7 +97,13 @@ $$V_{total} = \sum_{i \in Mask} \Delta x_i \cdot \Delta y_i \cdot \Delta z_i$$
 Hasil ini kemudian dipetakan ke jumlah objek $N_{volumetric}$ berdasarkan prior volume per unit $V_{μ}$:
 $$N_{volumetric} = \text{round}(V_{total} / V_{μ})$$
 
-### 4.3. Isomorphic Coordinate Mapping (Scaling)
+### 4.4. Volumetric Auto-Calibration (Self-Correction)
+
+Untuk memecahkan _infinite loop_ anomali volumetrik, sistem mengkalibrasi ulang prior $V_{μ}$ secara dinamis berdasarkan umpan balik SLM:
+$$V_{μ}^{new} = \frac{V_{total}}{N_{visible}} \quad \text{if } N_{confirmed\_SLM} = N_{visible}$$
+Hal ini memungkinkan morphism $eval$ mencapai isomorfisme pada iterasi berikutnya.
+
+### 4.5. Isomorphic Coordinate Mapping (Scaling)
 
 Untuk sinkronisasi antara "Otak" (internal processing @ 224x224) dan "Mata" (Visualizer @ original resolution), kita menerapkan pemetaan isomorfik:
 $$u_{visual} = u_{latent} \times \frac{W_{video}}{W_{latent}}$$
