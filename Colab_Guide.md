@@ -246,11 +246,15 @@ except Exception:
 ### 4.1 Download V-JEPA Weights
 
 ```python
+PROJECT_DIR = "/content/numeri-vjepa-experiment"
+%cd $PROJECT_DIR
 !python Implementation/scripts/download_v2_weights.py
+```
 
 > [!NOTE]
 > Per **2026-02-02**: Perbaikan "Visualizer vs Logic" (Coordinate Scaling & StochasticDepth Patch) sekarang sudah diinjeksi langsung ke dalam file `.py`. Anda tidak perlu lagi melakukan patching manual di cell Colab. Cukup jalankan Langkah 5 di bawah.
-```
+
+````
 
 ### 4.2 Download CountGD Checkpoints
 
@@ -334,7 +338,7 @@ print("\n✅ Semua checkpoint & video siap!")
 !ls -la {CHECKPOINTS_DIR}
 !ls -la {video_dir}
 !ls -la {depth_dir}
-```
+````
 
 ---
 
@@ -343,19 +347,23 @@ print("\n✅ Semua checkpoint & video siap!")
 Jalankan cell ini untuk melihat **Logika (Teks)** dan menghasilkan **Video (Visual)** secara berurutan.
 
 ```python
-# 1. Konfigurasi File (Gunakan Path Absolut untuk Keamanan)
+# 1. Konfigurasi File
 PROJECT_DIR = "/content/numeri-vjepa-experiment"
 VIDEO_FILE = f"{PROJECT_DIR}/Techs/sam2-main/sam2-main/demo/data/gallery/02_cups.mp4"
 OUTPUT_FILE = "/content/output_v2.mp4"
 
+# Pastikan kita di folder yang benar
+%cd $PROJECT_DIR
+
 print("🧠 BAGIAN 1: Menjalankan Recursive Intent Logic (LangGraph)...")
 print("-" * 50)
-# Kita tambahkan flag --video agar path-nya absolut
-!python Implementation/run_recursive_system.py --video "$VIDEO_FILE"
+# Gunakan path absolut ke script
+!python {PROJECT_DIR}/Implementation/run_recursive_system.py --video "$VIDEO_FILE"
 
 print("\n\n👁️ BAGIAN 2: Menghasilkan Video Visualisasi (MP4)...")
 print("-" * 50)
-!python Implementation/main.py --video "$VIDEO_FILE" --output "$OUTPUT_FILE"
+# Gunakan path absolut ke script
+!python {PROJECT_DIR}/Implementation/main.py --video "$VIDEO_FILE" --output "$OUTPUT_FILE"
 
 print("\n\n✅ Pengujian Selesai!")
 ```
