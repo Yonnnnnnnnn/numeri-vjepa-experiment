@@ -46,7 +46,9 @@ class VLJEPAEngine:
     Pattern: Facade
     """
 
-    def __init__(self, model_id="google/paligemma-3b-mix-224", device="cuda", token=None):
+    def __init__(
+        self, model_id="google/paligemma-3b-mix-224", device="cuda", token=None
+    ):
         self.device = device if torch.cuda.is_available() else "cpu"
         self.model_id = model_id
         self.token = token
@@ -56,15 +58,13 @@ class VLJEPAEngine:
         # Set memory configuration for CUDA
         if self.device == "cuda":
             import os
+
             os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
             torch.backends.cudnn.benchmark = True
             torch.backends.cudnn.deterministic = False
 
         # Load PaliGemma with token authentication
-        self.processor = AutoProcessor.from_pretrained(
-            model_id,
-            token=self.token
-        )
+        self.processor = AutoProcessor.from_pretrained(model_id, token=self.token)
         self.model = PaliGemmaForConditionalGeneration.from_pretrained(
             model_id,
             torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
@@ -72,19 +72,25 @@ class VLJEPAEngine:
             low_cpu_mem_usage=True,
             offload_folder="./offload",
             offload_state_dict=True,
-            token=self.token
+            token=self.token,
+            # Use eager attention to avoid SDPA mask_function issues on torch<2.6
+            attn_implementation="eager",
         ).eval()
-        
+
         # Clear cache after loading
         if self.device == "cuda":
             torch.cuda.empty_cache()
             import gc
+
             gc.collect()
 
         logger.info("[VL-JEPA] Model loaded successfully")
 
     def identify_intent(
-        self, frame, prompt="What object is being counted in this video? Answer with a single word.", default_intent="cups"
+        self,
+        frame,
+        prompt="What object is being counted in this video? Answer with a single word.",
+        default_intent="cups",
     ):
         """
         Identify the scanning context using vision-language reasoning.
@@ -113,30 +119,34 @@ class VLJEPAEngine:
 
         with torch.no_grad():
             generated_ids = self.model.generate(
-                **inputs, 
-                max_new_tokens=20, 
+                **inputs,
+                max_new_tokens=20,
                 temperature=0.1,  # Lower temperature for more consistent results
-                top_p=0.9,       # Nucleus sampling for better quality
-                do_sample=False  # Deterministic generation
+                top_p=0.9,  # Nucleus sampling for better quality
+                do_sample=False,  # Deterministic generation
             )
 
         # Output logic
         output_text = self.processor.batch_decode(
             generated_ids, skip_special_tokens=True
         )[0]
-        
+
         # Clean the output
         intent = output_text[len(prompt) :].strip().lower()
-        
+
         # Handle cases where output is empty or not useful
-        if not intent or len(intent) > 20 or any(char in intent for char in [',', '.', ';', '!', '?']):
+        if (
+            not intent
+            or len(intent) > 20
+            or any(char in intent for char in [",", ".", ";", "!", "?"])
+        ):
             # Extract first word if multiple words are returned
             intent_words = intent.split()
             if intent_words:
                 intent = intent_words[0]
             else:
                 intent = default_intent
-        
+
         logger.info(f"[VL-JEPA] Identified Intent: {intent}")
         return intent
 

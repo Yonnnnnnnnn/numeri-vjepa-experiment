@@ -1,0 +1,62 @@
+✅ Repository sudah ada di: /content/numeri-vjepa-experiment
+/content/numeri-vjepa-experiment
+remote: Enumerating objects: 19, done.
+remote: Counting objects: 100% (19/19), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 11 (delta 9), reused 11 (delta 9), pack-reused 0 (from 0)
+Unpacking objects: 100% (11/11), 1.55 KiB | 132.00 KiB/s, done.
+From https://github.com/Yonnnnnnnnn/numeri-vjepa-experiment
+ * branch            master     -> FETCH_HEAD
+   10325d3..d84532b  master     -> origin/master
+Updating 10325d3..d84532b
+Fast-forward
+ AI_Math_Logic.md                                  | 8 +++++++-
+ Data_Flow_Diagram.md                              | 6 ++++--
+ Flow_Chart.md                                     | 5 ++---
+ Implementation/v2_logic/models/count_gd_engine.py | 8 +++++---
+ 4 files changed, 18 insertions(+), 9 deletions(-)
+✅ Added /content/numeri-vjepa-experiment/Techs/Depth-Anything-V2-main/Depth-Anything-V2-main to sys.path
+📦 Installing system dependencies...
+Hit:1 https://cli.github.com/packages stable InRelease
+Hit:2 https://cloud.r-project.org/bin/linux/ubuntu jammy-cran40/ InRelease
+Hit:3 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64  InRelease
+Hit:4 http://archive.ubuntu.com/ubuntu jammy InRelease
+Hit:5 http://security.ubuntu.com/ubuntu jammy-security InRelease
+Hit:6 http://archive.ubuntu.com/ubuntu jammy-updates InRelease
+Hit:7 http://archive.ubuntu.com/ubuntu jammy-backports InRelease
+Hit:8 https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu jammy InRelease
+Hit:9 https://ppa.launchpadcontent.net/graphics-drivers/ppa/ubuntu jammy InRelease
+Hit:10 https://r2u.stat.illinois.edu/ubuntu jammy InRelease
+Hit:11 https://ppa.launchpadcontent.net/ubuntugis/ppa/ubuntu jammy InRelease
+Reading package lists... Done
+W: Skipping acquire of configured file 'main/source/Sources' as repository 'https://r2u.stat.illinois.edu/ubuntu jammy InRelease' does not seem to provide it (sources.list entry misspelt?)
+🐍 Installing python dependencies...
+  Installing build dependencies ... done
+  Checking if build backend supports build_editable ... done
+  Getting requirements to build editable ... done
+  Preparing editable metadata (pyproject.toml) ... done
+  Building editable for v2e (pyproject.toml) ... done
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+flax 0.11.2 requires jax>=0.6.0, but you have jax 0.4.33 which is incompatible.
+optax 0.2.6 requires jax>=0.5.3, but you have jax 0.4.33 which is incompatible.
+optax 0.2.6 requires jaxlib>=0.5.3, but you have jaxlib 0.4.33 which is incompatible.
+orbax-checkpoint 0.11.32 requires jax>=0.6.0, but you have jax 0.4.33 which is incompatible.
+  Installing build dependencies ... done
+  Checking if build backend supports build_editable ... done
+  Getting requirements to build editable ... done
+  Preparing editable metadata (pyproject.toml) ... done
+  Building editable for SAM-2 (pyproject.toml) ... done
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+flax 0.11.2 requires jax>=0.6.0, but you have jax 0.4.33 which is incompatible.
+pytensor 2.37.0 requires numpy>=2.0, but you have numpy 1.26.4 which is incompatible.
+tobler 0.13.0 requires numpy>=2.0, but you have numpy 1.26.4 which is incompatible.
+rasterio 1.5.0 requires numpy>=2, but you have numpy 1.26.4 which is incompatible.
+shap 0.50.0 requires numpy>=2, but you have numpy 1.26.4 which is incompatible.
+opencv-python 4.13.0.90 requires numpy>=2; python_version >= "3.9", but you have numpy 1.26.4 which is incompatible.
+optax 0.2.6 requires jax>=0.5.3, but you have jax 0.4.33 which is incompatible.
+optax 0.2.6 requires jaxlib>=0.5.3, but you have jaxlib 0.4.33 which is incompatible.
+orbax-checkpoint 0.11.32 requires jax>=0.6.0, but you have jax 0.4.33 which is incompatible.
+opencv-python-headless 4.13.0.90 requires numpy>=2; python_version >= "3.9", but you have numpy 1.26.4 which is incompatible.
+opencv-contrib-python 4.13.0.90 requires numpy>=2; python_version >= "3.9", but you have numpy 1.26.4 which is incompatible.
+✅ Instalasi Selesai! NumPy: 1.26.4, Torch: 2.5.1+cu121
+🚀 PENTING: Lakukan RESTART SESSION (Menu: Runtime -> Restart session)
