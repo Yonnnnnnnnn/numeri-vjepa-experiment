@@ -388,6 +388,34 @@ def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
                 updates["focus_roi"] = focus_roi
                 logger.info("[director] POINTBEAM: Set focus ROI to %s", focus_roi)
 
+        # --- VOLUMETRIC AUTO-CALIBRATION ---
+        # If we're in a volumetric anomaly loop and SLM confirms the visual count,
+        # we should recalibrate the unit volume estimate.
+        if decision.anomaly_type == "volumetric":
+            # Check if SLM is confirming the visual count
+            import re
+
+            # Pattern: "3 objects" or "three objects" or "I see 3"
+            count_match = re.search(r"(\d+)\s+object", hypothesis)
+            if count_match:
+                slm_confirmed_count = int(count_match.group(1))
+                if (
+                    slm_confirmed_count == perception.n_visible
+                    and perception.n_visible > 0
+                ):
+                    # SLM agrees with visual count -> recalibrate unit volume
+                    # Formula: new_unit_volume = total_observed_volume / n_visible
+                    total_vol = perception.total_observed_volume
+                    if total_vol > 0:
+                        new_unit_volume = total_vol / perception.n_visible
+                        updates["estimated_unit_volume"] = new_unit_volume
+                        logger.info(
+                            "[director] VOLUMETRIC CALIBRATION: SLM confirmed count=%d, "
+                            "recalibrating unit_volume = %.6f m^3",
+                            perception.n_visible,
+                            new_unit_volume,
+                        )
+
     # Always ensure active_intent is populated (even if no changes)
     if "active_intent" not in updates and not perception.active_intent:
         updates["active_intent"] = list(ctx.main_intent)
@@ -447,25 +475,40 @@ def countgd_executor_node(state: RecursiveFlowState) -> Dict[str, Any]:
             )
 
         # CountGD call
-        count_val, detections = engine.count(
+        count_val, raw_detections = engine.count(
             image, intent, target_size=(image.shape[1], image.shape[0])
         )
 
         # Translate detections back to original image coordinates if ROI was applied
         if roi_offset != (0, 0):
             x_off, y_off = roi_offset
-            translated_detections = []
-            for det in detections:
+            translated = []
+            for det in raw_detections:
                 x1, y1, x2, y2 = det
-                translated_detections.append(
-                    [x1 + x_off, y1 + y_off, x2 + x_off, y2 + y_off]
+                translated.append([x1 + x_off, y1 + y_off, x2 + x_off, y2 + y_off])
+            raw_detections = translated
+
+        # --- FIX PYDANTIC: Convert list bboxes to dict format ---
+        # PerceptionState.raw_detections expects List[Dict[str, Any]]
+        intent_label = intent[0] if isinstance(intent, list) and intent else str(intent)
+        formatted_detections = []
+        for det in raw_detections:
+            if isinstance(det, list) and len(det) >= 4:
+                x1, y1, x2, y2 = det[:4]
+                formatted_detections.append(
+                    {
+                        "bbox": {"x": x1, "y": y1, "w": x2 - x1, "h": y2 - y1},
+                        "score": 1.0,
+                        "label": intent_label,
+                    }
                 )
-            detections = translated_detections
+            elif isinstance(det, dict):
+                formatted_detections.append(det)  # Already formatted
 
         updated_perception = perception.model_copy(
             update={
                 "n_visible": count_val,
-                "raw_detections": detections,
+                "raw_detections": formatted_detections,
             }
         )
         return {"perception": updated_perception}
@@ -523,8 +566,16 @@ def sam2_depth_node(state: RecursiveFlowState) -> Dict[str, Any]:
             )
             total_volume += vol * ctx.depth_scale_factor  # Scale to meters
 
-        min_c, max_c = MathUtils.lattice_counting(total_volume, ctx.unit_volume_prior)
+        # Use calibrated unit volume if available, else use prior
+        unit_vol = (
+            perception.estimated_unit_volume
+            if perception.estimated_unit_volume > 0
+            else ctx.unit_volume_prior
+        )
+        min_c, max_c = MathUtils.lattice_counting(total_volume, unit_vol)
+
         updates["n_volumetric_range"] = (min_c, max_c)
+        updates["total_observed_volume"] = float(total_volume)
         updates["point_cloud_summary"] = {"total_volume": float(total_volume)}
 
     if "n_volumetric_range" not in updates:

@@ -162,6 +162,16 @@ class PerceptionState(BaseModel):
         description="PointBeam ROI [x1, y1, x2, y2] for focused re-counting",
     )
 
+    # --- Volumetric Calibration (Auto-Calibration) ---
+    estimated_unit_volume: float = Field(
+        default=0.0,
+        description="Auto-calibrated unit volume for objects (m^3), updated based on SLM feedback",
+    )
+    total_observed_volume: float = Field(
+        default=0.0,
+        description="Most recent total volume from point cloud (m^3)",
+    )
+
     # --- Fusion Output ---
     unexplained_blobs: List[Dict[str, Any]] = Field(
         default_factory=list,
