@@ -4,7 +4,7 @@ Orchestrates the 4 layers:
 1. v2e (Input)
 2. VL-JEPA (Director)
 3. V-JEPA (Brain)
-4. CountGD (Executor)
+4. CountVid (Executor)
 
 CFG Structure:
 ═══════════════════════════════════════════════════════════════════════════════
@@ -44,7 +44,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from v2_logic.models.v2e_engine import V2EEngine
 from v2_logic.models.vl_jepa_engine import VLJEPAEngine
 from v2_logic.models.v_jepa_engine import VJEPAEngine
-from v2_logic.models.count_gd_engine import CountGDEngine
+from v2_logic.models.count_vid_engine import CountVidEngine
 
 # pylint: enable=wrong-import-position
 
@@ -64,7 +64,7 @@ class GlideCountPipeline:
         self.layer1_input = V2EEngine(device=self.device)
         self.layer2_director = VLJEPAEngine(device=self.device)
         self.layer3_brain = VJEPAEngine(device=self.device)
-        self.layer4_executor = CountGDEngine(device=self.device)
+        self.layer4_executor = CountVidEngine(device=self.device)
 
         self.temporal_counts = []
         self.frame_buffer = []

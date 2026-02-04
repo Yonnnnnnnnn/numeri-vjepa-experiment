@@ -18,7 +18,7 @@ Non-Terminals   :
   │  <V2EEngine>          ← from v2_logic.models.v2e_engine                   │
   │  <VLJEPAEngine>       ← from v2_logic.models.vl_jepa_engine               │
   │  <VJEPAEngine>        ← from v2_logic.models.v_jepa_engine                │
-  │  <CountGDEngine>      ← from v2_logic.models.count_gd_engine               │
+  │  <CountVidEngine>      ← from v2_logic.models.count_vid_engine              │
   └───────────────────────────────────────────────────────────────────────────┘
 
 Terminals       : str, int, float, np.ndarray, torch.Tensor
@@ -45,7 +45,7 @@ from tqdm import tqdm
 from v2_logic.models.v2e_engine import V2EEngine
 from v2_logic.models.vl_jepa_engine import VLJEPAEngine
 from v2_logic.models.v_jepa_engine import VJEPAEngine
-from v2_logic.models.count_gd_engine import CountGDEngine
+from v2_logic.models.count_vid_engine import CountVidEngine
 from v2_logic.models.segmentation_engine import SegmentationEngine
 from v2_logic.models.depth_engine import DepthEngine
 
@@ -96,7 +96,7 @@ def draw_dashboard(
         y_off += 22
 
     # Layer Indicators (Bottom Left)
-    layers = ["V2E", "VLJ", "VJP", "CGD", "SAM", "DPT"]
+    layers = ["V2E", "VLJ", "VJP", "CVD", "SAM", "DPT"]
     lx = 10
     for l_name in layers:
         cv2.rectangle(overlay, (lx, h - 30), (lx + 50, h - 10), (50, 50, 50), -1)
@@ -131,7 +131,7 @@ def run_v2_visualizer(
     v2e = V2EEngine(pos_thres=threshold, neg_thres=threshold, device=device)
     director = VLJEPAEngine(device=device, token=hf_token)
     brain = VJEPAEngine(device=device)
-    executor = CountGDEngine(device=device)
+    executor = CountVidEngine(device=device)
     segmenter = SegmentationEngine(device=device)
     depther = DepthEngine(device=device)
 
