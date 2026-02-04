@@ -199,7 +199,7 @@ def train_one_epoch(
 
 def get_sam(sam_checkpoint="sam_vit_h_4b8939.pth", model_type="vit_h", device="cuda"):
     sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
-    sam.to(device=device)
+    sam.to(device)
     predictor = SamPredictor(sam)
     return predictor
 
