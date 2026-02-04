@@ -256,15 +256,15 @@ PROJECT_DIR = "/content/numeri-vjepa-experiment"
 
 ````
 
-### 4.2 Download CountGD Checkpoints
+### 4.2 Download CountVid Checkpoints
 
 ```python
 import os
 import subprocess
 
 PROJECT_DIR = "/content/numeri-vjepa-experiment"
-COUNTGD_PATH = f"{PROJECT_DIR}/Techs/CountGD-main/CountGD-main"
-CHECKPOINTS_DIR = f"{COUNTGD_PATH}/checkpoints"
+COUNTVID_PATH = f"{PROJECT_DIR}/Techs/CountVid-main/CountVid-main"
+CHECKPOINTS_DIR = f"{COUNTVID_PATH}/checkpoints"
 
 os.makedirs(CHECKPOINTS_DIR, exist_ok=True)
 
@@ -293,14 +293,14 @@ if not os.path.exists(gdd_path):
 else:
     print("✅ GroundingDINO weights sudah ada.")
 
-# 4.2.1 Download CountGD Core weights (FSC-147)
-cgd_path = f"{CHECKPOINTS_DIR}/checkpoint_fsc147_best.pth"
-if not os.path.exists(cgd_path):
-    print("📥 Mengunduh CountGD Core weights (Gdrive)...")
-    # File ID dari warning log user
-    !gdown --id 1RbRcNLsOfeEbx6u39pBehqsgQiexHHrI -O {cgd_path} -q
+# 4.2.1 Download CountVid Core weights (FSC-147)
+cvid_path = f"{CHECKPOINTS_DIR}/countgd_box.pth"
+if not os.path.exists(cvid_path):
+    print("📥 Mengunduh CountVid Core weights (Gdrive)...")
+    # File ID untuk CountVid (AAAI 2026)
+    !gdown --id 1bw-YIS-Il5efGgUqGVisIZ8ekrhhf_FD -O {cvid_path} -q
 else:
-    print("✅ CountGD Core weights sudah ada.")
+    print("✅ CountVid Core weights sudah ada.")
 
 # Download SAM weights
 sam_path = f"{CHECKPOINTS_DIR}/sam_vit_h_4b8939.pth"
