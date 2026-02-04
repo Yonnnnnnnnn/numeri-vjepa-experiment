@@ -368,7 +368,7 @@ print("-" * 50)
 print("\n\n✅ Pengujian Selesai!")
 ```
 
-### Lihat Video Hasil (Visualisasi SAM2 + CountGD)
+### Lihat Video Hasil (Visualisasi SAM2 + CountVid)
 
 JANGAN jalankan ini sebelum Langkah 5 di atas selesai.
 

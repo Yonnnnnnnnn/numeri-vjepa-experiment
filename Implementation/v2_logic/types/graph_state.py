@@ -95,7 +95,7 @@ class GlobalContext(BaseModel):
 
 class PerceptionState(BaseModel):
     """
-    State owned by perception components: V2E, SAM2, DepthAnything, CountGD.
+    State owned by perception components: V2E, SAM2, DepthAnything, CountVid.
     Updated every frame by sensor nodes.
 
     Pattern: Data Transfer Object (DTO)
@@ -116,7 +116,7 @@ class PerceptionState(BaseModel):
         default=None, description="Event spike map (numpy array)"
     )
 
-    # --- CountGD Output ---
+    # --- CountVid Output ---
     n_visible: int = Field(
         default=0, description="Number of visually detected objects (N_visible)"
     )

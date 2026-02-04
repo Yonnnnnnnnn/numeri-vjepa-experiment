@@ -198,7 +198,9 @@ class CountVidEngine:
         """
         # Convert numpy to tensor [B, C, H, W]
         # image is (H, W, 3) BGR
+        # pylint: disable=no-member
         rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        # pylint: enable=no-member
         tensor = torch.from_numpy(rgb).permute(2, 0, 1).float().unsqueeze(0) / 255.0
 
         # count_frame returns (pred_count, pixel_boxes)
@@ -250,6 +252,8 @@ class CountVidEngine:
             # pylint: disable=import-outside-toplevel
             from PIL import Image
             import torchvision.transforms.functional as F
+
+            # pylint: disable=import-error, no-name-in-module
             from util.misc import nested_tensor_from_tensor_list
 
             # pylint: enable=import-outside-toplevel

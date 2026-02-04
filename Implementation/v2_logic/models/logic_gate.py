@@ -135,7 +135,7 @@ class LogicGate:
         Evaluate perception state and decide action.
 
         Args:
-            n_visible: Visual count from CountGD.
+            n_visible: Visual count from CountVid.
             n_volumetric_range: (min, max) count from volumetric estimation.
             residue_ratio: Ratio of unexplained spike energy.
             unexplained_blob_area: Ratio of unexplained blob area.

@@ -112,7 +112,7 @@ class FusionEngineV2:
         Args:
             spike_map: V2E spike energy map (H, W), values 0-1.
             masks: List of binary masks from SAM2.
-            n_visible: Visual count from CountGD.
+            n_visible: Visual count from CountVid.
             n_volumetric_range: (min, max) count from volumetric estimation.
 
         Returns:
@@ -222,7 +222,7 @@ class FusionEngineV2:
             # Find contours
             contours, _ = cv2.findContours(  # pylint: disable=no-member
                 binary,
-                cv2.RETR_EXTERNAL,
+                cv2.RETR_EXTERNAL,  # pylint: disable=no-member
                 cv2.CHAIN_APPROX_SIMPLE,  # pylint: disable=no-member
             )
 
@@ -237,9 +237,9 @@ class FusionEngineV2:
 
                         # Calculate blob energy
                         mask = np.zeros_like(residual_map, dtype=np.uint8)
-                        cv2.drawContours(
+                        cv2.drawContours(  # pylint: disable=no-member
                             mask, [contour], 0, 1, -1
-                        )  # pylint: disable=no-member
+                        )
                         energy = float(np.sum(residual_map * mask))
 
                         blobs.append(

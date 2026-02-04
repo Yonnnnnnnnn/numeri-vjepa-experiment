@@ -1,0 +1,97 @@
+:root {
+  --surface-bg: hsl(var(--surface));
+  --base-loader-color: hsl(var(--inverse-surface));
+}
+
+#global-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  z-index: -9999;
+}
+
+.logo-shadow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 80px;
+  height: 80px;
+  fill: none;
+  stroke-width: 2;
+  stroke: rgb(115 115 115 / 26%);
+}
+
+@media (prefers-color-scheme: light) {
+  #global-loading {
+    background-color: var(--surface-bg, #ffffff);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  #global-loading {
+    background-color: var(--surface-bg, #111111);
+  }
+}
+
+.loader-container {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.loader-container .animated-logo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 80px;
+  height: 80px;
+  fill: none;
+  stroke-width: 2;
+  stroke-dasharray: 480;
+  stroke-dashoffset: 480;
+  animation:
+    draw 4s linear infinite,
+    fade 4s linear infinite,
+    change-color 8s linear infinite;
+}
+
+@keyframes draw {
+  0%,
+  20% {
+    stroke-dashoffset: 480;
+  }
+  80% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fade {
+  0%,
+  95% {
+    opacity: 1;
+  }
+  95%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes change-color {
+  0%,
+  50% {
+    stroke: var(--base-loader-color, rgb(229 32 233));
+  }
+  50.1%,
+  100% {
+    stroke: rgb(229 32 233);
+  }
+}

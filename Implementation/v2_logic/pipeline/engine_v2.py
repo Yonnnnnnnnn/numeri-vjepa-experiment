@@ -220,7 +220,7 @@ def run_v2_visualizer(
             # Run Brain & Executor
             try:
                 _ = brain.encode(input_batch)
-                # target_size=(w, h) ensures CountGD scales boxes from 224x224 back to video size
+                # target_size=(w, h) ensures CountVid scales boxes from 224x224 back to video size
                 current_count, boxes = executor.count(
                     frame, prompt=intent, target_size=(w, h)
                 )
@@ -233,7 +233,7 @@ def run_v2_visualizer(
                 seg_result = segmenter.segment_frame(frame)
                 ai_overlay = segmenter.visualize_masks(frame, seg_result)
 
-                # Draw CountGD Boxes on top of SAM2 masks
+                # Draw CountVid Boxes on top of SAM2 masks
                 for box in boxes:
                     cv2.rectangle(
                         ai_overlay, (box[0], box[1]), (box[2], box[3]), (0, 255, 255), 2

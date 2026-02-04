@@ -68,7 +68,7 @@ if BASE_DIR not in sys.path:
 # Robustly add Techs dependencies (required for Colab subprocesses)
 TECHS_PATHS = [
     os.path.join(PARENT_DIR, "Techs/Depth-Anything-V2-main/Depth-Anything-V2-main"),
-    os.path.join(PARENT_DIR, "Techs/CountGD-main/CountGD-main"),
+    os.path.join(PARENT_DIR, "Techs/CountVid-main/CountVid-main"),
     os.path.join(PARENT_DIR, "Techs/sam2-main/sam2-main"),
     os.path.join(PARENT_DIR, "Techs/v2e-master/v2e-master"),
 ]

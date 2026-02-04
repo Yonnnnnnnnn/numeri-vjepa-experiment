@@ -7,9 +7,9 @@ Start Symbol : SystemDesign (this document)
 
 Non-Terminals :
 ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
-│ <Perception> → v2e, SAM2, CountGD, DINOv2 │
+│ <Perception> → v2e, SAM2, CountVid, DINOv2 │
 │ <Brain> → V-JEPA │
-│ <Controller> → VL-JEPA, CountGD, SAM2 │
+│ <Controller> → VL-JEPA, CountVid, SAM2 │
 └───────────────────────────────────────────────────────────────────────────┘
 
 Terminals : str, component_names
@@ -39,7 +39,7 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 ### 1.3. Logical Controller (Pikiran)
 
 - **VL-JEPA (Director)**: A vision-language model that sets goals and interprets scene context.
-- **CountGD (Visual Executor)**: Provides zero-shot object counting and bounding boxes.
+- **CountVid (Visual Executor)**: Provides zero-shot object counting and bounding boxes.
 - **Logic Gate (Math Guards)**: Deterministic rule-based filter that handles anomaly detection and routing.
 - **Targeted SLM (Reasoning)**: Triggered for high-level ambiguity resolution and intent refinement.
 

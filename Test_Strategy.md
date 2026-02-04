@@ -11,7 +11,7 @@ This document outlines the strategy for verifying the Antigravity V2 pipeline.
 
 - **Recursive Flow**: Verify end-to-end execution from raw video to final count using `run_recursive_system.py`.
 - **Hybrid Decision Gate**: Validate that Logic Gate correctly routes frames based on spatial (V2E) and volumetric (SAM2+Depth) anomalies.
-- **V-JEPA Memory**: Verify that temporal latents provide consistent context for the countgd_executor_node.
+- **V-JEPA Memory**: Verify that temporal latents provide consistent context for the countvid_executor_node.
 
 ## 3. Performance Metrics
 

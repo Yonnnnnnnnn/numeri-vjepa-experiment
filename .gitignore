@@ -166,5 +166,5 @@ tmp/
 *.log
 v2e_data/
 jepa_data/
-# Techs/ - Commented to allow CountGD library to be committed
-!Techs/CountGD-main/
+# Techs/ - Commented to allow CountVid library to be committed
+!Techs/CountVid-main/

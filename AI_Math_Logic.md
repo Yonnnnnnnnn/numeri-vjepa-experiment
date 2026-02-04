@@ -39,7 +39,7 @@ Objek dalam kategori $\mathcal{A}$ mewakili ruang representasi informasi pada be
 - **$Obs$ (Observation Space)**: Ruang spike/event mentah dari `v2e`.
 - **$Lat$ (Latent Space)**: Ruang representasi temporal-visual dari `V-JEPA`.
 - **$Int$ (Intent Space)**: Ruang semantik/label dari `VL-JEPA` (Director).
-- **$Exe$ (Execution Space)**: Ruang hasil perhitungan dan bounding box dari `CountGD`.
+- **$Exe$ (Execution Space)**: Ruang hasil perhitungan dan bounding box dari `CountVid`.
 - **$Ref$ (Reflection Space)**: Ruang metadata anomali dan tingkat kepercayaan (Surprise).
 
 ## 2. Morphisms (Arrows)

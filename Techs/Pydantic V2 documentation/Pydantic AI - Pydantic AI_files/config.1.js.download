@@ -1,0 +1,13 @@
+window.appConfig = {
+  apiHost: 'logfire-eu.pydantic.dev',
+  region: 'eu',
+  regions: [{"api_host":"https://api-us.pydantic.dev","auth_host":"https://auth-us.pydantic.dev","frontend_host":"https://logfire-us.pydantic.dev","name":"us"},{"api_host":"https://api-eu.pydantic.dev","auth_host":"https://auth-eu.pydantic.dev","frontend_host":"https://logfire-eu.pydantic.dev","name":"eu"}],
+  selfHosted: false,
+  dexPublicUrl: 'https://logfire-eu.pydantic.dev',
+  globalLandingUrl: 'https://logfire.pydantic.dev',
+  dexDynamicRedirect: false,
+  appVersion: 'dev (2026-01-28 15:58:22 UTC)',
+  stripePublishableKey: 'pk_live_51PH1pSB7axlxkstuAU8Rh3k0aIrFiVEGesAoxpFYyNttha5QkzFqkrF5SNzsVAfLeJxSFZbmmfbKg5WhAI8Z0JbZ006CXVY2kd',
+  posthogApiKey: 'phc_tKeqeZsaAKy9jO4JzW2kdkshGc4P1r5202K6K9I6HWf',
+  analyticsHostname: 'https://pa-eu.pydantic.dev',
+}
