@@ -24,9 +24,9 @@ Untuk menghindari konflik **NumPy 2.x** dan **Torchvision**, jalankan ini di cel
 !pip cache purge
 
 # 2. Install versi stabil (Python 3.12 & SAM-2 Compat)
-# Update: Using torch 2.6+ to support mask functions required by the latest features
+# Reverted to PyTorch 2.5.1 with CUDA 12.1 (works reliably with Python 3.12)
 !pip install numpy==1.26.4
-!pip install torch>=2.6 torchvision>=0.17 torchaudio>=2.6 --index-url https://download.pytorch.org/whl/cu122
+!pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu121
 !pip install jax==0.4.33 jaxlib==0.4.33
 
 print("=" * 60)
@@ -48,8 +48,8 @@ import torch
 import torchvision
 
 print(f"NumPy: {np.__version__} (expected: 1.26.4)")
-print(f"Torch: {torch.__version__} (expected: 2.6+cu122)")
-print(f"Torchvision: {torchvision.__version__} (expected: 0.17+cu122)")
+print(f"Torch: {torch.__version__} (expected: 2.5.1+cu121)")
+print(f"Torchvision: {torchvision.__version__} (expected: 0.20.1+cu121)")
 
 # Check CUDA availability
 if torch.cuda.is_available():
