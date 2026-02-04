@@ -26,7 +26,7 @@ Non-Terminals   :
   │  --- Phase 1 Engines ---                                                  │
   │  <SegmentationEngine>      ← from models.segmentation_engine              │
   │  <DepthEngine>             ← from models.depth_engine                     │
-  │  <CountGDEngine>           ← from models.count_gd_engine                  │
+  │  <CountVidEngine>           ← from models.count_vid_engine                │
   │  <FusionEngineV2>          ← from models.fusion_engine_v2                 │
   │  <LogicGate>               ← from models.logic_gate                       │
   └───────────────────────────────────────────────────────────────────────────┘
@@ -75,7 +75,7 @@ logger = logging.getLogger(__name__)
 # Global engine instances (initialized on first use)
 _segmentation_engine: Optional["SegmentationEngine"] = None
 _depth_engine: Optional["DepthEngine"] = None
-_countgd_engine: Optional["CountGDEngine"] = None
+_countvid_engine: Optional["CountVidEngine"] = None
 _fusion_engine: Optional["FusionEngineV2"] = None
 _logic_gate: Optional["LogicGate"] = None
 _slm_engine: Optional["SLMEngine"] = None
@@ -112,18 +112,18 @@ def get_depth_engine():
     return _depth_engine
 
 
-def get_countgd_engine():
-    """Lazy-load CountGDEngine."""
-    global _countgd_engine
-    if _countgd_engine is None:
+def get_countvid_engine():
+    """Lazy-load CountVidEngine."""
+    global _countvid_engine
+    if _countvid_engine is None:
         try:
-            from ..models.count_gd_engine import CountGDEngine
+            from ..models.count_vid_engine import CountVidEngine
 
-            _countgd_engine = CountGDEngine()
-            logger.info("[Engines] CountGDEngine initialized")
+            _countvid_engine = CountVidEngine()
+            logger.info("[Engines] CountVidEngine initialized")
         except Exception as e:
-            logger.warning("[Engines] Failed to load CountGDEngine: %s", e)
-    return _countgd_engine
+            logger.warning("[Engines] Failed to load CountVidEngine: %s", e)
+    return _countvid_engine
 
 
 def get_fusion_engine():
@@ -427,9 +427,9 @@ def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
     return {}
 
 
-def countgd_executor_node(state: RecursiveFlowState) -> Dict[str, Any]:
+def countvid_executor_node(state: RecursiveFlowState) -> Dict[str, Any]:
     """
-    Execute zero-shot counting using CountGD.
+    Execute zero-shot counting using CountVid.
     Returns N_visible (visual count).
 
     Supports:
@@ -441,9 +441,9 @@ def countgd_executor_node(state: RecursiveFlowState) -> Dict[str, Any]:
 
     # Use active_intent if available, fallback to main_intent
     intent = perception.active_intent if perception.active_intent else ctx.main_intent
-    logger.info("[countgd_executor_node] Counting objects matching intent: %s", intent)
+    logger.info("[countvid_executor_node] Counting objects matching intent: %s", intent)
 
-    engine = get_countgd_engine()
+    engine = get_countvid_engine()
 
     if engine and perception.image is not None:
         image = perception.image
@@ -461,7 +461,7 @@ def countgd_executor_node(state: RecursiveFlowState) -> Dict[str, Any]:
             image = image[y1:y2, x1:x2]
             roi_offset = (x1, y1)
             logger.info(
-                "[countgd_executor_node] POINTBEAM: Cropped to ROI %s",
+                "[countvid_executor_node] POINTBEAM: Cropped to ROI %s",
                 perception.focus_roi,
             )
 
@@ -471,7 +471,7 @@ def countgd_executor_node(state: RecursiveFlowState) -> Dict[str, Any]:
         sensitivity = perception.sensitivity_modifier
         if sensitivity != 1.0:
             logger.info(
-                "[countgd_executor_node] Sensitivity modifier: %.2f", sensitivity
+                "[countvid_executor_node] Sensitivity modifier: %.2f", sensitivity
             )
 
         # CountGD call
@@ -830,7 +830,7 @@ def build_recursive_graph() -> StateGraph:
                      vljepa_director_node                │
                        ├───────────────┬─────────────────┤
                        v               v                 v
-              countgd_executor   sam2_depth         (v2e output)
+              countvid_executor   sam2_depth         (v2e output)
                        │               │                 │
                        └───────────────┴─────────────────┘
                                        │
@@ -858,7 +858,7 @@ def build_recursive_graph() -> StateGraph:
     graph.add_node("v2e_sensor_node", v2e_sensor_node)
     graph.add_node("vjepa_brain_node", vjepa_brain_node)
     graph.add_node("vljepa_director_node", vljepa_director_node)
-    graph.add_node("countgd_executor_node", countgd_executor_node)
+    graph.add_node("countvid_executor_node", countvid_executor_node)
     graph.add_node("sam2_depth_node", sam2_depth_node)
     graph.add_node("fusion_engine_node", fusion_engine_node)
     graph.add_node("logic_gate_node", logic_gate_node)
@@ -875,12 +875,12 @@ def build_recursive_graph() -> StateGraph:
     graph.add_edge("vjepa_brain_node", "vljepa_director_node")
 
     # Director → Parallel Executors
-    graph.add_edge("vljepa_director_node", "countgd_executor_node")
+    graph.add_edge("vljepa_director_node", "countvid_executor_node")
     graph.add_edge("vljepa_director_node", "sam2_depth_node")
 
     # All paths converge at Fusion
     graph.add_edge("v2e_sensor_node", "fusion_engine_node")
-    graph.add_edge("countgd_executor_node", "fusion_engine_node")
+    graph.add_edge("countvid_executor_node", "fusion_engine_node")
     graph.add_edge("sam2_depth_node", "fusion_engine_node")
 
     # Fusion → Logic Gate

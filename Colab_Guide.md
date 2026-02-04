@@ -116,7 +116,7 @@ def setup_repo():
         "Depth-Anything-V2-main/Depth-Anything-V2-main": "https://github.com/depth-anything/Depth-Anything-V2.git",
         "sam2-main/sam2-main": "https://github.com/facebookresearch/sam2.git",
         "v2e-master/v2e-master": "https://github.com/YosuaNa/v2e.git", # Fork with Python 3.12 fixes
-        "CountGD-main/CountGD-main": "https://github.com/niki-amini-naieni/CountGD.git"
+        "CountVid-main/CountVid-main": "https://github.com/niki-amini-naieni/CountVid.git"
     }
 
     for folder, url in needed_techs.items():
@@ -131,7 +131,7 @@ def setup_repo():
     # 2. Fix Techs Package Init
     TECH_LIBS = [
         f"{PROJECT_DIR}/Techs/Depth-Anything-V2-main/Depth-Anything-V2-main/depth_anything_v2",
-        f"{PROJECT_DIR}/Techs/CountGD-main/CountGD-main",
+        f"{PROJECT_DIR}/Techs/CountVid-main/CountVid-main",
     ]
     for lib in TECH_LIBS:
         if os.path.exists(lib):
