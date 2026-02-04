@@ -62,10 +62,12 @@ class CountGDEngine:
         self.confidence_thresh = 0.23
 
         try:
+            # Apply global monkey patch for torch.Tensor.to method to fix dtype=device issue
+            self._apply_tensor_to_monkey_patch()
             # Dynamically patch CountGD library for PyTorch 2.6 compatibility
             self._patch_countgd_library()
         except Exception as e:
-            logger.warning("[CountGD] Failed to patch library: %s", str(e))
+            logger.warning("[CountGD] Failed to apply patches: %s", str(e))
 
         try:
             # Load CountGD model using the same approach as single_image_inference.py
@@ -373,6 +375,59 @@ class CountGDEngine:
             else:
                 logger.info("[CountGD] No changes needed for %s", file_path)
     
+    def _apply_tensor_to_monkey_patch(self):
+        """
+        Apply a global monkey patch to torch.Tensor.to() method to fix PyTorch 2.6+ compatibility issues.
+        This fixes the issue where some libraries incorrectly pass device as dtype argument.
+        """
+        import torch
+        import functools
+        
+        # Store original to method
+        original_to = torch.Tensor.to
+        
+        @functools.wraps(original_to)
+        def patched_to(self, *args, **kwargs):
+            """
+            Patched version of to() that handles cases where device is incorrectly passed as dtype.
+            """
+            try:
+                # First try normal call
+                return original_to(self, *args, **kwargs)
+            except TypeError as e:
+                # Check if error is about invalid combination of arguments involving dtype=device
+                error_msg = str(e)
+                if "invalid combination of arguments" in error_msg and "dtype" in error_msg and "device" in error_msg:
+                    # Create a copy of kwargs to modify
+                    new_kwargs = kwargs.copy()
+                    
+                    # If dtype is a device, move it to device parameter
+                    if "dtype" in new_kwargs:
+                        dtype_val = new_kwargs["dtype"]
+                        if isinstance(dtype_val, torch.device):
+                            # Move dtype value to device parameter
+                            new_kwargs["device"] = dtype_val
+                            del new_kwargs["dtype"]
+                            # Try again with corrected kwargs
+                            return original_to(self, *args, **new_kwargs)
+                    
+                    # If device is a dtype, move it to dtype parameter
+                    if "device" in new_kwargs:
+                        device_val = new_kwargs["device"]
+                        if isinstance(device_val, torch.dtype):
+                            # Move device value to dtype parameter
+                            new_kwargs["dtype"] = device_val
+                            del new_kwargs["device"]
+                            # Try again with corrected kwargs
+                            return original_to(self, *args, **new_kwargs)
+                
+                # If not our specific error, re-raise
+                raise
+        
+        # Apply the patch
+        torch.Tensor.to = patched_to
+        logger.info("[CountGD] Applied monkey patch to torch.Tensor.to()")
+
     def tally_unique(self, temporal_counts):
         """
         Final tally logic that integrates counts over time to resolve unique items.
