@@ -73,6 +73,13 @@ class CountVidEngine:
                 logger.info("[CountVid] Found Hugging Face datasets module, temporarily removing...")
                 hf_datasets_backup = sys.modules.pop('datasets')
             
+            # Ensure CountVid's path is at the beginning of sys.path for correct imports
+            if COUNTVID_PATH not in sys.path:
+                sys.path.insert(0, COUNTVID_PATH)
+            elif sys.path.index(COUNTVID_PATH) != 0:
+                sys.path.remove(COUNTVID_PATH)
+                sys.path.insert(0, COUNTVID_PATH)
+
             # Add current directory to path to ensure correct imports
             original_cwd = os.getcwd()
             os.chdir(COUNTVID_PATH)
