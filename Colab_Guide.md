@@ -185,8 +185,6 @@ if setup_repo():
     print("🚀 PENTING: Lakukan RESTART SESSION (Menu: Runtime -> Restart session)")
 ```
 
-## ,StartLine:75,TargetContent:
-
 ## Langkah 2: Verifikasi & Path (Jalankan SETELAH Restart)
 
 Setelah restart runtime, jalankan cell ini untuk memastikan NumPy < 2.0 aktif:
