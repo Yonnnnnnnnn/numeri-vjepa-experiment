@@ -254,8 +254,6 @@ PROJECT_DIR = "/content/numeri-vjepa-experiment"
 > [!NOTE]
 > Per **2026-02-02**: Perbaikan "Visualizer vs Logic" (Coordinate Scaling & StochasticDepth Patch) sekarang sudah diinjeksi langsung ke dalam file `.py`. Anda tidak perlu lagi melakukan patching manual di cell Colab. Cukup jalankan Langkah 5 di bawah.
 
-````
-
 ### 4.2 Download CountVid Checkpoints
 
 ```python
@@ -338,7 +336,7 @@ print("\n✅ Semua checkpoint & video siap!")
 !ls -la {CHECKPOINTS_DIR}
 !ls -la {video_dir}
 !ls -la {depth_dir}
-````
+```
 
 ---
 
