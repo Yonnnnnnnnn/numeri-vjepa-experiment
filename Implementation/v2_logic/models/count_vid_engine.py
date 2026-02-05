@@ -64,14 +64,29 @@ class CountVidEngine:
         self.model = None
         self.transform = None
         self.confidence_thresh = CONF_THRESH
+        self.nested_tensor_from_tensor_list = None
 
         try:
+            # Clear Hugging Face datasets module cache to use CountVid's local datasets module
+            hf_datasets_backup = None
+            if 'datasets' in sys.modules:
+                logger.info("[CountVid] Found Hugging Face datasets module, temporarily removing...")
+                hf_datasets_backup = sys.modules.pop('datasets')
+            
+            # Add current directory to path to ensure correct imports
+            original_cwd = os.getcwd()
+            os.chdir(COUNTVID_PATH)
+            
             # pylint: disable=import-error, import-outside-toplevel
             from util.slconfig import SLConfig
             import datasets.transforms as T
-
+            from models.registry import MODULE_BUILD_FUNCS
+            from util.misc import nested_tensor_from_tensor_list
             # pylint: enable=import-error, import-outside-toplevel
-
+            
+            # Store the function for later use
+            self.nested_tensor_from_tensor_list = nested_tensor_from_tensor_list
+            
             # Create checkpoints directory if it doesn't exist
             checkpoints_dir = os.path.join(COUNTVID_PATH, "checkpoints")
             os.makedirs(checkpoints_dir, exist_ok=True)
@@ -134,6 +149,11 @@ class CountVidEngine:
                 logger.warning(
                     "[CountVid] Using mock counting until checkpoints are available"
                 )
+                # Restore Hugging Face datasets module before returning
+                if hf_datasets_backup is not None:
+                    logger.info("[CountVid] Restoring Hugging Face datasets module...")
+                    sys.modules['datasets'] = hf_datasets_backup
+                os.chdir(original_cwd)
                 return
 
             # Build transform
@@ -151,11 +171,6 @@ class CountVidEngine:
             )
 
             # Build model
-            # pylint: disable=import-error, import-outside-toplevel
-            from models.registry import MODULE_BUILD_FUNCS
-
-            # pylint: enable=import-error, import-outside-toplevel
-
             # pylint: disable=no-member
             assert args.modelname in MODULE_BUILD_FUNCS._module_dict
             build_func = MODULE_BUILD_FUNCS.get(args.modelname)
@@ -171,6 +186,12 @@ class CountVidEngine:
             self.model.load_state_dict(checkpoint, strict=False)
             self.model.to(self.device)
             self.model.eval()
+            
+            # Restore original directory and Hugging Face datasets module
+            os.chdir(original_cwd)
+            if hf_datasets_backup is not None:
+                logger.info("[CountVid] Restoring Hugging Face datasets module...")
+                sys.modules['datasets'] = hf_datasets_backup
 
             logger.info("[CountVid] Model loaded successfully on %s", self.device)
         except Exception as e:  # pylint: disable=broad-exception-caught
@@ -253,8 +274,8 @@ class CountVidEngine:
             from PIL import Image
             import torchvision.transforms.functional as F
 
-            # pylint: disable=import-error, no-name-in-module
-            from util.misc import nested_tensor_from_tensor_list
+            # Use the pre-imported function to avoid module conflicts
+            nested_tensor_from_tensor_list = self.nested_tensor_from_tensor_list
 
             # pylint: enable=import-outside-toplevel
 
