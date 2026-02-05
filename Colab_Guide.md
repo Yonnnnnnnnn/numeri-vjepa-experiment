@@ -182,6 +182,17 @@ if setup_repo():
         importlib.reload(np)
         print(f"✅ NumPy Downgraded: {np.__version__}")
 
+    # 3.5. Compile GroundingDINO CUDA Extensions (for MultiScaleDeformableAttention)
+    print("\n⚙️ Mengkompilasi GroundingDINO CUDA Extensions...")
+    GROUNDINGDINO_OPS_DIR = os.path.join(PROJECT_DIR, "Techs/CountVid-main/CountVid-main/models/GroundingDINO/ops")
+    if os.path.exists(GROUNDINGDINO_OPS_DIR):
+        %cd $GROUNDINGDINO_OPS_DIR
+        !python setup.py install
+        %cd $PROJECT_DIR # Kembali ke root project
+        print("✅ Kompilasi GroundingDINO CUDA Extensions selesai.")
+    else:
+        print(f"❌ Direktori GroundingDINO ops tidak ditemukan: {GROUNDINGDINO_OPS_DIR}")
+
     print("🚀 PENTING: Lakukan RESTART SESSION (Menu: Runtime -> Restart session)")
 ```
 
