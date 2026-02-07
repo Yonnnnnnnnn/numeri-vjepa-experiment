@@ -1,3 +1,31 @@
+"""
+GroundingDINOUtils
+
+General utilities for GroundingDINO model and data handling.
+Pattern: Facade
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : GroundingDINOUtils (this script)
+
+Non-Terminals   :
+  ┌─ INTERNAL (defined in this file) ─────────────────────────────────────────┐
+  │  <StateDict>     → clean_state_dict | get_phrases_from_posmap             │
+  │  <Random>        → ensure_rng | random_boxes                              │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL (imported from other modules) ──────────────────────────────────┐
+  │  <transformers>  ← from huggingface (tokenization)                        │
+  │  <torch>         ← from pytorch (tensor processing)                       │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : str, int, float, dict, tensor
+
+Production Rules:
+  GroundingDINOUtils → imports + <StateDict>+ <Random>+
+═══════════════════════════════════════════════════════════════════════════════
+"""
+
 import argparse
 import json
 import warnings
@@ -40,7 +68,9 @@ def renorm(
 ) -> torch.FloatTensor:
     # img: tensor(3,H,W) or tensor(B,3,H,W)
     # return: same as img
-    assert img.dim() == 3 or img.dim() == 4, "img.dim() should be 3 or 4 but %d" % img.dim()
+    assert img.dim() == 3 or img.dim() == 4, (
+        "img.dim() should be 3 or 4 but %d" % img.dim()
+    )
     if img.dim() == 3:
         assert img.size(0) == 3, 'img.size(0) shoule be 3 but "%d". (%s)' % (
             img.size(0),
@@ -147,8 +177,12 @@ class CocoClassMapper:
             "89": 79,
             "90": 80,
         }
-        self.origin2compact_mapper = {int(k): v - 1 for k, v in self.category_map_str.items()}
-        self.compact2origin_mapper = {int(v - 1): int(k) for k, v in self.category_map_str.items()}
+        self.origin2compact_mapper = {
+            int(k): v - 1 for k, v in self.category_map_str.items()
+        }
+        self.compact2origin_mapper = {
+            int(v - 1): int(k) for k, v in self.category_map_str.items()
+        }
 
     def origin2compact(self, idx):
         return self.origin2compact_mapper[int(idx)]
@@ -379,7 +413,9 @@ class NiceRepr:
             return str(len(self))
         else:
             # In all other cases force the subclass to overload __nice__
-            raise NotImplementedError(f"Define the __nice__ method for {self.__class__!r}")
+            raise NotImplementedError(
+                f"Define the __nice__ method for {self.__class__!r}"
+            )
 
     def __repr__(self):
         """str: the string of the module"""
@@ -427,7 +463,7 @@ def ensure_rng(rng=None):
     if rng is None:
         rng = np.random.mtrand._rand
     elif isinstance(rng, int):
-        rng = np.random.RandomState(rng)
+        rng = np.random.RandomState(rng)  # type: ignore # pylint: disable=no-member
     else:
         rng = rng
     return rng
@@ -494,7 +530,9 @@ class ModelEma(torch.nn.Module):
                 ema_v.copy_(update_fn(ema_v, model_v))
 
     def update(self, model):
-        self._update(model, update_fn=lambda e, m: self.decay * e + (1.0 - self.decay) * m)
+        self._update(
+            model, update_fn=lambda e, m: self.decay * e + (1.0 - self.decay) * m
+        )
 
     def set(self, model):
         self._update(model, update_fn=lambda e, m: m)
@@ -592,16 +630,21 @@ def targets_to(targets: List[Dict[str, Any]], device):
         "dataset_type",
     ]
     return [
-        {k: v.to(device) if k not in excluded_keys else v for k, v in t.items()} for t in targets
+        {k: v.to(device) if k not in excluded_keys else v for k, v in t.items()}
+        for t in targets
     ]
 
 
 def get_phrases_from_posmap(
-    posmap: torch.BoolTensor, tokenized: Dict, tokenizer: AutoTokenizer, left_idx: int = 0, right_idx: int = 255
+    posmap: torch.BoolTensor,
+    tokenized: Dict,
+    tokenizer: AutoTokenizer,
+    left_idx: int = 0,
+    right_idx: int = 255,
 ):
     assert isinstance(posmap, torch.Tensor), "posmap must be torch.Tensor"
     if posmap.dim() == 1:
-        posmap[0: left_idx + 1] = False
+        posmap[0 : left_idx + 1] = False
         posmap[right_idx:] = False
         non_zero_idx = posmap.nonzero(as_tuple=True)[0].tolist()
         token_ids = [tokenized["input_ids"][i] for i in non_zero_idx]

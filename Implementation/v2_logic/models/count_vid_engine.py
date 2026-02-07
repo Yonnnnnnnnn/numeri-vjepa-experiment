@@ -36,6 +36,7 @@ from typing import List, Optional, Tuple
 import cv2  # pylint: disable=no-member
 import numpy as np
 import torch
+import traceback
 
 # Add CountVid to path
 COUNTVID_PATH = os.path.abspath(
@@ -69,10 +70,12 @@ class CountVidEngine:
         try:
             # Clear Hugging Face datasets module cache to use CountVid's local datasets module
             hf_datasets_backup = None
-            if 'datasets' in sys.modules:
-                logger.info("[CountVid] Found Hugging Face datasets module, temporarily removing...")
-                hf_datasets_backup = sys.modules.pop('datasets')
-            
+            if "datasets" in sys.modules:
+                logger.info(
+                    "[CountVid] Found Hugging Face datasets module, temporarily removing..."
+                )
+                hf_datasets_backup = sys.modules.pop("datasets")
+
             # Ensure CountVid's path is at the beginning of sys.path for correct imports
             if COUNTVID_PATH not in sys.path:
                 sys.path.insert(0, COUNTVID_PATH)
@@ -83,17 +86,18 @@ class CountVidEngine:
             # Add current directory to path to ensure correct imports
             original_cwd = os.getcwd()
             os.chdir(COUNTVID_PATH)
-            
+
             # pylint: disable=import-error, import-outside-toplevel
             from util.slconfig import SLConfig
             import datasets.transforms as T
             from models.registry import MODULE_BUILD_FUNCS
             from util.misc import nested_tensor_from_tensor_list
+
             # pylint: enable=import-error, import-outside-toplevel
-            
+
             # Store the function for later use
             self.nested_tensor_from_tensor_list = nested_tensor_from_tensor_list
-            
+
             # Create checkpoints directory if it doesn't exist
             checkpoints_dir = os.path.join(COUNTVID_PATH, "checkpoints")
             os.makedirs(checkpoints_dir, exist_ok=True)
@@ -159,7 +163,7 @@ class CountVidEngine:
                 # Restore Hugging Face datasets module before returning
                 if hf_datasets_backup is not None:
                     logger.info("[CountVid] Restoring Hugging Face datasets module...")
-                    sys.modules['datasets'] = hf_datasets_backup
+                    sys.modules["datasets"] = hf_datasets_backup
                 os.chdir(original_cwd)
                 return
 
@@ -193,12 +197,12 @@ class CountVidEngine:
             self.model.load_state_dict(checkpoint, strict=False)
             self.model.to(self.device)
             self.model.eval()
-            
+
             # Restore original directory and Hugging Face datasets module
             os.chdir(original_cwd)
             if hf_datasets_backup is not None:
                 logger.info("[CountVid] Restoring Hugging Face datasets module...")
-                sys.modules['datasets'] = hf_datasets_backup
+                sys.modules["datasets"] = hf_datasets_backup
 
             logger.info("[CountVid] Model loaded successfully on %s", self.device)
         except Exception as e:  # pylint: disable=broad-exception-caught
@@ -333,6 +337,7 @@ class CountVidEngine:
             return pred_count, pixel_boxes
         except Exception as e:
             logger.error("[CountVid] Error during counting: %s", str(e))
+            logger.error(traceback.format_exc())
             return 1, []
 
     def tally_unique(self, temporal_counts: List[Tuple[float, int]]) -> int:

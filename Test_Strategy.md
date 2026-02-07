@@ -13,8 +13,8 @@ This document outlines the strategy for verifying the Antigravity V2 pipeline.
 - **Hybrid Decision Gate**: Validate that Logic Gate correctly routes frames based on spatial (V2E) and volumetric (SAM2+Depth) anomalies.
 - **V-JEPA Memory**: Verify that temporal latents provide consistent context for the countvid_executor_node.
 
-## 3. Performance Metrics
+## 4. Runtime Debugging & Stability
 
-- **Accuracy**: Counting error percentage in high-occlusion scenarios.
-- **Latency**: End-to-end inference time per frame step (Target <150ms on T4/L4).
-- **Volumetric Precision**: Discrepancy between $N_{visible}$ and $N_{volumetric}$ in stacked scenarios.
+- **Persistence Verification**: Test the `temporal_filter_fast` mechanism to ensure object IDs are correctly tracked across window `w`.
+- **Multiprocessing**: Verify cross-platform compatibility (Windows spawn vs Unix fork) for object persistence checks by ensuring clean state passing in `starmap_args`.
+- **Traceability**: Utilize full traceback logging in `count_vid_engine.py` to diagnose device-specific serialization errors (e.g., `BatchEncoding.to()` failures).

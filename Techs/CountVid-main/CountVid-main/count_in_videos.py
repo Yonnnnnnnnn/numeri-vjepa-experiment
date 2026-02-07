@@ -1,3 +1,35 @@
+"""
+CountInVideos
+
+Processes video frames to count objects using SAM2 and GroundingDINO.
+Rule 6.5: Sanitize filenames and validate input paths.
+Pattern: Pipeline
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : CountInVideos (this script)
+
+Non-Terminals   :
+  ┌─ INTERNAL (defined in this file) ─────────────────────────────────────────┐
+  │  <Dataset>      → VideoFrames                                             │
+  │  <Inference>    → sam_image | get_indep_masks | count                     │
+  │  <Persistence>  → temporal_filter_fast | check_obj_persistence            │
+  │  <Utils>        → get_args_parser | add_masks | get_new_objs              │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL (imported from other modules) ──────────────────────────────────┐
+  │  <torch>         ← from torch (tensor processing)                         │
+  │  <sam2>          ← from sam2 (segmentation)                               │
+  │  <GroundingDINO> ← from models.GroundingDINO (detection)                  │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : str, int, float, bool, "cuda", "cpu"
+
+Production Rules:
+  CountInVideos   → imports + <Utils> + <Dataset> + <Inference> + <Persistence>
+═══════════════════════════════════════════════════════════════════════════════
+"""
+
 import torch
 from torch.utils.data import Dataset
 import matplotlib.patches as patches
@@ -20,7 +52,7 @@ import torch
 import matplotlib.pyplot as plt
 from PIL import Image
 import re
-import cv2
+import cv2  # type: ignore  # pylint: disable=no-member
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 device = torch.device("cuda")
@@ -29,7 +61,7 @@ print(f"using device: {device}")
 
 import argparse
 from util.slconfig import SLConfig, DictAction
-import datasets.transforms as T
+import datasets.transforms as T  # type: ignore
 import random
 import json
 from sam2.build_sam import build_sam2_video_predictor
@@ -73,21 +105,54 @@ def get_args_parser():
         help="path to SAM 2 checkpoint",
     )
     parser.add_argument(
-        "--sam_model_cfg",
-        type=str,
-        help="config file for SAM 2 checkpoint"
+        "--sam_model_cfg", type=str, help="config file for SAM 2 checkpoint"
     )
 
-    parser.add_argument("--temporal_filter", action="store_true", help="apply temporal filter")
-    parser.add_argument("--w", type=int, default=3, help="window size for temporal filter (in frames)")
+    parser.add_argument(
+        "--temporal_filter", action="store_true", help="apply temporal filter"
+    )
+    parser.add_argument(
+        "--w", type=int, default=3, help="window size for temporal filter (in frames)"
+    )
     # dataset parameters
-    parser.add_argument("--convert_to_rgb", action="store_true", help="convert video frames and exemplar frames to RGB")
-    parser.add_argument("--use_exemplars", action="store_true", help="Use visual exemplars to specify the object to count")
-    parser.add_argument("--exemplar_file", type=str, help="name of file containing the visual exemplar bounding boxes")
-    parser.add_argument("--exemplar_image_file", type=str, help="name of image file for the visual exemplars")
-    parser.add_argument("--obj_batch_size", type=int, default=30, help="max number of objects to propagate through SAM 2 at once in Stage 3")
-    parser.add_argument("--obj_batch_size_filter", type=int, default=100, help="max number of objects to propagate through SAM 2 at once for the temporal filter in Stage 2")
-    parser.add_argument("--img_batch_size", type=int, default=4, help="batch size for independent CountGD + SAM 2 inference (before temporal propagation)")
+    parser.add_argument(
+        "--convert_to_rgb",
+        action="store_true",
+        help="convert video frames and exemplar frames to RGB",
+    )
+    parser.add_argument(
+        "--use_exemplars",
+        action="store_true",
+        help="Use visual exemplars to specify the object to count",
+    )
+    parser.add_argument(
+        "--exemplar_file",
+        type=str,
+        help="name of file containing the visual exemplar bounding boxes",
+    )
+    parser.add_argument(
+        "--exemplar_image_file",
+        type=str,
+        help="name of image file for the visual exemplars",
+    )
+    parser.add_argument(
+        "--obj_batch_size",
+        type=int,
+        default=30,
+        help="max number of objects to propagate through SAM 2 at once in Stage 3",
+    )
+    parser.add_argument(
+        "--obj_batch_size_filter",
+        type=int,
+        default=100,
+        help="max number of objects to propagate through SAM 2 at once for the temporal filter in Stage 2",
+    )
+    parser.add_argument(
+        "--img_batch_size",
+        type=int,
+        default=4,
+        help="batch size for independent CountGD + SAM 2 inference (before temporal propagation)",
+    )
     parser.add_argument("--remove_difficult", action="store_true")
     parser.add_argument("--fix_size", action="store_true")
     parser.add_argument(
@@ -106,7 +171,7 @@ def get_args_parser():
         "--downsample_factor",
         type=float,
         default=1,
-        help="downsample total number of frames by this factor, i.e., total_frames/downsample_factor=num_frames, sample_frames takes higher priority"
+        help="downsample total number of frames by this factor, i.e., total_frames/downsample_factor=num_frames, sample_frames takes higher priority",
     )
     parser.add_argument(
         "--save_T",
@@ -129,28 +194,25 @@ def get_args_parser():
         help="save final tracking results using our method for the whole video",
     )
     parser.add_argument(
-        "--output_fps",
-        type=float,
-        default=3,
-        help="frames per second of output videos"
+        "--output_fps", type=float, default=3, help="frames per second of output videos"
     )
     parser.add_argument(
         "--output_dir",
         type=str,
         default="",
-        help="directory where to save video outputs"
+        help="directory where to save video outputs",
     )
     parser.add_argument(
         "--output_file",
         type=str,
         default="",
-        help="save the counting results to an output json file"
+        help="save the counting results to an output json file",
     )
     parser.add_argument(
         "--temp_dir",
         type=str,
         default="./inference-frames",
-        help="temporary directory used to store and process video frames, removed after counting finishes"
+        help="temporary directory used to store and process video frames, removed after counting finishes",
     )
 
     # Parameters required by CountGD app (have not tested removing, leaving in for now)
@@ -165,7 +227,9 @@ def get_args_parser():
     parser.add_argument(
         "--start_epoch", default=0, type=int, metavar="N", help="start epoch"
     )
-    parser.add_argument("--eval", action="store_false")# Sets model to eval mode by default since model only used for inference here
+    parser.add_argument(
+        "--eval", action="store_false"
+    )  # Sets model to eval mode by default since model only used for inference here
     parser.add_argument("--num_workers", default=8, type=int)
     parser.add_argument("--test", action="store_true")
     parser.add_argument("--debug", action="store_true")
@@ -206,7 +270,8 @@ class VideoFrames(Dataset):
 
             exemplars = get_box_inputs(exemplars)
             input_image_exemplars, exemplars = transform(
-                Image.open(args.exemplar_image_file), {"exemplars": torch.tensor(exemplars)}
+                Image.open(args.exemplar_image_file),
+                {"exemplars": torch.tensor(exemplars)},
             )
             self.input_image_exemplars = input_image_exemplars
             self.exemplars = exemplars["exemplars"]
@@ -240,12 +305,12 @@ def get_device():
 # **Begin code from CountGD app**
 # Get counting model.
 def build_model_and_transforms(args):
-    normalize = T.Compose(
+    normalize = T.Compose(  # pylint: disable=no-member
         [T.ToTensor(), T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]
     )
-    data_transform = T.Compose(
+    data_transform = T.Compose(  # pylint: disable=no-member
         [
-            T.RandomResize([800], max_size=1333),
+            T.RandomResize([800], max_size=1333),  # pylint: disable=no-member
             normalize,
         ]
     )
@@ -279,6 +344,7 @@ def build_model_and_transforms(args):
     model.eval()
 
     return model, data_transform
+
 
 def get_ind_to_filter(text, word_ids, keywords):
     if len(keywords) <= 0:
@@ -318,30 +384,36 @@ def get_box_inputs(prompts):
 
 
 # Define count function.
-def count(input_image, input_image_exemplars, exemplars, label, text, device="cuda"):
+def count(
+    input_image, input_image_exemplars, exemplars, label, text, compute_device="cuda"
+):
     with torch.no_grad():
         return model(
-            nested_tensor_from_tensor_list(list(input_image.to(device))),
-            nested_tensor_from_tensor_list(list(input_image_exemplars.to(device))),
-            list(exemplars.to(device)),
-            list(label.to(device)),
+            nested_tensor_from_tensor_list(list(input_image.to(compute_device))),
+            nested_tensor_from_tensor_list(
+                list(input_image_exemplars.to(compute_device))
+            ),
+            list(exemplars.to(compute_device)),
+            list(label.to(compute_device)),
             captions=[text + " ."] * len(input_image),
         )
 
+
 # **End code from CountGD app**
 
-def get_curr_count(frame_idx, T):
+
+def get_curr_count(frame_idx, trajectories):
     num_objs = 0
-    for obj_id in T:
+    for obj_id in trajectories:
         # Check if the object appears in the frame.
-        if frame_idx in T[obj_id].keys():
-            num_objs+=1
+        if frame_idx in trajectories[obj_id].keys():
+            num_objs += 1
     return num_objs
 
 
-def add_masks(out_frame_idx, T, cmap, img):
+def add_masks(out_frame_idx, trajectories, cmap, img):
     """
-    Visualize object masks in [T] at frame [out_frame_idx] stored as a numpy array in [img] using the color map [cmap].
+    Visualize object masks in [trajectories] at frame [out_frame_idx] stored as a numpy array in [img] using the color map [cmap].
 
     Effect: Shows the frame overlaid with the object masks and their corresponding object IDs.
 
@@ -349,12 +421,12 @@ def add_masks(out_frame_idx, T, cmap, img):
     """
     img_orig = copy.deepcopy(img)
     obj_centers = []
-    num_objects = len(T.keys())
-    for obj_id in T:
+    num_objects = len(trajectories.keys())
+    for obj_id in trajectories:
         # Check if the object appears in the frame.
-        if out_frame_idx in T[obj_id].keys():
+        if out_frame_idx in trajectories[obj_id].keys():
             color = np.array(cmap(obj_id / num_objects))
-            mask = T[obj_id][out_frame_idx]
+            mask = trajectories[obj_id][out_frame_idx]
             img[mask[0], mask[1], :] = (255 * color[:3]).astype(int)
 
             # Label the mask:
@@ -363,7 +435,12 @@ def add_masks(out_frame_idx, T, cmap, img):
                 x_center = int(np.mean(mask[1]))
                 obj_centers.append({"id": obj_id, "center": (x_center, y_center)})
             else:
-                print("Object " + str(obj_id) + " is occluded in frame " + str(out_frame_idx))
+                print(
+                    "Object "
+                    + str(obj_id)
+                    + " is occluded in frame "
+                    + str(out_frame_idx)
+                )
 
     # Show the final image with masks.
     # Create a figure with two subplots
@@ -371,11 +448,11 @@ def add_masks(out_frame_idx, T, cmap, img):
 
     # Display the first image in the first subplot
     axes[0].imshow(img_orig)
-    axes[0].axis('off')  # Hide the axis
+    axes[0].axis("off")  # Hide the axis
 
     # Display the second image in the second subplot
     axes[1].imshow(img)
-    axes[1].axis('off')  # Hide the axis
+    axes[1].axis("off")  # Hide the axis
     # Add text labels
     for label in obj_centers:
         obj_id = label["id"]
@@ -432,6 +509,7 @@ def add_masks_single_image(img, masks, cmap):
             va="center",
         )
 
+
 def show_box(box, ax):
     """
     Adds the bounding box [box] to the matplotlib axis [ax].
@@ -443,13 +521,15 @@ def show_box(box, ax):
         plt.Rectangle((x0, y0), w, h, edgecolor="green", facecolor=(0, 0, 0, 0), lw=2)
     )
 
+
 def get_indep_masks(predictor, images, box_prompts):
     # Note: sam masks from empty box prompts ignored as check in propagation loop that len(box_prompts) > 0 before checking for new objects.
     predictor.set_image_batch(images)
     masks_batch, scores_batch, _ = predictor.predict_batch(
-            None, None, box_batch=box_prompts, multimask_output=False
-        )
+        None, None, box_batch=box_prompts, multimask_output=False
+    )
     return masks_batch
+
 
 def get_short_term_masks(video_predictor, sam_pred_masks, w, args):
     # Store short-term masks in dictionary.
@@ -459,39 +539,66 @@ def get_short_term_masks(video_predictor, sam_pred_masks, w, args):
         # Batch objects to speed up filtering while taking advantage of available memory.
         num_objs = len(sam_pred_masks[frame_ind_i]["box_prompts"])
         num_batches = int(np.ceil(num_objs / args.obj_batch_size_filter))
-        print("Number of object batches for filtering in frame " + str(frame_ind_i) + ": " + str(num_batches))
+        print(
+            "Number of object batches for filtering in frame "
+            + str(frame_ind_i)
+            + ": "
+            + str(num_batches)
+        )
 
         for batch_ind in range(num_batches):
             # Reset inference state.
             video_predictor.reset_state(inference_state)
-            for obj_ind in range(batch_ind * args.obj_batch_size_filter, min((batch_ind + 1) * args.obj_batch_size_filter, num_objs)):
+            for obj_ind in range(
+                batch_ind * args.obj_batch_size_filter,
+                min((batch_ind + 1) * args.obj_batch_size_filter, num_objs),
+            ):
                 obj_j = obj_ind + 1
                 obj_j_box = sam_pred_masks[frame_ind_i]["box_prompts"][obj_ind]
                 # Prompt SAM 2 with the box from [obj_j] in [frame_ind_i] and track the object max(0, frame_ind_i - (w - 1)) frames backward and min(N - 1, i + (w - 1)) frames forward, producing masks:
                 # M^{track, j}_{max(0, frame_ind_i - (w - 1))}, ..., M^{track, j}_{i - 1},
                 # M^{track, j}_{i + 1}, ..., M^{track, j}_{min(N - 1, i + (w - 1))}
                 predictor.add_new_points_or_box(
-                        inference_state=inference_state,
-                        frame_idx=frame_ind_i,
-                        obj_id=obj_j,
-                        box=obj_j_box,
-                    )
+                    inference_state=inference_state,
+                    frame_idx=frame_ind_i,
+                    obj_id=obj_j,
+                    box=obj_j_box,
+                )
                 sam_short_term_masks[frame_ind_i][obj_j] = {}
             # Track in reverse to get masks M^{track, j}_{max(0, frame_ind_i - (w - 1))}, ..., M^{track, j}_{i - 1}.
-            for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(
-                inference_state, start_frame_idx=frame_ind_i, max_frame_num_to_track=w - 1, reverse=True
+            for (
+                out_frame_idx,
+                out_obj_ids,
+                out_mask_logits,
+            ) in predictor.propagate_in_video(
+                inference_state,
+                start_frame_idx=frame_ind_i,
+                max_frame_num_to_track=w - 1,
+                reverse=True,
             ):
                 for ind, obj_id in enumerate(out_obj_ids):
-                    sam_short_term_masks[frame_ind_i][obj_id][out_frame_idx] = np.nonzero((out_mask_logits[ind] > 0.0).cpu().numpy().squeeze())
-    
+                    sam_short_term_masks[frame_ind_i][obj_id][out_frame_idx] = (
+                        np.nonzero((out_mask_logits[ind] > 0.0).cpu().numpy().squeeze())
+                    )
+
             # Track forward in time to get masks M^{track, j}_{i + 1}, ..., M^{track, j}_{min(N - 1, i + (w - 1))}.
-            for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(
-                inference_state, start_frame_idx=frame_ind_i, max_frame_num_to_track=w - 1, reverse=False
+            for (
+                out_frame_idx,
+                out_obj_ids,
+                out_mask_logits,
+            ) in predictor.propagate_in_video(
+                inference_state,
+                start_frame_idx=frame_ind_i,
+                max_frame_num_to_track=w - 1,
+                reverse=False,
             ):
                 for ind, obj_id in enumerate(out_obj_ids):
-                    sam_short_term_masks[frame_ind_i][obj_id][out_frame_idx] = np.nonzero((out_mask_logits[ind] > 0.0).cpu().numpy().squeeze())
-    
+                    sam_short_term_masks[frame_ind_i][obj_id][out_frame_idx] = (
+                        np.nonzero((out_mask_logits[ind] > 0.0).cpu().numpy().squeeze())
+                    )
+
     return sam_short_term_masks
+
 
 def compute_iou(mask1_indices, mask2_indices):
     # Make indices hashable
@@ -510,6 +617,7 @@ def compute_iou(mask1_indices, mask2_indices):
 
     return intersection / union
 
+
 def compute_intersection(mask1_indices, mask2_indices):
     # Make indices hashable
     mask1_indices = list(zip(mask1_indices[0], mask1_indices[1]))
@@ -519,6 +627,7 @@ def compute_intersection(mask1_indices, mask2_indices):
 
     return len(set1 & set2)
 
+
 def compute_union(mask1_indices, mask2_indices):
     # Make indices hashable
     mask1_indices = list(zip(mask1_indices[0], mask1_indices[1]))
@@ -527,16 +636,22 @@ def compute_union(mask1_indices, mask2_indices):
     set2 = set(mask2_indices)
 
     return len(set1 | set2)
-    
-def check_obj_persistence(obj_j, frame_ind_i, N):
-    global sam_short_term_masks
-    global sam_pred_masks
+
+
+def check_obj_persistence(
+    obj_j, frame_ind_i, N, w, sam_short_term_masks, sam_pred_masks
+):
     M_track_js = sam_short_term_masks[frame_ind_i][obj_j]
     # Find consecutive prior frames where [obj_j] is detected by CountGD.
     frame_ind_m = frame_ind_i
     for frame_ind_m in range(frame_ind_i - 1, max(0, frame_ind_i - (w - 1)) - 1, -1):
         M_track_j = M_track_js[frame_ind_m]
-        IoUs = np.array([compute_iou(M_track_j, sam_pred_masks[frame_ind_m]["mask_ids"][obj_k]) for obj_k in sam_pred_masks[frame_ind_m]["mask_ids"]])
+        IoUs = np.array(
+            [
+                compute_iou(M_track_j, sam_pred_masks[frame_ind_m]["mask_ids"][obj_k])
+                for obj_k in sam_pred_masks[frame_ind_m]["mask_ids"]
+            ]
+        )
         if (IoUs > 0.5).sum() == 0:
             frame_ind_m = frame_ind_m + 1
             break
@@ -547,55 +662,74 @@ def check_obj_persistence(obj_j, frame_ind_i, N):
     frame_ind_n = frame_ind_i
     for frame_ind_n in range(frame_ind_i + 1, min(N - 1, frame_ind_i + (w - 1)) + 1, 1):
         M_track_j = M_track_js[frame_ind_n]
-        IoUs = np.array([compute_iou(M_track_j, sam_pred_masks[frame_ind_n]["mask_ids"][obj_k]) for obj_k in sam_pred_masks[frame_ind_n]["mask_ids"]])
+        IoUs = np.array(
+            [
+                compute_iou(M_track_j, sam_pred_masks[frame_ind_n]["mask_ids"][obj_k])
+                for obj_k in sam_pred_masks[frame_ind_n]["mask_ids"]
+            ]
+        )
         if (IoUs > 0.5).sum() == 0:
             frame_ind_n = frame_ind_n - 1
             break
-            
+
     stop = frame_ind_n
 
     return stop + 1 - start >= w
-            
-def temporal_filter_fast(video_predictor, sam_pred_masks, countgd_pred_boxes, args, w=3):
+
+
+def temporal_filter_fast(
+    video_predictor, sam_pred_masks, countgd_pred_boxes, args, w=3
+):
     global sam_short_term_masks
     start_time_stage_2 = time.time()
     print("Starting to filter independent predictions with window size w=" + str(w))
     # Get short-term masks.
-    sam_short_term_masks = get_short_term_masks(video_predictor, sam_pred_masks, w, args)
+    sam_short_term_masks = get_short_term_masks(
+        video_predictor, sam_pred_masks, w, args
+    )
     time_stage_2_a = time.time() - start_time_stage_2
     sam_pred_masks_filtered = {}
     countgd_pred_boxes_filtered = {}
     N = len(sam_pred_masks.keys())
-    args = []
+    starmap_args = []
     for frame_ind_i in range(N):
         countgd_pred_boxes_filtered[frame_ind_i] = []
         sam_pred_masks_filtered[frame_ind_i] = {"mask_ids": {}, "box_prompts": None}
         obj_ids = list(sam_pred_masks[frame_ind_i]["mask_ids"].keys())
-        args = args + [(obj_id, frame_ind_i, N) for obj_id in obj_ids]
+        starmap_args = starmap_args + [
+            (obj_id, frame_ind_i, N, w, sam_short_term_masks, sam_pred_masks)
+            for obj_id in obj_ids
+        ]
     with multiprocessing.Pool() as pool_obj:
-        persistence = pool_obj.starmap(check_obj_persistence, args)
+        persistence = pool_obj.starmap(check_obj_persistence, starmap_args)
     frame_obj_pair_id = 0
     for frame_ind_i in range(N):
         persistent_obj_idx = 1
         num_objs = len(sam_pred_masks[frame_ind_i]["mask_ids"])
         for _ in range(num_objs):
-            obj_j = args[frame_obj_pair_id][0]
+            obj_j = starmap_args[frame_obj_pair_id][0]
             if persistence[frame_obj_pair_id]:
                 # Keep [obj_j] if it persists in at least [w] consecutive frames (i.e., it is not transient).
                 print(str(obj_j) + " is persistent, so it will be kept")
                 obj_j_box = sam_pred_masks[frame_ind_i]["box_prompts"][obj_j - 1]
                 countgd_pred_boxes_filtered[frame_ind_i].append(obj_j_box)
-                sam_pred_masks_filtered[frame_ind_i]["mask_ids"][persistent_obj_idx] = sam_pred_masks[frame_ind_i]["mask_ids"][obj_j]
-                persistent_obj_idx+=1
+                sam_pred_masks_filtered[frame_ind_i]["mask_ids"][persistent_obj_idx] = (
+                    sam_pred_masks[frame_ind_i]["mask_ids"][obj_j]
+                )
+                persistent_obj_idx += 1
             else:
                 print(str(obj_j) + " is transient, so it will be removed")
-            frame_obj_pair_id+=1
+            frame_obj_pair_id += 1
 
         if len(countgd_pred_boxes_filtered[frame_ind_i]) > 0:
-            countgd_pred_boxes_filtered[frame_ind_i] = torch.stack(countgd_pred_boxes_filtered[frame_ind_i], dim=0)
+            countgd_pred_boxes_filtered[frame_ind_i] = torch.stack(
+                countgd_pred_boxes_filtered[frame_ind_i], dim=0
+            )
         else:
             countgd_pred_boxes_filtered[frame_ind_i] = torch.tensor([])
-        sam_pred_masks_filtered[frame_ind_i]["box_prompts"] = countgd_pred_boxes_filtered[frame_ind_i]
+        sam_pred_masks_filtered[frame_ind_i]["box_prompts"] = (
+            countgd_pred_boxes_filtered[frame_ind_i]
+        )
     time_stage_2 = time.time() - start_time_stage_2
     time_stage_2_b = time_stage_2 - time_stage_2_a
     print("time stage 2: " + str(time_stage_2))
@@ -603,12 +737,19 @@ def temporal_filter_fast(video_predictor, sam_pred_masks, countgd_pred_boxes, ar
     print("time stage 2 b: " + str(time_stage_2_b))
     return sam_pred_masks_filtered, countgd_pred_boxes_filtered
 
+
 def temporal_filter(video_predictor, sam_pred_masks, countgd_pred_boxes, args, w=3):
     start_time_temporal_filter = time.time()
     print("Starting to filter independent predictions with window size w=" + str(w))
     # Get short-term masks.
-    sam_short_term_masks = get_short_term_masks(video_predictor, sam_pred_masks, w, args)
-    print("Time to get short-term masks: " + str(time.time() - start_time_temporal_filter) + "s")
+    sam_short_term_masks = get_short_term_masks(
+        video_predictor, sam_pred_masks, w, args
+    )
+    print(
+        "Time to get short-term masks: "
+        + str(time.time() - start_time_temporal_filter)
+        + "s"
+    )
     sam_pred_masks_filtered = {}
     countgd_pred_boxes_filtered = {}
     N = len(sam_pred_masks.keys())
@@ -616,22 +757,29 @@ def temporal_filter(video_predictor, sam_pred_masks, countgd_pred_boxes, args, w
         print("filtering objects in frame " + str(frame_ind_i))
         countgd_pred_boxes_filtered[frame_ind_i] = []
         sam_pred_masks_filtered[frame_ind_i] = {"mask_ids": {}, "box_prompts": None}
-        persistent_obj_idx = 1 
+        persistent_obj_idx = 1
         for obj_j in sam_pred_masks[frame_ind_i]["mask_ids"]:
             print("checking object " + str(obj_j))
             M_track_js = sam_short_term_masks[frame_ind_i][obj_j]
             obj_j_box = sam_pred_masks[frame_ind_i]["box_prompts"][obj_j - 1]
             # Find consecutive prior frames where [obj_j] is detected by CountGD.
             frame_ind_m = frame_ind_i
-            for frame_ind_m in range(frame_ind_i - 1, max(0, frame_ind_i - (w - 1)) - 1, -1):
+            for frame_ind_m in range(
+                frame_ind_i - 1, max(0, frame_ind_i - (w - 1)) - 1, -1
+            ):
                 in_frame = False
                 for obj_k in sam_pred_masks[frame_ind_m]["mask_ids"]:
                     # Get and reconstruct mask M^{indep, k}_{frame_ind_m} for [obj_k].
                     M_indep_k = np.zeros((H, W))
-                    M_indep_k[sam_pred_masks[frame_ind_m]["mask_ids"][obj_k][0], sam_pred_masks[frame_ind_m]["mask_ids"][obj_k][1]] = 1
+                    M_indep_k[
+                        sam_pred_masks[frame_ind_m]["mask_ids"][obj_k][0],
+                        sam_pred_masks[frame_ind_m]["mask_ids"][obj_k][1],
+                    ] = 1
                     # Get and reconstruct the mask M^{track, j}_{frame_ind_m} for [obj_j].
                     M_track_j = np.zeros((H, W))
-                    M_track_j[M_track_js[frame_ind_m][0], M_track_js[frame_ind_m][1]] = 1
+                    M_track_j[
+                        M_track_js[frame_ind_m][0], M_track_js[frame_ind_m][1]
+                    ] = 1
                     # Calculate the mask IoU between M^{indep, k}_{frame_ind_m} and M^{track, j}_{frame_ind_m} to determine if they match.
                     intersection = np.logical_and(M_indep_k, M_track_j).sum()
                     union = np.logical_or(M_indep_k, M_track_j).sum()
@@ -649,15 +797,22 @@ def temporal_filter(video_predictor, sam_pred_masks, countgd_pred_boxes, args, w
 
             # Find consecutive future frames where [obj_j] is detected by CountGD.
             frame_ind_n = frame_ind_i
-            for frame_ind_n in range(frame_ind_i + 1, min(N - 1, frame_ind_i + (w - 1)) + 1, 1):
+            for frame_ind_n in range(
+                frame_ind_i + 1, min(N - 1, frame_ind_i + (w - 1)) + 1, 1
+            ):
                 in_frame = False
                 for obj_k in sam_pred_masks[frame_ind_n]["mask_ids"]:
                     # Get and reconstruct mask M^{indep, k}_{frame_ind_n} for [obj_k].
                     M_indep_k = np.zeros((H, W))
-                    M_indep_k[sam_pred_masks[frame_ind_n]["mask_ids"][obj_k][0], sam_pred_masks[frame_ind_n]["mask_ids"][obj_k][1]] = 1
+                    M_indep_k[
+                        sam_pred_masks[frame_ind_n]["mask_ids"][obj_k][0],
+                        sam_pred_masks[frame_ind_n]["mask_ids"][obj_k][1],
+                    ] = 1
                     # Get and reconstruct the mask M^{track, j}_{frame_ind_n} for [obj_j].
                     M_track_j = np.zeros((H, W))
-                    M_track_j[M_track_js[frame_ind_n][0], M_track_js[frame_ind_n][1]] = 1
+                    M_track_j[
+                        M_track_js[frame_ind_n][0], M_track_js[frame_ind_n][1]
+                    ] = 1
                     # Calculate the mask IoU between M^{indep, k}_{frame_ind_n} and M^{track, j}_{frame_ind_n} to determine if they match.
                     intersection = np.logical_and(M_indep_k, M_track_j).sum()
                     union = np.logical_or(M_indep_k, M_track_j).sum()
@@ -677,18 +832,27 @@ def temporal_filter(video_predictor, sam_pred_masks, countgd_pred_boxes, args, w
             if stop + 1 - start >= w:
                 print(str(obj_j) + " is persistent, so it will be kept")
                 countgd_pred_boxes_filtered[frame_ind_i].append(obj_j_box)
-                sam_pred_masks_filtered[frame_ind_i]["mask_ids"][persistent_obj_idx] = sam_pred_masks[frame_ind_i]["mask_ids"][obj_j]
+                sam_pred_masks_filtered[frame_ind_i]["mask_ids"][persistent_obj_idx] = (
+                    sam_pred_masks[frame_ind_i]["mask_ids"][obj_j]
+                )
                 persistent_obj_idx = persistent_obj_idx + 1
             else:
                 print(str(obj_j) + " is transient, so it will be removed")
 
         if len(countgd_pred_boxes_filtered[frame_ind_i]) > 0:
-            countgd_pred_boxes_filtered[frame_ind_i] = torch.stack(countgd_pred_boxes_filtered[frame_ind_i], dim=0)
+            countgd_pred_boxes_filtered[frame_ind_i] = torch.stack(
+                countgd_pred_boxes_filtered[frame_ind_i], dim=0
+            )
         else:
             countgd_pred_boxes_filtered[frame_ind_i] = torch.tensor([])
-        sam_pred_masks_filtered[frame_ind_i]["box_prompts"] = countgd_pred_boxes_filtered[frame_ind_i]
-    print("full temporal filter runtime: " + str(time.time() - start_time_temporal_filter))
+        sam_pred_masks_filtered[frame_ind_i]["box_prompts"] = (
+            countgd_pred_boxes_filtered[frame_ind_i]
+        )
+    print(
+        "full temporal filter runtime: " + str(time.time() - start_time_temporal_filter)
+    )
     return sam_pred_masks_filtered, countgd_pred_boxes_filtered
+
 
 def sam_image(predictor, inference_state, frame_id, boxes, frame_names, args):
     """
@@ -717,22 +881,24 @@ def sam_image(predictor, inference_state, frame_id, boxes, frame_names, args):
 
     for idx in range(len(boxes)):
         obj_mask = (out_mask_logits[idx] > 0.0).cpu().numpy().squeeze()
-        frame_preds["mask_ids"][predictor._obj_idx_to_id(inference_state, idx)] = np.nonzero(obj_mask)
+        frame_preds["mask_ids"][predictor._obj_idx_to_id(inference_state, idx)] = (
+            np.nonzero(obj_mask)
+        )
 
     if args.save_sam_image:
         cmap = plt.get_cmap("rainbow")
-        add_masks_single_image(
-            out_obj_ids, out_mask_logits, cmap, num_objects, np.array(img)
-        )
+        add_masks_single_image(np.array(img), frame_preds["mask_ids"], cmap)
         plt.savefig("%05d-combined-image-output-frame.png" % frame_id)
         plt.close()
 
     return frame_preds
 
+
 def set_or(a, b):
     return a | b
-    
-def get_new_objs(frame_idx_to_check, sam_img_pred, T, args):
+
+
+def get_new_objs(frame_idx_to_check, sam_img_pred, trajectories, args):
     """
     Identifies new objects by checking two conditions that must *both* be true:
     (1) The mask of the new object has an area greater than args.min_obj_area
@@ -742,15 +908,39 @@ def get_new_objs(frame_idx_to_check, sam_img_pred, T, args):
     """
     add_boxes = []
     if len(sam_img_pred["box_prompts"]) > 0:
-        objs_in_frame = list(filter(lambda obj_id: frame_idx_to_check in T[obj_id], list(T.keys())))
-        obj_coords = [set(list(zip(T[obj_id][frame_idx_to_check][0], T[obj_id][frame_idx_to_check][1]))) for obj_id in objs_in_frame]
+        objs_in_frame = list(
+            filter(
+                lambda obj_id: frame_idx_to_check in trajectories[obj_id],
+                list(trajectories.keys()),
+            )
+        )
+        obj_coords = [
+            set(
+                list(
+                    zip(
+                        T[obj_id][frame_idx_to_check][0],
+                        T[obj_id][frame_idx_to_check][1],
+                    )
+                )
+            )
+            for obj_id in objs_in_frame
+        ]
         combined_obj_masks = reduce(set_or, obj_coords)
 
         # Check for new objects.
         for idx in range(len(sam_img_pred["box_prompts"])):
             obj_id = idx + 1
-            obj_mask = set(list(zip(sam_img_pred["mask_ids"][obj_id][0], sam_img_pred["mask_ids"][obj_id][1])))
-            if len(obj_mask) >= args.min_obj_area and (len(obj_mask & combined_obj_masks) == 0):
+            obj_mask = set(
+                list(
+                    zip(
+                        sam_img_pred["mask_ids"][obj_id][0],
+                        sam_img_pred["mask_ids"][obj_id][1],
+                    )
+                )
+            )
+            if len(obj_mask) >= args.min_obj_area and (
+                len(obj_mask & combined_obj_masks) == 0
+            ):
                 add_boxes.append(
                     np.array([sam_img_pred["box_prompts"][idx]], dtype=np.float32)
                 )
@@ -804,7 +994,9 @@ frame_names = [
 ]
 
 # Sorting frame names based on their numeric parts.
-frame_names.sort(key=lambda p: int(os.path.splitext(p)[0][re.search(r"\d", p).start():]))
+frame_names.sort(
+    key=lambda p: int(os.path.splitext(p)[0][re.search(r"\d", p).start() :])
+)
 # Get frames.
 max_frames = args.sample_frames
 if max_frames > 0 and len(frame_names) > max_frames:
@@ -817,7 +1009,13 @@ if max_frames > 0 and len(frame_names) > max_frames:
 # If did not specify args.sample_frames, then apply args.downsample_factor.
 print("original number of frames: " + str(len(frame_names)))
 if args.sample_frames == 0:
-    idx = np.round(np.linspace(0, len(frame_names) - 1, int(np.ceil(len(frame_names) / args.downsample_factor)))).astype(int)
+    idx = np.round(
+        np.linspace(
+            0,
+            len(frame_names) - 1,
+            int(np.ceil(len(frame_names) / args.downsample_factor)),
+        )
+    ).astype(int)
     frame_names_new = []
     for id in idx:
         frame_names_new.append(frame_names[id])
@@ -835,16 +1033,25 @@ for frame_name in frame_names:
 # Make video directory for SAM 2 inference.
 os.mkdir(args.temp_dir)
 for frame_ind, frame_name in enumerate(frame_names):
-    shutil.copyfile(video_dir + "/" + frame_name, args.temp_dir + "/" + frame_name[re.search(r"\d", frame_name).start():])
+    shutil.copyfile(
+        video_dir + "/" + frame_name,
+        args.temp_dir + "/" + frame_name[re.search(r"\d", frame_name).start() :],
+    )
     if args.convert_to_rgb:
-        image_color = Image.open(args.temp_dir + "/" + frame_name[re.search(r"\d", frame_name).start():]).convert("RGB")
-        image_color.save(args.temp_dir + "/" + frame_name[re.search(r"\d", frame_name).start():])
-        
+        image_color = Image.open(
+            args.temp_dir + "/" + frame_name[re.search(r"\d", frame_name).start() :]
+        ).convert("RGB")
+        image_color.save(
+            args.temp_dir + "/" + frame_name[re.search(r"\d", frame_name).start() :]
+        )
+
 # Change video directory.
 video_dir = args.temp_dir
 args.video_dir = args.temp_dir
 # Update frame names.
-frame_names = [frame_name[re.search(r"\d", frame_name).start():] for frame_name in frame_names]
+frame_names = [
+    frame_name[re.search(r"\d", frame_name).start() :] for frame_name in frame_names
+]
 
 # Load SAM 2 image predictor.
 sam2_image_predictor = SAM2ImagePredictor(build_sam2(model_cfg, sam2_checkpoint))
@@ -854,18 +1061,29 @@ test_video_data = VideoFrames(
     root=args.video_dir,
     sorted_frame_names=frame_names,
     transform=transform,
-    use_exemplars=args.use_exemplars
+    use_exemplars=args.use_exemplars,
 )
 
-video_frame_loader = DataLoader(test_video_data, batch_size=args.img_batch_size, shuffle=False, drop_last=False)
+video_frame_loader = DataLoader(
+    test_video_data, batch_size=args.img_batch_size, shuffle=False, drop_last=False
+)
 
 countgd_pred_boxes = {}
 sam_pred_masks = {}
 start_time_stage_1 = time.time()
-for idx, (input_frame, input_image_exemplars, exemplars, label) in enumerate(video_frame_loader):
+for idx, (input_frame, input_image_exemplars, exemplars, label) in enumerate(
+    video_frame_loader
+):
     print("batch idx: " + str(idx))
     # Get box prompts for each frame.
-    countgd_output = count(input_frame, input_image_exemplars, exemplars, label, input_text, device=args.device)
+    countgd_output = count(
+        input_frame,
+        input_image_exemplars,
+        exemplars,
+        label,
+        input_text,
+        device=args.device,
+    )
     logits = countgd_output["pred_logits"].sigmoid()
     boxes = countgd_output["pred_boxes"]
     (bs, _, _, _) = input_frame.shape
@@ -889,9 +1107,13 @@ for idx, (input_frame, input_image_exemplars, exemplars, label) in enumerate(vid
             batch_box_prompts.append(box_prompts)
         else:
             batch_box_prompts.append(None)
-        sam_input_frames.append(np.array(Image.open(video_dir + "/" + frame_names[frame_id]).convert("RGB")))
+        sam_input_frames.append(
+            np.array(Image.open(video_dir + "/" + frame_names[frame_id]).convert("RGB"))
+        )
 
-    sam_masks = get_indep_masks(sam2_image_predictor, sam_input_frames, batch_box_prompts)
+    sam_masks = get_indep_masks(
+        sam2_image_predictor, sam_input_frames, batch_box_prompts
+    )
     del sam_input_frames
     for intra_batch_ind in range(bs):
         sam_mask = sam_masks[intra_batch_ind]
@@ -900,7 +1122,10 @@ for idx, (input_frame, input_image_exemplars, exemplars, label) in enumerate(vid
         for mask_ind in range(len(countgd_pred_boxes[frame_id])):
             obj_mask = sam_mask[mask_ind].squeeze()
             mask_ids[mask_ind + 1] = np.nonzero(obj_mask)
-        sam_pred_masks[frame_id] = {"mask_ids": mask_ids, "box_prompts": countgd_pred_boxes[frame_id]}
+        sam_pred_masks[frame_id] = {
+            "mask_ids": mask_ids,
+            "box_prompts": countgd_pred_boxes[frame_id],
+        }
 
 # Delete CountGD after use.
 del model
@@ -917,8 +1142,10 @@ print("preventing masks from overlapping: " + str(predictor.non_overlap_masks))
 
 if args.temporal_filter:
     # Apply a temporal filter to remove transient false positives from the independent frame predictions.
-    w = args.w # temporal window of 1 sec (assum. 3 fps)
-    sam_pred_masks, countgd_pred_boxes = temporal_filter_fast(predictor, sam_pred_masks, countgd_pred_boxes, args, w=w)
+    w = args.w  # temporal window of 1 sec (assum. 3 fps)
+    sam_pred_masks, countgd_pred_boxes = temporal_filter_fast(
+        predictor, sam_pred_masks, countgd_pred_boxes, args, w=w
+    )
 
 """
 -------------------------------------------------------
@@ -962,26 +1189,31 @@ num_batches = int(np.ceil(len(countgd_pred_boxes[j]) / args.obj_batch_size))
 print("Number of object batches: " + str(num_batches))
 
 for batch_ind in range(num_batches):
-  # 1. Reset inference state.
-  predictor.reset_state(inference_state)
+    # 1. Reset inference state.
+    predictor.reset_state(inference_state)
 
-  # 2. Add boxes detected in frame i as box prompts.
-  for box_ind in range(batch_ind * args.obj_batch_size, min((batch_ind + 1) * args.obj_batch_size, len(countgd_pred_boxes[i]))):
-      _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(
-          inference_state=inference_state,
-          frame_idx=i,
-          obj_id=box_ind + 1,
-          box=countgd_pred_boxes[i][box_ind],
-      )
+    # 2. Add boxes detected in frame i as box prompts.
+    for box_ind in range(
+        batch_ind * args.obj_batch_size,
+        min((batch_ind + 1) * args.obj_batch_size, len(countgd_pred_boxes[i])),
+    ):
+        _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(
+            inference_state=inference_state,
+            frame_idx=i,
+            obj_id=box_ind + 1,
+            box=countgd_pred_boxes[i][box_ind],
+        )
 
-  # 3. Propagate the box prompts from step 2 through the video and add the resulting objects and tracked masks to the set T.
-  for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(
-      inference_state
-  ):
-      for ind, obj_id in enumerate(out_obj_ids):
-          if obj_id not in T:
-              T[obj_id] = {}
-          T[obj_id][out_frame_idx] = np.nonzero((out_mask_logits[ind] > 0.0).cpu().numpy().squeeze())
+    # 3. Propagate the box prompts from step 2 through the video and add the resulting objects and tracked masks to the set T.
+    for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(
+        inference_state
+    ):
+        for ind, obj_id in enumerate(out_obj_ids):
+            if obj_id not in T:
+                T[obj_id] = {}
+            T[obj_id][out_frame_idx] = np.nonzero(
+                (out_mask_logits[ind] > 0.0).cpu().numpy().squeeze()
+            )
 
 # 4. Check if there are object masks from single-image inference on frame i + 1 not covered by the predicted masks in T.
 while i < N - 1:
@@ -996,8 +1228,13 @@ while i < N - 1:
             predictor.reset_state(inference_state)
             # 2. Add new boxes detected in frame i + 1 as box prompts.
             last_obj_id = max(T.keys())
-            
-            for ind in range(min(args.obj_batch_size, len(new_box_prompts) - batch_ind * args.obj_batch_size)):
+
+            for ind in range(
+                min(
+                    args.obj_batch_size,
+                    len(new_box_prompts) - batch_ind * args.obj_batch_size,
+                )
+            ):
                 box = new_box_prompts[ind]
                 _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(
                     inference_state=inference_state,
@@ -1007,14 +1244,18 @@ while i < N - 1:
                 )
 
             # 3. Propagate the box prompts from Branch (A), step 2 through the video and add the resulting objects and tracked masks to the set T.
-            for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(
-                inference_state
-            ):
+            for (
+                out_frame_idx,
+                out_obj_ids,
+                out_mask_logits,
+            ) in predictor.propagate_in_video(inference_state):
                 # Note: [out_frame_idx] will start at the frame in which the new point prompts were provided, not 0.
                 for ind, obj_id in enumerate(out_obj_ids):
                     if obj_id not in T:
                         T[obj_id] = {}
-                    T[obj_id][out_frame_idx] = np.nonzero((out_mask_logits[ind] > 0.0).cpu().numpy().squeeze())
+                    T[obj_id][out_frame_idx] = np.nonzero(
+                        (out_mask_logits[ind] > 0.0).cpu().numpy().squeeze()
+                    )
                     print(
                         "Added object with id "
                         + str(obj_id)
@@ -1037,7 +1278,10 @@ if args.save_T:
     # Save [T] for debugging.
     for obj_id in T:
         for frame_id in T[obj_id]:
-            T[obj_id][frame_id] = [T[obj_id][frame_id][0].tolist(), T[obj_id][frame_id][1].tolist()]
+            T[obj_id][frame_id] = [
+                T[obj_id][frame_id][0].tolist(),
+                T[obj_id][frame_id][1].tolist(),
+            ]
 
     with open("T.json", "w") as fp:
         json.dump(T, fp)
@@ -1062,7 +1306,8 @@ if args.save_countgd_video:
             box_w = x1 - x0
             box_h = y1 - y0
             rect = patches.Rectangle(
-            (x0, y0), box_w, box_h, linewidth=1, edgecolor="r", facecolor="none")
+                (x0, y0), box_w, box_h, linewidth=1, edgecolor="r", facecolor="none"
+            )
             plt.gca().add_patch(rect)
         plt.axis("off")
         plt.show()
@@ -1074,7 +1319,9 @@ if args.save_countgd_video:
     # Note this width and height may be different from original frame width and height due to matplotlib processing.
     frame = cv2.imread(os.path.join(args.output_dir, output_frame_names[0]))
     height, width, layers = frame.shape
-    video = cv2.VideoWriter(args.output_dir + "/countgd-video.avi", 0, args.output_fps, (width, height))
+    video = cv2.VideoWriter(
+        args.output_dir + "/countgd-video.avi", 0, args.output_fps, (width, height)
+    )
 
     for output_frame_name in output_frame_names:
         video.write(cv2.imread(os.path.join(args.output_dir, output_frame_name)))
@@ -1102,7 +1349,9 @@ if args.save_sam_indep_video:
     # Note this width and height may be different from original frame width and height due to matplotlib processing.
     frame = cv2.imread(os.path.join(args.output_dir, output_frame_names[0]))
     height, width, layers = frame.shape
-    video = cv2.VideoWriter(args.output_dir + "/sam-indep-video.avi", 0, args.output_fps, (width, height))
+    video = cv2.VideoWriter(
+        args.output_dir + "/sam-indep-video.avi", 0, args.output_fps, (width, height)
+    )
 
     for output_frame_name in output_frame_names:
         video.write(cv2.imread(os.path.join(args.output_dir, output_frame_name)))
@@ -1130,12 +1379,20 @@ if args.save_final_video:
     frame_height, frame_width, layers = frame.shape
     output_width = frame_width
     output_height = frame_height + 300
-    video = cv2.VideoWriter(args.output_dir + "/final-video.mp4", cv2.VideoWriter_fourcc(*'MP4V'), args.output_fps, (output_width, output_height))
+    video = cv2.VideoWriter(
+        args.output_dir + "/final-video.mp4",
+        cv2.VideoWriter_fourcc(*"MP4V"),
+        args.output_fps,
+        (output_width, output_height),
+    )
 
     x_data = []
     y_data = []
     for frame_ind in range(len(output_frame_names)):
-        main_frame = cv2.resize(cv2.imread(os.path.join(args.output_dir, output_frame_names[frame_ind])), (frame_width, frame_height))
+        main_frame = cv2.resize(
+            cv2.imread(os.path.join(args.output_dir, output_frame_names[frame_ind])),
+            (frame_width, frame_height),
+        )
         combined_frame = np.zeros((output_height, output_width, 3), dtype=np.uint8)
         combined_frame[:frame_height, :, :] = main_frame
 
@@ -1143,7 +1400,7 @@ if args.save_final_video:
         x_data.append(frame_ind)
         y_data.append(num_obj_by_frame[frame_ind])
         fig, ax = plt.subplots(figsize=(8, 3), dpi=100, tight_layout=True)
-        ax.plot(x_data, y_data, color='b', linewidth=2)
+        ax.plot(x_data, y_data, color="b", linewidth=2)
         ax.set_xlim(0, len(output_frame_names))
         ax.set_ylim(max(0, min(num_obj_by_frame) - 2), max(num_obj_by_frame) + 2)
         ax.set_xlabel("t")
@@ -1173,7 +1430,7 @@ if args.save_final_video:
 if len(args.output_dir) > 0:
     # Remove all images used to compose output videos.
     out_dir_files = os.listdir(args.output_dir)
-    
+
     for item in out_dir_files:
         if item.endswith(".png"):
             os.remove(os.path.join(args.output_dir, item))
@@ -1188,9 +1445,8 @@ if len(args.output_file) > 0:
     else:
         out_dict[orig_vid_dir] = {args.input_text: num_objects}
     # Write new results.
-    with open(args.output_file, 'w') as output_json:
+    with open(args.output_file, "w") as output_json:
         json.dump(out_dict, output_json)
 
 # Remove the created directory with inference frames.
 shutil.rmtree(args.temp_dir)
-    

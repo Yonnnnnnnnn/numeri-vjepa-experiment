@@ -1,18 +1,32 @@
-# ------------------------------------------------------------------------
-# Grounding DINO
-# url: https://github.com/IDEA-Research/GroundingDINO
-# Copyright (c) 2023 IDEA. All Rights Reserved.
-# Licensed under the Apache License, Version 2.0 [see LICENSE for details]
-# ------------------------------------------------------------------------
-# Deformable DETR
-# Copyright (c) 2020 SenseTime. All Rights Reserved.
-# Licensed under the Apache License, Version 2.0 [see LICENSE for details]
-# ------------------------------------------------------------------------------------------------
-# Modified from:
-# https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/functions/ms_deform_attn_func.py
-# https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/modules/ms_deform_attn.py
-# https://github.com/open-mmlab/mmcv/blob/master/mmcv/ops/multi_scale_deform_attn.py
-# ------------------------------------------------------------------------------------------------
+"""
+MSDeformAttn
+
+Multi-Scale Deformable Attention Module.
+Adapted from Deformable DETR.
+Pattern: Strategy
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : MSDeformAttn (this script)
+
+Non-Terminals   :
+  ┌─ INTERNAL (defined in this file) ─────────────────────────────────────────┐
+  │  <Functions>     → MultiScaleDeformableAttnFunction | ms_deform_attn_pytorch│
+  │  <Modules>       → MultiScaleDeformableAttention                          │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL (imported from other modules) ──────────────────────────────────┐
+  │  <_C>            ← from MultiScaleDeformableAttention (C++ ops)           │
+  │  <torch>         ← from pytorch (Deep Learning framework)                  │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : str, int, float, tensor, bool
+
+Production Rules:
+  MSDeformAttn    → imports + <Functions>+ <Modules>
+═══════════════════════════════════════════════════════════════════════════════
+"""
+
 from __future__ import absolute_import
 import math
 import warnings
@@ -25,18 +39,21 @@ from torch.autograd import Function
 from torch.autograd.function import once_differentiable
 from torch.nn.init import constant_, xavier_uniform_
 
-#try:
+# try:
 #    from groundingdino import _C
 #    import MultiScaleDeformableAttention as _C
-import MultiScaleDeformableAttention as _C
-#except:
+import MultiScaleDeformableAttention as _C  # type: ignore
+
+# except:
 #    warnings.warn("Failed to load custom C++ ops. Running on CPU mode Only!")
 
 
 # helpers
 def _is_power_of_2(n):
     if (not isinstance(n, int)) or (n < 0):
-        raise ValueError("invalid input for _is_power_of_2: {} (type: {})".format(n, type(n)))
+        raise ValueError(
+            "invalid input for _is_power_of_2: {} (type: {})".format(n, type(n))
+        )
     return (n & (n - 1) == 0) and n != 0
 
 
@@ -110,7 +127,10 @@ def multi_scale_deformable_attn_pytorch(
         # bs, num_heads*embed_dims, H_*W_ ->
         # bs*num_heads, embed_dims, H_, W_
         value_l_ = (
-            value_list[level].flatten(2).transpose(1, 2).reshape(bs * num_heads, embed_dims, H_, W_)
+            value_list[level]
+            .flatten(2)
+            .transpose(1, 2)
+            .reshape(bs * num_heads, embed_dims, H_, W_)
         )
         # bs, num_queries, num_heads, num_points, 2 ->
         # bs, num_heads, num_queries, num_points, 2 ->
@@ -118,7 +138,11 @@ def multi_scale_deformable_attn_pytorch(
         sampling_grid_l_ = sampling_grids[:, :, :, level].transpose(1, 2).flatten(0, 1)
         # bs*num_heads, embed_dims, num_queries, num_points
         sampling_value_l_ = F.grid_sample(
-            value_l_, sampling_grid_l_, mode="bilinear", padding_mode="zeros", align_corners=False
+            value_l_,
+            sampling_grid_l_,
+            mode="bilinear",
+            padding_mode="zeros",
+            align_corners=False,
         )
         sampling_value_list.append(sampling_value_l_)
     # (bs, num_queries, num_heads, num_levels, num_points) ->
@@ -186,8 +210,12 @@ class MultiScaleDeformableAttention(nn.Module):
         self.num_heads = num_heads
         self.num_levels = num_levels
         self.num_points = num_points
-        self.sampling_offsets = nn.Linear(embed_dim, num_heads * num_levels * num_points * 2)
-        self.attention_weights = nn.Linear(embed_dim, num_heads * num_levels * num_points)
+        self.sampling_offsets = nn.Linear(
+            embed_dim, num_heads * num_levels * num_points * 2
+        )
+        self.attention_weights = nn.Linear(
+            embed_dim, num_heads * num_levels * num_points
+        )
         self.value_proj = nn.Linear(embed_dim, embed_dim)
         self.output_proj = nn.Linear(embed_dim, embed_dim)
 
@@ -241,7 +269,6 @@ class MultiScaleDeformableAttention(nn.Module):
         level_start_index: Optional[torch.Tensor] = None,
         **kwargs
     ) -> torch.Tensor:
-
         """Forward Function of MultiScaleDeformableAttention
 
         Args:
@@ -307,7 +334,9 @@ class MultiScaleDeformableAttention(nn.Module):
 
         # bs, num_query, num_heads, num_levels, num_points, 2
         if reference_points.shape[-1] == 2:
-            offset_normalizer = torch.stack([spatial_shapes[..., 1], spatial_shapes[..., 0]], -1)
+            offset_normalizer = torch.stack(
+                [spatial_shapes[..., 1], spatial_shapes[..., 0]], -1
+            )
             sampling_locations = (
                 reference_points[:, :, None, :, None, :]
                 + sampling_offsets / offset_normalizer[None, None, None, :, None, :]
@@ -326,7 +355,7 @@ class MultiScaleDeformableAttention(nn.Module):
                     reference_points.shape[-1]
                 )
             )
-    
+
         if torch.cuda.is_available() and value.is_cuda:
             halffloat = False
             if value.dtype == torch.float16:
@@ -371,7 +400,9 @@ def create_dummy_class(klass, dependency, message=""):
     Returns:
         class: a class object
     """
-    err = "Cannot import '{}', therefore '{}' is not available.".format(dependency, klass)
+    err = "Cannot import '{}', therefore '{}' is not available.".format(
+        dependency, klass
+    )
     if message:
         err = err + " " + message
 
@@ -400,7 +431,9 @@ def create_dummy_func(func, dependency, message=""):
     Returns:
         function: a function object
     """
-    err = "Cannot import '{}', therefore '{}' is not available.".format(dependency, func)
+    err = "Cannot import '{}', therefore '{}' is not available.".format(
+        dependency, func
+    )
     if message:
         err = err + " " + message
 

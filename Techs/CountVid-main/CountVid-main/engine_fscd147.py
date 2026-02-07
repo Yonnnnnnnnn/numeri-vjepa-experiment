@@ -1,6 +1,30 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 """
-Train and eval functions used in main.py
+EngineFSCD147
+
+Core engine for training and evaluation on FSCD147.
+Pattern: Strategy
+
+CFG Structure:
+═══════════════════════════════════════════════════════════════════════════════
+Start Symbol    : EngineFSCD147 (this script)
+
+Non-Terminals   :
+  ┌─ INTERNAL (defined in this file) ─────────────────────────────────────────┐
+  │  <Visualization> → show_mask | show_box | visualize_results               │
+  │  <Processing>    → evaluate | train_one_epoch                             │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ EXTERNAL (imported from other modules) ──────────────────────────────────┐
+  │  <torch>         ← from torch (ML framework)                              │
+  │  <util>          ← from util.misc (logging and distributed)               │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+Terminals       : str, int, float, bool, tensor
+
+Production Rules:
+  EngineFSCD147   → imports + <Visualization>+ <Processing>+
+═══════════════════════════════════════════════════════════════════════════════
 """
 import json
 import numpy as np
@@ -23,7 +47,7 @@ from util.misc import nested_tensor_from_tensor_list
 from datasets.cocogrounding_eval import CocoGroundingEvaluator
 
 from datasets.panoptic_eval import PanopticEvaluator
-from datasets.transforms import RandomResize
+from datasets.transforms import RandomResize, crop  # type: ignore
 from scipy.stats import bernoulli
 import scipy.ndimage as ndimage
 
@@ -203,7 +227,7 @@ def show_mask(mask, ax, random_color=False):
     else:
         color = np.array([30 / 255, 144 / 255, 255 / 255, 0.6])
     h, w = mask.shape[-2:]
-    mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1)
+    mask_image = mask.reshape((h, w, 1)) * color.reshape(1, 1, -1)
     ax.imshow(mask_image)
 
 
@@ -246,9 +270,13 @@ def crop(sample, crop_width, crop_height, overlap_width, overlap_height):
                 start_x = start_x - shift_left
                 end_x = w
             samples_cropped.append(
-                RandomResize([800], max_size=1333)(
+                RandomResize(
+                    [800], max_size=1333
+                )(  # pylint: disable=too-many-function-args
                     sample[:, start_y:end_y, start_x:end_x].unsqueeze(0)
-                )[0].squeeze()
+                )[
+                    0
+                ].squeeze()
             )
             boundaries_row_x.append((start_x, end_x))
             boundaries_row_y.append((start_y, end_y))
@@ -262,9 +290,12 @@ def crop(sample, crop_width, crop_height, overlap_width, overlap_height):
 
     return samples_cropped, boundaries_x, boundaries_y
 
+
 # Save CountGD-Box detections in COCO format.
 countgd_detections = []
 anno_id = 1
+
+
 def get_count_errs(
     model,
     args,
@@ -280,12 +311,12 @@ def get_count_errs(
 ):
     global countgd_detections
     global anno_id
-    
+
     logits = outputs["pred_logits"].sigmoid()
     boxes = outputs["pred_boxes"]
     samples = samples.to_img_list()
     sizes = [target["size"] for target in targets]
-    orig_sizes = [target['orig_size'] for target in targets]
+    orig_sizes = [target["orig_size"] for target in targets]
 
     abs_errs = []
     for sample_ind in range(len(targets)):
@@ -312,7 +343,11 @@ def get_count_errs(
         orig_size = orig_sizes[sample_ind]
         for coco_idx in range(sample_logits.shape[0]):
             score = float(sample_logits[coco_idx].max(dim=-1).values)
-            coco_det = {"image_id": targets[sample_ind]['image_id'].item(), "category_id": 1, "score": score}
+            coco_det = {
+                "image_id": targets[sample_ind]["image_id"].item(),
+                "category_id": 1,
+                "score": score,
+            }
             bbox = sample_boxes[coco_idx, :]
             (h, w) = orig_size[0], orig_size[1]
             box_w = w * bbox[2]
@@ -322,9 +357,9 @@ def get_count_errs(
             x1 = x0 + box_w
             y1 = y0 + box_h
             coco_det["bbox"] = [int(x0), int(y0), int(box_w), int(box_h)]
-            coco_det["point"] = [float(w*bbox[0]), float(h*bbox[1])]
-            coco_det['id'] = anno_id
-            coco_det['area'] = float((box_w * box_h).item())
+            coco_det["point"] = [float(w * bbox[0]), float(h * bbox[1])]
+            coco_det["id"] = anno_id
+            coco_det["area"] = float((box_w * box_h).item())
             countgd_detections.append(coco_det)
             anno_id = anno_id + 1
 
@@ -334,7 +369,7 @@ def get_count_errs(
         sample_logits = sample_logits[text_mask, :]
         sample_boxes = sample_boxes[text_mask, :]
 
-        gt_count = targets[sample_ind]['labels'].shape[0]
+        gt_count = targets[sample_ind]["labels"].shape[0]
         pred_cnt = sample_logits.shape[0]
 
         # Predicted max # of objects.
@@ -772,7 +807,7 @@ def get_count_errs(
                 pred_cnt += sample_logits_cropped.shape[0]
 
         elif args.exemp_tt_norm:
-            pred_cnt = tt_norm(
+            pred_cnt = tt_norm(  # type: ignore # pylint: disable=undefined-variable
                 pred_cnt,
                 sample_exemplars.cpu().numpy(),
                 size.cpu().numpy(),
@@ -804,7 +839,9 @@ def evaluate(
     criterion.eval()
 
     if args.sam_tt_norm:
-        predictor = get_sam(sam_checkpoint=args.sam_model_path)
+        predictor = get_sam(  # type: ignore
+            sam_checkpoint=args.sam_model_path
+        )  # pylint: disable=undefined-variable
     else:
         predictor = None
 
@@ -858,11 +895,13 @@ def evaluate(
 
         targets = [{k: to_device(v, device) for k, v in t.items()} for t in targets]
         if not args.remove_bad_exemplar:
-            exemplars = [t["exemplars"][: args.num_exemplars].to(device) for t in targets]
+            exemplars = [
+                t["exemplars"][: args.num_exemplars].to(device) for t in targets
+            ]
         else:
             exemplars = []
             for t in targets:
-                if t['image_id'] != 152:
+                if t["image_id"] != 152:
                     exemplars.append(t["exemplars"][: args.num_exemplars].to(device))
                 else:
                     exemplars.append(torch.tensor([]).to(device))
@@ -975,11 +1014,11 @@ def evaluate(
     count_rmse = (np.array(abs_errs) ** 2).mean() ** (1 / 2)
     print("# of Images Tested: " + str(len(abs_errs)))
     print("MAE: " + str(count_mae) + ", RMSE: " + str(count_rmse))
-    with open(args.fscd_gt_file, 'r') as in_file:
+    with open(args.fscd_gt_file, "r") as in_file:
         gt_coco_fscd = json.load(in_file)
-    gt_coco_fscd['annotations'] = countgd_detections
+    gt_coco_fscd["annotations"] = countgd_detections
     pred_coco_fscd = gt_coco_fscd
-    with open(args.coco_output_file, 'w') as out_file:
+    with open(args.coco_output_file, "w") as out_file:
         json.dump(pred_coco_fscd, out_file)
     if args.save_results:
         import os.path as osp
@@ -998,13 +1037,13 @@ def evaluate(
         panoptic_evaluator.synchronize_between_processes()
 
     # accumulate predictions from all images
-    
+
     with contextlib.redirect_stdout(io.StringIO()):
         # Suppress print output from unused [GroundingDINO] functions.
         if coco_evaluator is not None:
             coco_evaluator.accumulate()
             coco_evaluator.summarize()
-    
+
     panoptic_res = None
     if panoptic_evaluator is not None:
         panoptic_res = panoptic_evaluator.summarize()

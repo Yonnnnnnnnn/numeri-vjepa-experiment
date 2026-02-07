@@ -402,15 +402,38 @@ class GroundingDINO(nn.Module):
         else:
             captions = [t["caption"] for t in targets]
 
-        # Fix: Convert device to string for HuggingFace BatchEncoding.to() compatibility
-        device_str = (
-            str(samples.device)
-            if isinstance(samples.device, torch.device)
-            else samples.device
+        # Fix: Robust device conversion for HuggingFace BatchEncoding
+        # Some versions require positional 'device', others keyword 'device'
+        device_arg = samples.device
+        if isinstance(device_arg, torch.device):
+            device_str = str(device_arg)
+        else:
+            device_str = device_arg
+
+        tokenized_output = self.tokenizer(
+            captions, padding="longest", return_tensors="pt"
         )
-        tokenized = self.tokenizer(captions, padding="longest", return_tensors="pt").to(
-            device_str
-        )
+        try:
+            # Try positional argument (string)
+            tokenized = tokenized_output.to(device_str)
+        except TypeError as e:
+            # Fallback: try keyword argument 'device'
+            # print(f"[GroundingDINO] DEBUG: positional .to() failed with {e}, trying keyword arg")
+            try:
+                tokenized = tokenized_output.to(device=device_str)
+            except Exception as e2:
+                # If both string approaches fail, try the raw device object (if it wasn't string)
+                if isinstance(device_arg, torch.device):
+                    try:
+                        tokenized = tokenized_output.to(device=device_arg)
+                    except Exception as e3:
+                        raise e3
+                else:
+                    raise e2
+        except Exception as e:
+            # Catch other exceptions
+            # print(f"[GroundingDINO] DEBUG: Unexpected error in .to(): {e}")
+            raise e
 
         one_hot_token = tokenized
 
