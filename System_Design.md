@@ -51,7 +51,8 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 
 ### 3.1. Infrastructure Patches
 
-Sistem menerapkan **StochasticDepth Patch** secara otomatis pada level paket (`v2_logic/__init__.py`) untuk memitigasi _circular import errors_ di sistem multi-proses (Google Colab/HPC).
+- **StochasticDepth Patch**: Sistem menerapkan patch secara otomatis pada level paket (`v2_logic/__init__.py`) untuk memitigasi _circular import errors_ di sistem multi-proses.
+- **CountVid BERT Warper**: Implementasi delegated dynamic methods pada `bertwarper.py` untuk memastikan kompatibilitas inisialisasi BERT model di berbagai versi library `transformers` (mencegah `AttributeError: get_head_mask`).
 
 ### 3.2. Coordinate Coordination
 

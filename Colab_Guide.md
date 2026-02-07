@@ -24,9 +24,11 @@ Untuk menghindari konflik **NumPy 2.x** dan **Torchvision**, jalankan ini di cel
 !pip cache purge
 
 # 2. Install versi stabil (Python 3.12 & SAM-2 Compat)
-# Using PyTorch 2.6.0 with CUDA 11.8 to support SAM2 mask functions
 !pip install numpy==1.26.4
-!pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu118
+print("🔥 Membersihkan cache pip...")
+!pip cache purge -q
+print("📦 Menginstal PyTorch...")
+!pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/cu121 -q
 !pip install jax==0.4.33 jaxlib==0.4.33
 
 print("=" * 60)
@@ -48,8 +50,8 @@ import torch
 import torchvision
 
 print(f"NumPy: {np.__version__} (expected: 1.26.4)")
-print(f"Torch: {torch.__version__} (expected: 2.6.0+cu118)")
-print(f"Torchvision: {torchvision.__version__} (expected: 0.21.0+cu118)")
+print(f"Torch: {torch.__version__} (expected: 2.2.2+cu121)")
+print(f"Torchvision: {torchvision.__version__} (expected: 0.17.2+cu121)")
 
 # Check CUDA availability
 if torch.cuda.is_available():
@@ -184,11 +186,13 @@ if setup_repo():
 
     # 3.5. Compile GroundingDINO CUDA Extensions (for MultiScaleDeformableAttention)
     print("\n⚙️ Mengkompilasi GroundingDINO CUDA Extensions...")
+    !pip install spaces -q
     GROUNDINGDINO_OPS_DIR = os.path.join(PROJECT_DIR, "Techs/CountVid-main/CountVid-main/models/GroundingDINO/ops")
     if os.path.exists(GROUNDINGDINO_OPS_DIR):
         %cd $GROUNDINGDINO_OPS_DIR
         !python setup.py install
-        %cd $PROJECT_DIR # Kembali ke root project
+        %cd $PROJECT_DIR
+        # Kembali ke root project
         print("✅ Kompilasi GroundingDINO CUDA Extensions selesai.")
     else:
         print(f"❌ Direktori GroundingDINO ops tidak ditemukan: {GROUNDINGDINO_OPS_DIR}")
