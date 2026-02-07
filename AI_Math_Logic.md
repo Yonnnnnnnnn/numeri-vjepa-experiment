@@ -115,3 +115,18 @@ Hal ini memastikan metadata anomali dari $Exe$ dipetakan kembali secara akurat k
 Dalam Category Theory, kesadaran fungsional sistem tercapai ketika $Int$ mencapai **Fixed Point** melalui rekursi berkali-kali:
 $$Int_{n+1} = f_{loop}(Int_n)$$
 Sistem berhenti melakukan "refleksi" ketika representasi internalnya ($Int$) sudah sepenuhnya isomorfik dengan realitas $Lat$ dan divalidasi oleh bukti fisik di $Exe$.
+
+## 6. Functional Persistence & Nuclear Fallback
+
+Dalam sistem yang kompleks, morphism $act$ seringkali bergantung pada library eksternal (External Functors $F_{trans}$). Ketika $F_{trans}$ mengalami perubahan tanda tangan fungsional (Version Incompatibility), morphism tersebut terancam gagal ($act \to \perp$).
+
+### 6.1. Smart Dispatcher as Natural Transformation
+
+Kita mendefinisikan _Smart Dispatcher_ sebagai transformasi alami $\eta$ yang memetakan argumen ke slot yang benar secara dinamis:
+$$\eta : \text{Args}_{old} \implies \text{Args}_{new}$$
+
+### 6.2. Nuclear Fallback: The Identity of Logic
+
+Jika $\eta$ gagal, sistem mengaktifkan **Nuclear Fallback**. Secara matematis, ini adalah implementasi manual dari semantik internal library:
+$$H_{manual}(M) = (1 - \text{unsqueeze}(M)) \times -\infty$$
+Dimana $M$ adalah attention mask. Dengan mengimplementasikan logic dasar ini secara lokal, kita menjamin persistensi operasional sistem meskipun functor eksternal $F_{trans}$ rusak atau tidak kompatibel. Hal ini memastikan Strange Loop tetap tertutup dan sistem dapat terus mencapai _Fixed Point_.
