@@ -24,8 +24,58 @@ class BertModelWarper(nn.Module):
         self.encoder = bert_model.encoder
         self.pooler = bert_model.pooler
 
-    def get_extended_attention_mask(self, *args, **kwargs):
-        return self.bert.get_extended_attention_mask(*args, **kwargs)
+    def get_extended_attention_mask(
+        self, attention_mask, input_shape, device=None, dtype=None
+    ):
+        """
+        Algorithm: Smart Dispatcher for Transformers Compatibility with Logs.
+        Ensures 'device' and 'dtype' are aligned correctly regardless of version.
+        """
+        # 1. Start with target device
+        target_device = device if device is not None else attention_mask.device
+
+        # 2. Try modern signature (with keywords for safety)
+        try:
+            res = self.bert.get_extended_attention_mask(
+                attention_mask, input_shape, device=target_device
+            )
+            # Log success for modern method (only on first call to avoid spam)
+            if not hasattr(self, "_logged_success"):
+                print("[CountVid Patch] ✅ Smart Dispatcher: Modern Signature Success.")
+                self._logged_success = True
+            return res
+        except (TypeError, Exception):
+            try:
+                # 3. Try positional fallback
+                res = self.bert.get_extended_attention_mask(attention_mask, input_shape)
+                if not hasattr(self, "_logged_success"):
+                    print(
+                        "[CountVid Patch] ⚠️ Smart Dispatcher: Falling back to Positional Signature."
+                    )
+                    self._logged_success = True
+                return res
+            except Exception:
+                # 4. NUCLEAR FALLBACK: Manual Implementation
+                if not hasattr(self, "_logged_success"):
+                    print(
+                        "[CountVid Patch] 🚀 NUCLEAR FALLBACK ACTIVE: Manual Mask Generation."
+                    )
+                    self._logged_success = True
+
+                # Manual Rebuild
+                if attention_mask.dim() == 3:
+                    extended_attention_mask = attention_mask[:, None, :]
+                elif attention_mask.dim() == 2:
+                    extended_attention_mask = attention_mask[:, None, None, :]
+                else:
+                    extended_attention_mask = attention_mask
+
+                # Replicate internal transformers logic
+                extended_attention_mask = extended_attention_mask.to(
+                    dtype=torch.float32
+                )
+                extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
+                return extended_attention_mask.to(device=target_device)
 
     def invert_attention_mask(self, *args, **kwargs):
         return self.bert.invert_attention_mask(*args, **kwargs)
@@ -49,26 +99,6 @@ class BertModelWarper(nn.Module):
         output_hidden_states=None,
         return_dict=None,
     ):
-        r"""
-        encoder_hidden_states  (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, sequence_length, hidden_size)`, `optional`):
-            Sequence of hidden-states at the output of the last layer of the encoder. Used in the cross-attention if
-            the model is configured as a decoder.
-        encoder_attention_mask (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, sequence_length)`, `optional`):
-            Mask to avoid performing attention on the padding token indices of the encoder input. This mask is used in
-            the cross-attention if the model is configured as a decoder. Mask values selected in ``[0, 1]``:
-
-            - 1 for tokens that are **not masked**,
-            - 0 for tokens that are **masked**.
-        past_key_values (:obj:`tuple(tuple(torch.FloatTensor))` of length :obj:`config.n_layers` with each tuple having 4 tensors of shape :obj:`(batch_size, num_heads, sequence_length - 1, embed_size_per_head)`):
-            Contains precomputed key and value hidden states of the attention blocks. Can be used to speed up decoding.
-
-            If :obj:`past_key_values` are used, the user can optionally input only the last :obj:`decoder_input_ids`
-            (those that don't have their past key value states given to this model) of shape :obj:`(batch_size, 1)`
-            instead of all :obj:`decoder_input_ids` of shape :obj:`(batch_size, sequence_length)`.
-        use_cache (:obj:`bool`, `optional`):
-            If set to :obj:`True`, :obj:`past_key_values` key value states are returned and can be used to speed up
-            decoding (see :obj:`past_key_values`).
-        """
         output_attentions = (
             output_attentions
             if output_attentions is not None
@@ -115,14 +145,11 @@ class BertModelWarper(nn.Module):
         if token_type_ids is None:
             token_type_ids = torch.zeros(input_shape, dtype=torch.long, device=device)
 
-        # We can provide a self-attention mask of dimensions [batch_size, from_seq_length, to_seq_length]
-        # ourselves in which case we just need to make it broadcastable to all heads.
+        # Call smart algorithm
         extended_attention_mask: torch.Tensor = self.get_extended_attention_mask(
-            attention_mask, input_shape, device
+            attention_mask, input_shape, device=device
         )
 
-        # If a 2D or 3D attention mask is provided for the cross-attention
-        # we need to make broadcastable to [batch_size, num_heads, seq_length, seq_length]
         if self.config.is_decoder and encoder_hidden_states is not None:
             encoder_batch_size, encoder_sequence_length, _ = (
                 encoder_hidden_states.size()
@@ -135,14 +162,7 @@ class BertModelWarper(nn.Module):
             )
         else:
             encoder_extended_attention_mask = None
-        # if os.environ.get('IPDB_SHILONG_DEBUG', None) == 'INFO':
-        #     import ipdb; ipdb.set_trace()
 
-        # Prepare head mask if needed
-        # 1.0 in head_mask indicate we keep the head
-        # attention_probs has shape bsz x n_heads x N x N
-        # input head_mask has shape [num_heads] or [num_hidden_layers x num_heads]
-        # and head_mask is converted to shape [num_hidden_layers x batch x num_heads x seq_length x seq_length]
         head_mask = self.get_head_mask(head_mask, self.config.num_hidden_layers)
 
         embedding_output = self.embeddings(
@@ -190,29 +210,18 @@ class TextEncoderShell(nn.Module):
         self.config = self.text_encoder.config
 
     def forward(self, **kw):
-        # feed into text encoder
         return self.text_encoder(**kw)
 
 
 def generate_masks_with_special_tokens(tokenized, special_tokens_list, tokenizer):
-    """Generate attention mask between each pair of special tokens
-    Args:
-        input_ids (torch.Tensor): input ids. Shape: [bs, num_token]
-        special_tokens_mask (list): special tokens mask.
-    Returns:
-        torch.Tensor: attention mask between each special tokens.
-    """
     input_ids = tokenized["input_ids"]
     bs, num_token = input_ids.shape
-    # special_tokens_mask: bs, num_token. 1 for special tokens. 0 for normal tokens
     special_tokens_mask = torch.zeros((bs, num_token), device=input_ids.device).bool()
     for special_token in special_tokens_list:
         special_tokens_mask |= input_ids == special_token
 
-    # idxs: each row is a list of indices of special tokens
     idxs = torch.nonzero(special_tokens_mask)
 
-    # generate attention mask and positional ids
     attention_mask = (
         torch.eye(num_token, device=input_ids.device)
         .bool()
@@ -236,34 +245,20 @@ def generate_masks_with_special_tokens(tokenized, special_tokens_list, tokenizer
 
         previous_col = col
 
-    # # padding mask
-    # padding_mask = tokenized['attention_mask']
-    # attention_mask = attention_mask & padding_mask.unsqueeze(1).bool() & padding_mask.unsqueeze(2).bool()
-
     return attention_mask, position_ids.to(torch.long)
 
 
 def generate_masks_with_special_tokens_and_transfer_map(
     tokenized, special_tokens_list, tokenizer
 ):
-    """Generate attention mask between each pair of special tokens
-    Args:
-        input_ids (torch.Tensor): input ids. Shape: [bs, num_token]
-        special_tokens_mask (list): special tokens mask.
-    Returns:
-        torch.Tensor: attention mask between each special tokens.
-    """
     input_ids = tokenized["input_ids"]
     bs, num_token = input_ids.shape
-    # special_tokens_mask: bs, num_token. 1 for special tokens. 0 for normal tokens
     special_tokens_mask = torch.zeros((bs, num_token), device=input_ids.device).bool()
     for special_token in special_tokens_list:
         special_tokens_mask |= input_ids == special_token
 
-    # idxs: each row is a list of indices of special tokens
     idxs = torch.nonzero(special_tokens_mask)
 
-    # generate attention mask and positional ids
     attention_mask = (
         torch.eye(num_token, device=input_ids.device)
         .bool()
@@ -290,13 +285,17 @@ def generate_masks_with_special_tokens_and_transfer_map(
             cate_to_token_mask_list[row].append(c2t_maski)
         previous_col = col
 
-    cate_to_token_mask_list = [
-        torch.stack(cate_to_token_mask_listi, dim=0)
-        for cate_to_token_mask_listi in cate_to_token_mask_list
-    ]
-
-    # # padding mask
-    # padding_mask = tokenized['attention_mask']
-    # attention_mask = attention_mask & padding_mask.unsqueeze(1).bool() & padding_mask.unsqueeze(2).bool()
+    # Check if list is not empty before stacking
+    if any(cate_to_token_mask_list):
+        cate_to_token_mask_list = [
+            (
+                torch.stack(item, dim=0)
+                if len(item) > 0
+                else torch.tensor([], device=input_ids.device)
+            )
+            for item in cate_to_token_mask_list
+        ]
+    else:
+        cate_to_token_mask_list = []
 
     return attention_mask, position_ids.to(torch.long), cate_to_token_mask_list

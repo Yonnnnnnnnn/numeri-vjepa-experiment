@@ -91,6 +91,7 @@ class SegmentationEngine:
         self.roi_margin = roi_margin  # 0.15 = focus on center 70% of frame
         self.model = None
         self.predictor = None
+        self.mask_generator = None
 
         # Try to load SAM2
         self._load_model(model_cfg, checkpoint_path)
