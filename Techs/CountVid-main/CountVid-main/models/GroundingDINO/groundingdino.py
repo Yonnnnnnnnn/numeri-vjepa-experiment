@@ -402,10 +402,14 @@ class GroundingDINO(nn.Module):
         else:
             captions = [t["caption"] for t in targets]
 
-        # encoder texts
-
+        # Fix: Convert device to string for HuggingFace BatchEncoding.to() compatibility
+        device_str = (
+            str(samples.device)
+            if isinstance(samples.device, torch.device)
+            else samples.device
+        )
         tokenized = self.tokenizer(captions, padding="longest", return_tensors="pt").to(
-            samples.device
+            device_str
         )
 
         one_hot_token = tokenized
@@ -491,7 +495,6 @@ class GroundingDINO(nn.Module):
             else:
                 exemplar_tokens = None
 
-
         else:
             features, poss = self.backbone(samples)
             (h, w) = (
@@ -545,7 +548,8 @@ class GroundingDINO(nn.Module):
             features_exemp, _ = self.backbone(exemp_imgs)
             combined_features = self.combine_features(features_exemp)
             new_exemplars = [
-                torch.tensor(exemp).unsqueeze(0).to(samples.device) for exemp in new_exemplars
+                torch.tensor(exemp).unsqueeze(0).to(samples.device)
+                for exemp in new_exemplars
             ]
 
             # Get visual exemplar tokens.

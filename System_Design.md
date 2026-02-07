@@ -53,6 +53,7 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 
 - **StochasticDepth Patch**: Sistem menerapkan patch secara otomatis pada level paket (`v2_logic/__init__.py`) untuk memitigasi _circular import errors_ di sistem multi-proses.
 - **CountVid BERT Warper**: Implementasi delegated dynamic methods pada `bertwarper.py` untuk memastikan kompatibilitas inisialisasi BERT model di berbagai versi library `transformers` (mencegah `AttributeError: get_head_mask`).
+- **CountVid Device Fix**: Konversi `torch.device` ke `string` pada pemanggilan `BatchEncoding.to()` di `groundingdino.py` untuk mencegah `TypeError` pada HuggingFace tokenizer.
 
 ### 3.2. Coordinate Coordination
 

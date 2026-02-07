@@ -1,0 +1,1318 @@
+/content/numeri-vjepa-experiment
+🧠 BAGIAN 1: Menjalankan Recursive Intent Logic (LangGraph)...
+--------------------------------------------------
+2026-02-07 03:41:04,749 - run_recursive_system - INFO - Building Recursive Intent Graph...
+2026-02-07 03:41:04,751 - v2_logic.controllers.recursive_flow - INFO - [build_recursive_graph] Graph compiled.
+2026-02-07 03:41:04,871 - run_recursive_system - INFO - Session started: session_1770435664
+2026-02-07 03:41:04,872 - run_recursive_system - INFO - Target Intent: ['cup']
+2026-02-07 03:41:04,914 - run_recursive_system - INFO - --- Processing Frame 0 ---
+2026-02-07 03:41:04,915 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:41:04,916 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:41:09,238 - v2ecore.emulator - INFO - ON/OFF log_e temporal contrast thresholds: 0.2 / 0.2 +/- 0.03
+2026-02-07 03:41:09,292 - v2ecore.emulator - WARNING - cannot get screen size for window placement: No enumerators available
+2026-02-07 03:41:09,292 - v2_logic.models.v2e_engine - INFO - [V2E] Initialized on cuda
+2026-02-07 03:41:09,292 - v2_logic.controllers.recursive_flow - INFO - [Engines] V2EEngine initialized
+2026-02-07 03:41:13,859 - v2_logic.models.v_jepa_engine - INFO - [V-JEPA] Initialized on cuda
+2026-02-07 03:41:33,371 - v2_logic.models.v_jepa_engine - INFO - [V-JEPA] Successfully loaded and aligned weights from /content/numeri-vjepa-experiment/Implementation/v2_logic/models/../../checkpoints/vjepa_vitl16.pth.tar
+2026-02-07 03:41:33,378 - v2_logic.controllers.recursive_flow - INFO - [Engines] VJEPAEngine initialized
+/usr/lib/python3.12/contextlib.py:105: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
+  self.gen = func(*args, **kwds)
+2026-02-07 03:41:34,282 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:41:34,288 - v2_logic.controllers.recursive_flow - INFO - [Engines] FusionEngineV2 initialized
+2026-02-07 03:41:34,695 - v2_logic.controllers.recursive_flow - INFO - [Engines] ReIDEngine initialized
+2026-02-07 03:41:34,733 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup']
+2026-02-07 03:41:34,734 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 0
+2026-02-07 03:41:34,741 - v2_logic.controllers.recursive_flow - INFO - [Engines] LogicGate initialized
+2026-02-07 03:41:34,744 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: Rule1_HighConfidencePass)
+2026-02-07 03:41:34,745 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+[SegmentationEngine] Loading SAM2...
+[SegmentationEngine] No local checkpoint. Loading from HuggingFace...
+2026-02-07 03:41:36,036 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/facebook/sam2.1-hiera-tiny/resolve/main/sam2.1_hiera_tiny.pt "HTTP/1.1 302 Found"
+2026-02-07 03:41:36,156 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/facebook/sam2.1-hiera-tiny/xet-read-token/de431c4043854a71d8101e17995dfe596bf101a5 "HTTP/1.1 200 OK"
+sam2.1_hiera_tiny.pt: 100% 156M/156M [00:02<00:00, 76.1MB/s]
+2026-02-07 03:41:39,392 - root - INFO - Loaded checkpoint sucessfully
+[SegmentationEngine] Loaded from HuggingFace: facebook/sam2.1-hiera-tiny
+[SegmentationEngine] SAM2 loaded on cuda
+2026-02-07 03:41:39,648 - v2_logic.controllers.recursive_flow - INFO - [Engines] SegmentationEngine initialized
+2026-02-07 03:41:39,678 - dinov2 - WARNING - xFormers not available
+2026-02-07 03:41:39,680 - dinov2 - WARNING - xFormers not available
+2026-02-07 03:41:39,688 - v2_logic.models.depth_engine - INFO - [DepthEngine] Loading from checkpoint: /content/numeri-vjepa-experiment/Techs/Depth-Anything-V2-main/Depth-Anything-V2-main/checkpoints/depth_anything_v2_vits.pth
+2026-02-07 03:41:39,691 - dinov2 - INFO - using MLP layer as FFN
+2026-02-07 03:41:40,991 - v2_logic.models.depth_engine - INFO - [DepthEngine] Model loaded on cuda (encoder=vits)
+2026-02-07 03:41:40,991 - v2_logic.controllers.recursive_flow - INFO - [Engines] DepthEngine initialized
+2026-02-07 03:41:41,516 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:41:41,875 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:41:42,014 - root - INFO - Image embeddings computed.
+2026-02-07 03:41:42,274 - numexpr.utils - INFO - NumExpr defaulting to 2 threads.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+/usr/local/lib/python3.12/dist-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+/content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/models/GroundingDINO/utils.py:61: SyntaxWarning: invalid escape sequence '\s'
+  - memory: bs, \sum{hw}, d_model
+/usr/local/lib/python3.12/dist-packages/torch/functional.py:505: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at /pytorch/aten/src/ATen/native/TensorShape.cpp:4381.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+final text_encoder_type: /content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/checkpoints/bert-base-uncased
+load tokenizer done.
+Loading weights: 100% 199/199 [00:00<00:00, 645.17it/s, Materializing param=pooler.dense.weight]
+BertModel LOAD REPORT from: /content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/checkpoints/bert-base-uncased
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+final text_encoder_type: /content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/checkpoints/bert-base-uncased
+load tokenizer done.
+2026-02-07 03:41:57,534 - v2_logic.models.count_vid_engine - INFO - [CountVid] Model loaded successfully on cuda
+2026-02-07 03:41:57,559 - v2_logic.controllers.recursive_flow - INFO - [Engines] CountVidEngine initialized
+2026-02-07 03:41:57,652 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:41:57,654 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:41:57,672 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: loop (Rule: Rule3_VolumetricAnomaly)
+2026-02-07 03:41:57,672 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: loop
+2026-02-07 03:41:57,673 - v2_logic.controllers.recursive_flow - INFO - [targeted_slm_node] SLM reasoning triggered
+2026-02-07 03:41:57,676 - v2_logic.controllers.recursive_flow - INFO - [Engines] SLMEngine initialized
+2026-02-07 03:41:57,778 - v2_logic.models.slm_engine - INFO - [SLMEngine] Loading VLM backend...
+Loading VLM (Qwen2.5-VL) components...
+ - Loading Model: Qwen/Qwen2-VL-7B-Instruct (4-bit)
+2026-02-07 03:41:57,881 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-02-07 03:41:57,899 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/config.json "HTTP/1.1 200 OK"
+2026-02-07 03:41:57,919 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/config.json "HTTP/1.1 200 OK"
+config.json: 1.20kB [00:00, 2.71MB/s]
+2026-02-07 03:41:58,015 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
+2026-02-07 03:41:58,099 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-02-07 03:41:58,117 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/config.json "HTTP/1.1 200 OK"
+2026-02-07 03:42:02,378 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
+2026-02-07 03:42:02,465 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/model.safetensors.index.json "HTTP/1.1 307 Temporary Redirect"
+2026-02-07 03:42:02,488 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/model.safetensors.index.json "HTTP/1.1 200 OK"
+2026-02-07 03:42:02,508 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/model.safetensors.index.json "HTTP/1.1 200 OK"
+model.safetensors.index.json: 56.5kB [00:00, 128MB/s]
+2026-02-07 03:42:02,599 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2-VL-7B-Instruct/revision/main "HTTP/1.1 200 OK"
+Downloading (incomplete total...): 0.00B [00:00, ?B/s]
+Fetching 5 files:   0% 0/5 [00:00<?, ?it/s]2026-02-07 03:42:02,683 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/eed13092ef92e448dd6875b2a00151bd3f7db0ac/model-00001-of-00005.safetensors "HTTP/1.1 302 Found"
+2026-02-07 03:42:02,703 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/eed13092ef92e448dd6875b2a00151bd3f7db0ac/model-00004-of-00005.safetensors "HTTP/1.1 302 Found"
+2026-02-07 03:42:02,707 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/eed13092ef92e448dd6875b2a00151bd3f7db0ac/model-00005-of-00005.safetensors "HTTP/1.1 302 Found"
+2026-02-07 03:42:02,718 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/eed13092ef92e448dd6875b2a00151bd3f7db0ac/model-00002-of-00005.safetensors "HTTP/1.1 302 Found"
+2026-02-07 03:42:02,735 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/eed13092ef92e448dd6875b2a00151bd3f7db0ac/model-00003-of-00005.safetensors "HTTP/1.1 302 Found"
+2026-02-07 03:42:02,765 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2-VL-7B-Instruct/xet-read-token/eed13092ef92e448dd6875b2a00151bd3f7db0ac "HTTP/1.1 200 OK"
+Downloading (incomplete total...):   0% 0.00/3.90G [00:00<?, ?B/s]2026-02-07 03:42:02,792 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2-VL-7B-Instruct/xet-read-token/eed13092ef92e448dd6875b2a00151bd3f7db0ac "HTTP/1.1 200 OK"
+Downloading (incomplete total...):   0% 0.00/4.99G [00:00<?, ?B/s]2026-02-07 03:42:02,798 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2-VL-7B-Instruct/xet-read-token/eed13092ef92e448dd6875b2a00151bd3f7db0ac "HTTP/1.1 200 OK"
+Downloading (incomplete total...):   0% 0.00/8.85G [00:00<?, ?B/s]2026-02-07 03:42:02,807 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2-VL-7B-Instruct/xet-read-token/eed13092ef92e448dd6875b2a00151bd3f7db0ac "HTTP/1.1 200 OK"
+Downloading (incomplete total...):   0% 0.00/12.7G [00:00<?, ?B/s]2026-02-07 03:42:02,818 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2-VL-7B-Instruct/xet-read-token/eed13092ef92e448dd6875b2a00151bd3f7db0ac "HTTP/1.1 200 OK"
+Downloading (incomplete total...):  95% 15.7G/16.6G [04:14<00:40, 21.3MB/s]
+Downloading (incomplete total...): 100% 16.5G/16.6G [04:26<00:00, 87.9MB/s]
+Downloading (incomplete total...): 100% 16.6G/16.6G [04:26<00:00, 108MB/s] 
+Fetching 5 files: 100% 5/5 [04:26<00:00, 53.36s/it]
+Download complete: 100% 16.6G/16.6G [04:26<00:00, 62.1MB/s]
+Loading weights: 100% 730/730 [01:08<00:00, 10.58it/s, Materializing param=model.visual.patch_embed.proj.weight]
+2026-02-07 03:47:39,091 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-02-07 03:47:39,114 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/generation_config.json "HTTP/1.1 200 OK"
+2026-02-07 03:47:39,135 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/generation_config.json "HTTP/1.1 200 OK"
+generation_config.json: 100% 244/244 [00:00<00:00, 1.17MB/s]
+ - Loading Processor...
+2026-02-07 03:47:39,224 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2-VL-7B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-02-07 03:47:39,309 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-02-07 03:47:39,394 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+2026-02-07 03:47:39,413 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/chat_template.json "HTTP/1.1 200 OK"
+2026-02-07 03:47:39,435 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/chat_template.json "HTTP/1.1 200 OK"
+chat_template.json: 1.05kB [00:00, 1.90MB/s]
+2026-02-07 03:47:39,518 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+2026-02-07 03:47:39,610 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 404 Not Found"
+2026-02-07 03:47:39,695 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-02-07 03:47:39,775 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-02-07 03:47:39,794 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/preprocessor_config.json "HTTP/1.1 200 OK"
+2026-02-07 03:47:39,815 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/preprocessor_config.json "HTTP/1.1 200 OK"
+preprocessor_config.json: 100% 347/347 [00:00<00:00, 2.18MB/s]
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. 
+2026-02-07 03:47:39,923 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-02-07 03:47:40,008 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-02-07 03:47:40,044 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/preprocessor_config.json "HTTP/1.1 200 OK"
+2026-02-07 03:47:40,146 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-02-07 03:47:40,155 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/config.json "HTTP/1.1 200 OK"
+2026-02-07 03:47:40,239 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-02-07 03:47:40,258 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-02-07 03:47:40,277 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/tokenizer_config.json "HTTP/1.1 200 OK"
+tokenizer_config.json: 4.19kB [00:00, 13.6MB/s]
+2026-02-07 03:47:40,369 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2-VL-7B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-02-07 03:47:40,455 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2-VL-7B-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-02-07 03:47:40,541 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/vocab.json "HTTP/1.1 307 Temporary Redirect"
+2026-02-07 03:47:40,560 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/vocab.json "HTTP/1.1 200 OK"
+2026-02-07 03:47:40,580 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/vocab.json "HTTP/1.1 200 OK"
+vocab.json: 2.78MB [00:00, 66.6MB/s]
+2026-02-07 03:47:40,710 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/merges.txt "HTTP/1.1 307 Temporary Redirect"
+2026-02-07 03:47:40,734 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/merges.txt "HTTP/1.1 200 OK"
+2026-02-07 03:47:40,755 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/merges.txt "HTTP/1.1 200 OK"
+merges.txt: 1.67MB [00:00, 101MB/s]
+2026-02-07 03:47:40,857 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/tokenizer.json "HTTP/1.1 307 Temporary Redirect"
+2026-02-07 03:47:40,879 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/tokenizer.json "HTTP/1.1 200 OK"
+2026-02-07 03:47:40,900 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/tokenizer.json "HTTP/1.1 200 OK"
+tokenizer.json: 7.03MB [00:00, 184MB/s]
+2026-02-07 03:47:41,027 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/added_tokens.json "HTTP/1.1 404 Not Found"
+2026-02-07 03:47:41,114 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/special_tokens_map.json "HTTP/1.1 404 Not Found"
+2026-02-07 03:47:41,972 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2-VL-7B-Instruct "HTTP/1.1 200 OK"
+2026-02-07 03:47:42,056 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-02-07 03:47:42,140 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-02-07 03:47:42,223 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-02-07 03:47:42,235 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/preprocessor_config.json "HTTP/1.1 200 OK"
+2026-02-07 03:47:42,325 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-02-07 03:47:42,419 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-02-07 03:47:42,507 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-02-07 03:47:42,520 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2-VL-7B-Instruct/eed13092ef92e448dd6875b2a00151bd3f7db0ac/preprocessor_config.json "HTTP/1.1 200 OK"
+VLM loaded on: cuda:0
+2026-02-07 03:47:43,375 - v2_logic.models.slm_engine - INFO - [SLMEngine] Prompt: You are an intelligent visual analyst. I counted 1 objects visually, but the 3D volume suggests there should be between 212 and 260 objects. This is a discrepancy. Are some objects occluded (hidden behind others)? Or are some counts false positives? Analyze the spatial arrangement.
+Provide a concise explanation and a hypothesis.
+2026-02-07 03:47:58,237 - v2_logic.models.slm_engine - INFO - [SLMEngine] Response: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that the person is preparing to perform a task involving these objects.
+
+### Analysis:
+1. **Objects Present:**
+   - 1 person (partially visible)
+   - 1 blue cup (held by the person)
+   - 2 blue cups (on the table)
+   - 1 blue ball (on the table)
+
+2. **Spatial Arrangement:**
+   - The person is holding one cup.
+   - Two cups are placed on the table, with one cup slightly to the left
+2026-02-07 03:47:58,239 - v2_logic.controllers.recursive_flow - INFO - [interpolation_node] Interpolating state to current frame
+2026-02-07 03:47:58,240 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:47:58,240 - v2_logic.controllers.recursive_flow - INFO - [director] DISCOVERY LOOP: Added new labels: ['ball', 'person']
+2026-02-07 03:47:58,241 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:47:58,242 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 0
+2026-02-07 03:47:58,508 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:47:58,509 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:47:58,556 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:47:58,565 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+2026-02-07 03:48:00,384 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:00,402 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: loop (Rule: Rule3_VolumetricAnomaly)
+2026-02-07 03:48:00,403 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: loop
+2026-02-07 03:48:00,403 - v2_logic.controllers.recursive_flow - INFO - [targeted_slm_node] SLM reasoning triggered
+2026-02-07 03:48:00,403 - v2_logic.models.slm_engine - INFO - [SLMEngine] Prompt: You are an intelligent visual analyst. I counted 1 objects visually, but the 3D volume suggests there should be between 211 and 259 objects. This is a discrepancy. Are some objects occluded (hidden behind others)? Or are some counts false positives? Analyze the spatial arrangement.
+Provide a concise explanation and a hypothesis.
+2026-02-07 03:48:13,224 - v2_logic.models.slm_engine - INFO - [SLMEngine] Response: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that the person is preparing to perform a task involving these objects.
+
+### Analysis:
+1. **Objects Present:**
+   - 1 person (partially visible)
+   - 1 blue cup (held by the person)
+   - 2 blue cups (on the table)
+   - 1 blue ball (on the table)
+
+2. **Spatial Arrangement:**
+   - The person is holding one cup.
+   - Two cups are placed on the table, with one cup slightly to the left
+2026-02-07 03:48:13,225 - v2_logic.controllers.recursive_flow - INFO - [interpolation_node] Interpolating state to current frame
+2026-02-07 03:48:13,225 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:48:13,226 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:48:13,226 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 0
+2026-02-07 03:48:13,400 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:48:13,401 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:48:13,446 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:48:13,461 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+2026-02-07 03:48:15,216 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:15,235 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: loop (Rule: Rule3_VolumetricAnomaly)
+2026-02-07 03:48:15,236 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: loop
+2026-02-07 03:48:15,236 - v2_logic.controllers.recursive_flow - INFO - [targeted_slm_node] SLM reasoning triggered
+2026-02-07 03:48:15,236 - v2_logic.models.slm_engine - INFO - [SLMEngine] Prompt: You are an intelligent visual analyst. I counted 1 objects visually, but the 3D volume suggests there should be between 227 and 279 objects. This is a discrepancy. Are some objects occluded (hidden behind others)? Or are some counts false positives? Analyze the spatial arrangement.
+Provide a concise explanation and a hypothesis.
+2026-02-07 03:48:28,309 - v2_logic.models.slm_engine - INFO - [SLMEngine] Response: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:48:28,309 - v2_logic.controllers.recursive_flow - INFO - [interpolation_node] Interpolating state to current frame
+2026-02-07 03:48:28,310 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:48:28,310 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:48:28,311 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 0
+2026-02-07 03:48:28,468 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:48:28,474 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:48:28,506 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:48:28,522 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+2026-02-07 03:48:30,301 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:30,321 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:30,322 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:30,322 - run_recursive_system - INFO - Frame 0 Results:
+2026-02-07 03:48:30,323 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:48:30,323 - run_recursive_system - INFO -   - Volumetric Range: (227, 279)
+2026-02-07 03:48:30,323 - run_recursive_system - INFO -   - Spike Energy: 0.00
+2026-02-07 03:48:30,323 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:48:30,323 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:48:30,387 - run_recursive_system - INFO - --- Processing Frame 15 ---
+2026-02-07 03:48:30,389 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:48:30,391 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+/usr/lib/python3.12/contextlib.py:105: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
+  self.gen = func(*args, **kwds)
+2026-02-07 03:48:30,842 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:30,842 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:48:30,879 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:48:30,879 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:30,880 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:30,880 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 15
+2026-02-07 03:48:30,949 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:48:31,086 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:48:31,133 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:48:31,148 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+2026-02-07 03:48:32,992 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:33,018 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:33,018 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:33,019 - run_recursive_system - INFO - Frame 15 Results:
+2026-02-07 03:48:33,019 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:48:33,019 - run_recursive_system - INFO -   - Volumetric Range: (204, 250)
+2026-02-07 03:48:33,019 - run_recursive_system - INFO -   - Spike Energy: 363525.00
+2026-02-07 03:48:33,019 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:48:33,019 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:48:33,092 - run_recursive_system - INFO - --- Processing Frame 30 ---
+2026-02-07 03:48:33,095 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:48:33,097 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:48:33,641 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:33,641 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:48:33,709 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:48:33,709 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:33,711 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 30
+2026-02-07 03:48:33,712 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:33,906 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:48:33,929 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:48:33,982 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:48:34,007 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+2026-02-07 03:48:35,739 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:35,773 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:35,774 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:35,775 - run_recursive_system - INFO - Frame 30 Results:
+2026-02-07 03:48:35,775 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:48:35,775 - run_recursive_system - INFO -   - Volumetric Range: (283, 347)
+2026-02-07 03:48:35,775 - run_recursive_system - INFO -   - Spike Energy: 830213.00
+2026-02-07 03:48:35,775 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:48:35,775 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:48:35,819 - run_recursive_system - INFO - --- Processing Frame 45 ---
+2026-02-07 03:48:35,824 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:48:35,824 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:48:36,296 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:36,296 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:48:36,707 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:48:36,707 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:36,708 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:36,708 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 45
+2026-02-07 03:48:36,849 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:48:36,876 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:48:36,908 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:48:36,923 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+2026-02-07 03:48:38,668 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:38,706 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:38,706 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:38,707 - run_recursive_system - INFO - Frame 45 Results:
+2026-02-07 03:48:38,707 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:48:38,707 - run_recursive_system - INFO -   - Volumetric Range: (319, 391)
+2026-02-07 03:48:38,707 - run_recursive_system - INFO -   - Spike Energy: 558780.00
+2026-02-07 03:48:38,707 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:48:38,707 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:48:38,759 - run_recursive_system - INFO - --- Processing Frame 60 ---
+2026-02-07 03:48:38,762 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:48:38,764 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:48:39,310 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:39,310 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:48:39,357 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:48:39,357 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:39,357 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 60
+2026-02-07 03:48:39,358 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:39,499 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:48:39,527 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:48:39,559 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:48:39,575 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 10 objects (outside ROI/area range)
+2026-02-07 03:48:41,200 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:41,254 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:41,254 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:41,255 - run_recursive_system - INFO - Frame 60 Results:
+2026-02-07 03:48:41,255 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:48:41,255 - run_recursive_system - INFO -   - Volumetric Range: (187, 229)
+2026-02-07 03:48:41,255 - run_recursive_system - INFO -   - Spike Energy: 1181104.00
+2026-02-07 03:48:41,255 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:48:41,256 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:48:41,306 - run_recursive_system - INFO - --- Processing Frame 75 ---
+2026-02-07 03:48:41,312 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:48:41,314 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:48:41,831 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:41,831 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:48:41,874 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:48:41,875 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:41,875 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 75
+2026-02-07 03:48:41,876 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:41,947 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:48:42,073 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:48:42,122 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:48:42,136 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 6 objects (outside ROI/area range)
+2026-02-07 03:48:43,844 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:43,901 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:43,901 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:43,902 - run_recursive_system - INFO - Frame 75 Results:
+2026-02-07 03:48:43,902 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:48:43,902 - run_recursive_system - INFO -   - Volumetric Range: (689, 844)
+2026-02-07 03:48:43,902 - run_recursive_system - INFO -   - Spike Energy: 1258631.00
+2026-02-07 03:48:43,902 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:48:43,902 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:48:43,951 - run_recursive_system - INFO - --- Processing Frame 90 ---
+2026-02-07 03:48:43,956 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:48:43,958 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:48:44,508 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:44,509 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:48:44,562 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:48:44,563 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:44,563 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:44,564 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 90
+2026-02-07 03:48:44,721 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:48:44,723 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:48:44,756 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:48:44,782 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 7 objects (outside ROI/area range)
+2026-02-07 03:48:46,710 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:46,779 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:46,779 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:46,781 - run_recursive_system - INFO - Frame 90 Results:
+2026-02-07 03:48:46,781 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:48:46,781 - run_recursive_system - INFO -   - Volumetric Range: (189, 233)
+2026-02-07 03:48:46,781 - run_recursive_system - INFO -   - Spike Energy: 1336523.00
+2026-02-07 03:48:46,781 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:48:46,781 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:48:46,867 - run_recursive_system - INFO - --- Processing Frame 105 ---
+2026-02-07 03:48:46,875 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:48:46,876 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:48:47,397 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:47,397 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:48:47,451 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:48:47,451 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:47,452 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:47,452 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 105
+2026-02-07 03:48:47,612 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:48:47,614 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:48:47,648 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:48:47,663 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 5 objects (outside ROI/area range)
+2026-02-07 03:48:49,236 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:49,674 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:49,674 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:49,675 - run_recursive_system - INFO - Frame 105 Results:
+2026-02-07 03:48:49,675 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:48:49,675 - run_recursive_system - INFO -   - Volumetric Range: (179, 220)
+2026-02-07 03:48:49,675 - run_recursive_system - INFO -   - Spike Energy: 1084083.00
+2026-02-07 03:48:49,675 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:48:49,675 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:48:49,725 - run_recursive_system - INFO - --- Processing Frame 120 ---
+2026-02-07 03:48:49,736 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:48:49,737 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:48:50,237 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:50,237 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:48:50,307 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:48:50,308 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:50,309 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:50,308 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 120
+2026-02-07 03:48:50,454 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:48:50,483 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:48:50,515 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:48:50,531 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+2026-02-07 03:48:52,160 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:52,208 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:52,209 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:52,209 - run_recursive_system - INFO - Frame 120 Results:
+2026-02-07 03:48:52,210 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:48:52,210 - run_recursive_system - INFO -   - Volumetric Range: (241, 296)
+2026-02-07 03:48:52,210 - run_recursive_system - INFO -   - Spike Energy: 932749.00
+2026-02-07 03:48:52,210 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:48:52,210 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:48:52,256 - run_recursive_system - INFO - --- Processing Frame 135 ---
+2026-02-07 03:48:52,262 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:48:52,263 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:48:52,725 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:52,725 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:48:52,761 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:48:52,761 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:52,762 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 135
+2026-02-07 03:48:52,765 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:52,905 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:48:52,934 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:48:52,982 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:48:52,997 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+2026-02-07 03:48:54,628 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:54,655 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:54,655 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:54,656 - run_recursive_system - INFO - Frame 135 Results:
+2026-02-07 03:48:54,656 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:48:54,656 - run_recursive_system - INFO -   - Volumetric Range: (210, 258)
+2026-02-07 03:48:54,656 - run_recursive_system - INFO -   - Spike Energy: 679500.00
+2026-02-07 03:48:54,656 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:48:54,656 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:48:54,702 - run_recursive_system - INFO - --- Processing Frame 150 ---
+2026-02-07 03:48:54,705 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:48:54,707 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:48:55,188 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:55,188 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:48:55,238 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:48:55,239 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:55,239 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:55,239 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 150
+2026-02-07 03:48:55,382 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:48:55,406 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:48:55,438 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:48:55,453 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 6 objects (outside ROI/area range)
+2026-02-07 03:48:57,106 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:57,176 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:57,177 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:57,178 - run_recursive_system - INFO - Frame 150 Results:
+2026-02-07 03:48:57,178 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:48:57,178 - run_recursive_system - INFO -   - Volumetric Range: (298, 365)
+2026-02-07 03:48:57,178 - run_recursive_system - INFO -   - Spike Energy: 863863.00
+2026-02-07 03:48:57,178 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:48:57,178 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:48:57,251 - run_recursive_system - INFO - --- Processing Frame 165 ---
+2026-02-07 03:48:57,257 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:48:57,264 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:48:57,766 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:57,766 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:48:57,828 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:48:57,829 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:57,829 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:57,829 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 165
+2026-02-07 03:48:58,002 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:48:58,022 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:48:58,075 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:48:58,095 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+2026-02-07 03:48:59,773 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:48:59,828 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:48:59,828 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:48:59,829 - run_recursive_system - INFO - Frame 165 Results:
+2026-02-07 03:48:59,829 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:48:59,829 - run_recursive_system - INFO -   - Volumetric Range: (238, 292)
+2026-02-07 03:48:59,829 - run_recursive_system - INFO -   - Spike Energy: 893930.00
+2026-02-07 03:48:59,829 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:48:59,829 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:48:59,878 - run_recursive_system - INFO - --- Processing Frame 180 ---
+2026-02-07 03:48:59,884 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:48:59,886 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:49:00,371 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:00,372 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:49:00,416 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:49:00,416 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:00,416 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 180
+2026-02-07 03:49:00,417 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:00,572 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:49:00,573 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:49:00,608 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:49:00,623 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+2026-02-07 03:49:02,275 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:02,693 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:02,693 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:02,694 - run_recursive_system - INFO - Frame 180 Results:
+2026-02-07 03:49:02,694 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:49:02,694 - run_recursive_system - INFO -   - Volumetric Range: (513, 628)
+2026-02-07 03:49:02,694 - run_recursive_system - INFO -   - Spike Energy: 976824.00
+2026-02-07 03:49:02,694 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:49:02,694 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:49:02,745 - run_recursive_system - INFO - --- Processing Frame 195 ---
+2026-02-07 03:49:02,748 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:49:02,750 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:49:03,235 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:03,236 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:49:03,280 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:49:03,281 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:03,281 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:03,282 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 195
+2026-02-07 03:49:03,423 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:49:03,440 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:49:03,472 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:49:03,487 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+2026-02-07 03:49:05,129 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:05,177 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:05,178 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:05,181 - run_recursive_system - INFO - Frame 195 Results:
+2026-02-07 03:49:05,182 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:49:05,182 - run_recursive_system - INFO -   - Volumetric Range: (381, 466)
+2026-02-07 03:49:05,182 - run_recursive_system - INFO -   - Spike Energy: 944044.00
+2026-02-07 03:49:05,182 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:49:05,182 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:49:05,229 - run_recursive_system - INFO - --- Processing Frame 210 ---
+2026-02-07 03:49:05,233 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:49:05,234 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:49:05,733 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:05,734 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:49:05,784 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:49:05,784 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:05,785 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 210
+2026-02-07 03:49:05,786 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:05,945 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:49:05,945 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:49:05,977 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:49:05,992 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+2026-02-07 03:49:07,630 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:07,678 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:07,679 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:07,679 - run_recursive_system - INFO - Frame 210 Results:
+2026-02-07 03:49:07,680 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:49:07,680 - run_recursive_system - INFO -   - Volumetric Range: (338, 414)
+2026-02-07 03:49:07,680 - run_recursive_system - INFO -   - Spike Energy: 1194369.00
+2026-02-07 03:49:07,680 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:49:07,680 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:49:07,728 - run_recursive_system - INFO - --- Processing Frame 225 ---
+2026-02-07 03:49:07,732 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:49:07,733 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:49:08,200 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:08,200 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:49:08,247 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:49:08,247 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:08,248 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 225
+2026-02-07 03:49:08,249 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:08,404 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:49:08,405 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:49:08,440 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:49:08,455 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+2026-02-07 03:49:10,203 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:10,263 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:10,263 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:10,264 - run_recursive_system - INFO - Frame 225 Results:
+2026-02-07 03:49:10,264 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:49:10,264 - run_recursive_system - INFO -   - Volumetric Range: (243, 298)
+2026-02-07 03:49:10,264 - run_recursive_system - INFO -   - Spike Energy: 854680.00
+2026-02-07 03:49:10,264 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:49:10,264 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:49:10,345 - run_recursive_system - INFO - --- Processing Frame 240 ---
+2026-02-07 03:49:10,352 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:49:10,355 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:49:10,870 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:10,872 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:49:10,942 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:49:10,942 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:10,943 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:10,942 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 240
+2026-02-07 03:49:11,203 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:49:11,205 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:49:11,253 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:49:11,268 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+2026-02-07 03:49:12,961 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:13,008 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:13,008 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:13,009 - run_recursive_system - INFO - Frame 240 Results:
+2026-02-07 03:49:13,009 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:49:13,009 - run_recursive_system - INFO -   - Volumetric Range: (260, 319)
+2026-02-07 03:49:13,009 - run_recursive_system - INFO -   - Spike Energy: 811365.00
+2026-02-07 03:49:13,009 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:49:13,010 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:49:13,062 - run_recursive_system - INFO - --- Processing Frame 255 ---
+2026-02-07 03:49:13,066 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:49:13,066 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:49:13,571 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:13,571 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:49:13,614 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:49:13,615 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:13,615 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:13,616 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 255
+2026-02-07 03:49:13,764 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:49:13,793 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:49:13,825 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:49:13,840 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+2026-02-07 03:49:15,505 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:15,547 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:15,548 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:15,548 - run_recursive_system - INFO - Frame 255 Results:
+2026-02-07 03:49:15,548 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:49:15,549 - run_recursive_system - INFO -   - Volumetric Range: (294, 361)
+2026-02-07 03:49:15,549 - run_recursive_system - INFO -   - Spike Energy: 1076396.00
+2026-02-07 03:49:15,549 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:49:15,549 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:49:15,598 - run_recursive_system - INFO - --- Processing Frame 270 ---
+2026-02-07 03:49:15,991 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:49:15,993 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:49:16,449 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:16,450 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:49:16,488 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:49:16,488 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:16,489 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:16,488 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 270
+2026-02-07 03:49:16,554 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:49:16,683 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:49:16,730 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:49:16,745 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 7 objects (outside ROI/area range)
+2026-02-07 03:49:18,415 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:18,459 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:18,459 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:18,460 - run_recursive_system - INFO - Frame 270 Results:
+2026-02-07 03:49:18,460 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:49:18,460 - run_recursive_system - INFO -   - Volumetric Range: (353, 432)
+2026-02-07 03:49:18,460 - run_recursive_system - INFO -   - Spike Energy: 677991.00
+2026-02-07 03:49:18,460 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:49:18,460 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:49:18,502 - run_recursive_system - INFO - --- Processing Frame 285 ---
+2026-02-07 03:49:18,506 - v2_logic.controllers.recursive_flow - INFO - [v2e_sensor_node] Generating events
+2026-02-07 03:49:18,507 - v2_logic.controllers.recursive_flow - INFO - [vjepa_brain_node] Encoding latent context
+2026-02-07 03:49:18,992 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:18,993 - v2_logic.controllers.recursive_flow - INFO - [director] SLM Hypothesis received: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table
+2026-02-07 03:49:19,040 - v2_logic.controllers.recursive_flow - INFO - [countvid_executor_node] Counting objects matching intent: ['cup', 'ball', 'person']
+2026-02-07 03:49:19,041 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:19,041 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:19,041 - v2_logic.controllers.recursive_flow - INFO - [sam2_depth_node] Generating point cloud for frame 285
+2026-02-07 03:49:19,191 - v2_logic.models.count_vid_engine - ERROR - [CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+2026-02-07 03:49:19,199 - root - INFO - For numpy array image, we assume (HxWxC) format
+2026-02-07 03:49:19,231 - root - INFO - Computing image embeddings for the provided image...
+2026-02-07 03:49:19,246 - root - INFO - Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+2026-02-07 03:49:20,902 - v2_logic.controllers.recursive_flow - INFO - [fusion_engine_node] Fusing sensor data & Tracking
+2026-02-07 03:49:20,945 - v2_logic.controllers.recursive_flow - INFO - [logic_gate_node] Decision: exit (Rule: MaxLoopSafety)
+2026-02-07 03:49:20,946 - v2_logic.controllers.recursive_flow - INFO - [route] Checking decision status: exit
+2026-02-07 03:49:20,952 - run_recursive_system - INFO - Frame 285 Results:
+2026-02-07 03:49:20,952 - run_recursive_system - INFO -   - Count (N_visible): 1
+2026-02-07 03:49:20,952 - run_recursive_system - INFO -   - Volumetric Range: (274, 336)
+2026-02-07 03:49:20,952 - run_recursive_system - INFO -   - Spike Energy: 840620.00
+2026-02-07 03:49:20,952 - run_recursive_system - INFO -   - Anomaly Status: exit
+2026-02-07 03:49:20,952 - run_recursive_system - INFO -   - SLM Reasoning: The image shows a person holding a blue cup, with two other blue cups and a blue ball on a table. The spatial arrangement suggests that there are three objects: one person, one cup, and one ball. However, the 3D volume analysis indicates there should be between 227 and 279 objects, which is a significant discrepancy.
+
+### Analysis:
+1. **Objects Present:**
+   - Person (1)
+   - Cup (1)
+   - Ball (1)
+
+2. **3D Volume Analysis:**
+   - Expected number of objects: 227 to 279
+
+###
+2026-02-07 03:49:21,005 - run_recursive_system - INFO - Processing complete.
+
+
+👁️ BAGIAN 2: Menghasilkan Video Visualisasi (MP4)...
+--------------------------------------------------
+INFO:numexpr.utils:NumExpr defaulting to 2 threads.
+==================================================
+ INFERENCE VISUALIZER: GLIDE-AND-COUNT
+==================================================
+ Source Video   : /content/numeri-vjepa-experiment/Techs/sam2-main/sam2-main/demo/data/gallery/02_cups.mp4
+ Output target  : /content/output_v2.mp4
+ Sensitivity    : 0.2
+--------------------------------------------------
+ Execution Unit : CUDA
+ GPU Model      : Tesla T4
+ VRAM Available : 15.83 GB
+--------------------------------------------------
+INFO:v2ecore.emulator:ON/OFF log_e temporal contrast thresholds: 0.2 / 0.2 +/- 0.03
+WARNING:v2ecore.emulator:cannot get screen size for window placement: No enumerators available
+INFO:v2_logic.models.v2e_engine:[V2E] Initialized on cuda
+INFO:v2_logic.models.vl_jepa_engine:[VL-JEPA] Loading model: google/paligemma-3b-mix-224 on cuda
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+preprocessor_config.json: 100% 699/699 [00:00<00:00, 3.87MB/s]
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/google/paligemma-3b-mix-224/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/chat_template.json "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/audio_tokenizer_config.json "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+The image processor of type `SiglipImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. 
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/config.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/config.json "HTTP/1.1 200 OK"
+config.json: 100% 1.03k/1.03k [00:00<00:00, 6.63MB/s]
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
+tokenizer_config.json: 100% 40.0k/40.0k [00:00<00:00, 6.06MB/s]
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/google/paligemma-3b-mix-224/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/google/paligemma-3b-mix-224/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/tokenizer.json "HTTP/1.1 302 Found"
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/google/paligemma-3b-mix-224/xet-read-token/d1d8734c9c3ad0ccfeea4afc270faa356c2ba515 "HTTP/1.1 200 OK"
+tokenizer.json: 100% 17.5M/17.5M [00:00<00:00, 28.1MB/s]
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/tokenizer.model "HTTP/1.1 302 Found"
+tokenizer.model: 100% 4.26M/4.26M [00:00<00:00, 17.2MB/s]
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/added_tokens.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/added_tokens.json "HTTP/1.1 200 OK"
+added_tokens.json: 100% 24.0/24.0 [00:00<00:00, 167kB/s]
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/special_tokens_map.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/special_tokens_map.json "HTTP/1.1 200 OK"
+special_tokens_map.json: 100% 607/607 [00:00<00:00, 4.37MB/s]
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/google/paligemma-3b-mix-224 "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/config.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/config.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/model.safetensors.index.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/model.safetensors.index.json "HTTP/1.1 200 OK"
+model.safetensors.index.json: 100% 62.6k/62.6k [00:00<00:00, 4.48MB/s]
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/google/paligemma-3b-mix-224/revision/main "HTTP/1.1 200 OK"
+Downloading (incomplete total...): 0.00B [00:00, ?B/s]
+Fetching 3 files:   0% 0/3 [00:00<?, ?it/s]INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/d1d8734c9c3ad0ccfeea4afc270faa356c2ba515/model-00002-of-00003.safetensors "HTTP/1.1 302 Found"
+Downloading (incomplete total...):   0% 0.00/5.00G [00:00<?, ?B/s]INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/d1d8734c9c3ad0ccfeea4afc270faa356c2ba515/model-00003-of-00003.safetensors "HTTP/1.1 302 Found"
+Downloading (incomplete total...):   0% 0.00/6.74G [00:00<?, ?B/s]INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/d1d8734c9c3ad0ccfeea4afc270faa356c2ba515/model-00001-of-00003.safetensors "HTTP/1.1 302 Found"
+Downloading (incomplete total...):  99% 11.6G/11.7G [03:25<00:00, 150MB/s]
+Fetching 3 files: 100% 3/3 [03:25<00:00, 68.45s/it] 
+Download complete: 100% 11.7G/11.7G [03:25<00:00, 56.9MB/s]
+Loading weights: 100% 603/603 [00:44<00:00, 13.56it/s, Materializing param=model.vision_tower.vision_model.post_layernorm.weight]
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/generation_config.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/generation_config.json "HTTP/1.1 200 OK"
+generation_config.json: 100% 137/137 [00:00<00:00, 800kB/s]
+INFO:v2_logic.models.vl_jepa_engine:[VL-JEPA] Model loaded successfully
+INFO:v2_logic.models.v_jepa_engine:[V-JEPA] Initialized on cuda
+INFO:v2_logic.models.v_jepa_engine:[V-JEPA] Successfully loaded and aligned weights from /content/numeri-vjepa-experiment/Implementation/v2_logic/models/../../checkpoints/vjepa_vitl16.pth.tar
+/usr/local/lib/python3.12/dist-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+/usr/local/lib/python3.12/dist-packages/torch/functional.py:505: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at /pytorch/aten/src/ATen/native/TensorShape.cpp:4381.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+final text_encoder_type: /content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/checkpoints/bert-base-uncased
+load tokenizer done.
+Loading weights: 100% 199/199 [00:00<00:00, 1026.02it/s, Materializing param=pooler.dense.weight]
+BertModel LOAD REPORT from: /content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/checkpoints/bert-base-uncased
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+final text_encoder_type: /content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/checkpoints/bert-base-uncased
+load tokenizer done.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Model loaded successfully on cuda
+[SegmentationEngine] Loading SAM2...
+[SegmentationEngine] No local checkpoint. Loading from HuggingFace...
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/facebook/sam2.1-hiera-tiny/resolve/main/sam2.1_hiera_tiny.pt "HTTP/1.1 302 Found"
+INFO:root:Loaded checkpoint sucessfully
+[SegmentationEngine] Loaded from HuggingFace: facebook/sam2.1-hiera-tiny
+[SegmentationEngine] SAM2 loaded on cuda
+WARNING:dinov2:xFormers not available
+WARNING:dinov2:xFormers not available
+INFO:v2_logic.models.depth_engine:[DepthEngine] Loading from checkpoint: /content/numeri-vjepa-experiment/Techs/Depth-Anything-V2-main/Depth-Anything-V2-main/checkpoints/depth_anything_v2_vits.pth
+INFO:dinov2:using MLP layer as FFN
+INFO:v2_logic.models.depth_engine:[DepthEngine] Model loaded on cuda (encoder=vits)
+You are passing both `text` and `images` to `PaliGemmaProcessor`. The processor expects special image tokens in the text, as many tokens as there are images per each text. It is recommended to add `<image>` tokens in the very beginning of your text. For this call, we will infer how many images each text has and add special tokens.
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+INFO:v2_logic.models.vl_jepa_engine:[VL-JEPA] Identified Intent: cup
+INFO:v2_logic.pipeline.engine_v2:[Director] Initial Intent: cup
+V2 Inference:   0% 0/300 [00:00<?, ?it/s]/usr/lib/python3.12/contextlib.py:105: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
+  self.gen = func(*args, **kwds)
+ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+V2 Inference:   5% 15/300 [00:07<00:52,  5.39it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  10% 30/300 [00:11<00:28,  9.38it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  15% 46/300 [00:14<00:29,  8.74it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  21% 63/300 [00:18<00:30,  7.75it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  26% 79/300 [00:22<00:27,  8.13it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 7 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  32% 95/300 [00:26<00:22,  9.17it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  37% 111/300 [00:30<00:19,  9.52it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  42% 126/300 [00:33<00:19,  8.91it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  48% 143/300 [00:37<00:18,  8.33it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  53% 158/300 [00:41<00:15,  9.28it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  58% 174/300 [00:45<00:13,  9.16it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  63% 190/300 [00:49<00:11,  9.42it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  69% 206/300 [00:52<00:09,  9.42it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  74% 223/300 [00:57<00:08,  9.20it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 7 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  80% 239/300 [01:00<00:06,  9.42it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 8 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  85% 255/300 [01:04<00:05,  8.02it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 7 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  90% 270/300 [01:08<00:03,  7.92it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 7 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference:  96% 287/300 [01:12<00:01, 10.22it/s]ERROR:v2_logic.models.count_vid_engine:[CountVid] Error during counting: to() received an invalid combination of arguments - got (dtype=torch.device, ), but expected one of:
+ * (torch.device device = None, torch.dtype dtype = None, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (torch.dtype dtype, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+ * (Tensor tensor, bool non_blocking = False, bool copy = False, *, torch.memory_format memory_format = None)
+
+INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 9 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 1
+V2 Inference: 100% 299/300 [01:16<00:00,  3.93it/s]
+INFO:v2_logic.pipeline.engine_v2:Visualizer complete. Saved to /content/output_v2.mp4
+
+
+✅ Pengujian Selesai!
