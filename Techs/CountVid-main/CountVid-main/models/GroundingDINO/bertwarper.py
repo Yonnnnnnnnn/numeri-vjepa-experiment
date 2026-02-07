@@ -77,11 +77,77 @@ class BertModelWarper(nn.Module):
                 extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
                 return extended_attention_mask.to(device=target_device)
 
-    def invert_attention_mask(self, *args, **kwargs):
-        return self.bert.invert_attention_mask(*args, **kwargs)
+    def invert_attention_mask(self, encoder_attention_mask):
+        """
+        Smart Dispatcher for invert_attention_mask.
+        """
+        try:
+            return self.bert.invert_attention_mask(encoder_attention_mask)
+        except AttributeError:
+            if not hasattr(self, "_logged_invert_fallback"):
+                print(
+                    "[CountVid Patch] ⚠️ Smart Dispatcher: Falling back for invert_attention_mask."
+                )
+                self._logged_invert_fallback = True
 
-    def get_head_mask(self, *args, **kwargs):
-        return self.bert.get_head_mask(*args, **kwargs)
+            if encoder_attention_mask.dim() == 3:
+                extended_attention_mask = encoder_attention_mask[:, None, :, :]
+            elif encoder_attention_mask.dim() == 2:
+                extended_attention_mask = encoder_attention_mask[:, None, None, :]
+            else:
+                raise ValueError(
+                    f"Wrong shape for encoder_attention_mask (shape {encoder_attention_mask.shape})"
+                )
+
+            extended_attention_mask = extended_attention_mask.to(
+                dtype=self.bert.dtype
+            )  # fp16 compatibility
+            extended_attention_mask = (1.0 - extended_attention_mask) * torch.finfo(
+                self.bert.dtype
+            ).min
+            return extended_attention_mask
+
+    def get_head_mask(self, head_mask, num_hidden_layers, is_attention_chunked=False):
+        """
+        Smart Dispatcher for get_head_mask.
+        """
+        try:
+            # Try with kwargs if possible, but standard is positional for some older versions
+            return self.bert.get_head_mask(
+                head_mask, num_hidden_layers, is_attention_chunked=is_attention_chunked
+            )
+        except (AttributeError, TypeError):
+            # Try without is_attention_chunked
+            try:
+                return self.bert.get_head_mask(head_mask, num_hidden_layers)
+            except AttributeError:
+                if not hasattr(self, "_logged_head_mask_fallback"):
+                    print(
+                        "[CountVid Patch] ⚠️ Smart Dispatcher: Falling back for get_head_mask."
+                    )
+                    self._logged_head_mask_fallback = True
+
+                if head_mask is not None:
+                    # Simple 1->5D conversion logic or minimal required logic
+                    if head_mask.dim() == 1:
+                        head_mask = (
+                            head_mask.unsqueeze(0)
+                            .unsqueeze(0)
+                            .unsqueeze(-1)
+                            .unsqueeze(-1)
+                        )
+                        head_mask = head_mask.expand(num_hidden_layers, -1, -1, -1, -1)
+                    elif head_mask.dim() == 2:
+                        head_mask = (
+                            head_mask.unsqueeze(1).unsqueeze(-1).unsqueeze(-1)
+                        )  # We can specify head_mask for each layer
+                    head_mask = head_mask.to(
+                        dtype=self.bert.dtype
+                    )  # fp16 compatibility
+                else:
+                    head_mask = [None] * num_hidden_layers
+
+                return head_mask
 
     def forward(
         self,

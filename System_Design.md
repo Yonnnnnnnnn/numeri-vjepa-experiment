@@ -52,8 +52,8 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 ### 3.1. Infrastructure Patches
 
 - **StochasticDepth Patch**: Sistem menerapkan patch secara otomatis pada level paket (`v2_logic/__init__.py`) untuk memitigasi _circular import errors_ di sistem multi-proses.
-- **CountVid Smart Dispatcher**: Algoritma dispatching dinamis pada `bertwarper.py` yang mendeteksi tanda tangan fungsi `get_extended_attention_mask` (mencegah `TypeError` akibat perubahan urutan argumen `device`/`dtype` di berbagai versi library `transformers`).
-- **Nuclear Fallback Strategy**: Implementasi manual pembuatan attention mask di dalam `bertwarper.py` sebagai "fail-safe" jika library Transformers gagal memproses argumen, memastikan model selalu operasional.
+- **CountVid Smart Dispatcher**: Algoritma dispatching dinamis pada `bertwarper.py` yang mendeteksi tanda tangan fungsi `get_extended_attention_mask`, `get_head_mask`, dan `invert_attention_mask`. Ini mencegah `TypeError` dan `AttributeError` akibat perubahan API di berbagai versi library `transformers`.
+- **Nuclear Fallback Strategy**: Implementasi manual pembuatan attention mask, inversi mask, dan ekspansi head mask di dalam `bertwarper.py`. Bertindak sebagai "fail-safe" lokal jika library Transformers menghapus atau menyembunyikan metode internal tersebut.
 - **Fail-Safe Segmentation**: Inisialisasi `mask_generator` ke `None` pada `SegmentationEngine` untuk mencegah `AttributeError` berantai jika model SAM2 gagal dimuat akibat kegagalan unduhan atau kuota HuggingFace.
 
 ### 3.2. Coordinate Coordination

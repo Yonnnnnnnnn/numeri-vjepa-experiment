@@ -5,6 +5,7 @@ This document outlines the strategy for verifying the Antigravity V2 pipeline.
 ## 1. Unit Testing
 
 - **VJEPAEngine**: Verify weight loading, encoding shape, and prediction consistency.
+- **BertModelWarper Robustness**: Verify "Smart Dispatcher" fallback logic using mock objects to simulate missing `transformers` methods (`tests/test_bertwarper_robustness.py`).
 - **Preprocessing**: Test spike-to-frame conversion and normalization.
 
 ## 2. Integration Testing

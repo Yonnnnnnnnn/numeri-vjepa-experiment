@@ -128,5 +128,8 @@ $$\eta : \text{Args}_{old} \implies \text{Args}_{new}$$
 ### 6.2. Nuclear Fallback: The Identity of Logic
 
 Jika $\eta$ gagal, sistem mengaktifkan **Nuclear Fallback**. Secara matematis, ini adalah implementasi manual dari semantik internal library:
-$$H_{manual}(M) = (1 - \text{unsqueeze}(M)) \times -\infty$$
-Dimana $M$ adalah attention mask. Dengan mengimplementasikan logic dasar ini secara lokal, kita menjamin persistensi operasional sistem meskipun functor eksternal $F_{trans}$ rusak atau tidak kompatibel. Hal ini memastikan Strange Loop tetap tertutup dan sistem dapat terus mencapai _Fixed Point_.
+
+- **Attention Inversion**: $H_{manual}(M) = (1 - \text{unsqueeze}(M)) \times \text{min\_val}(dtype)$
+- **Head Masking**: Expansion of $HM \in \mathbb{R}^{10}$ to $\mathbb{R}^{L \times B \times H \times S \times S}$ melalui operator `expand` dan `unsqueeze`.
+
+Dengan mengimplementasikan logic dasar ini secara lokal, kita menjamin persistensi operasional sistem meskipun functor eksternal $F_{trans}$ rusak atau tidak kompatibel. Hal ini memastikan Strange Loop tetap tertutup dan sistem dapat terus mencapai _Fixed Point_.
