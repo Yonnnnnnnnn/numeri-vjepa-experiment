@@ -191,7 +191,7 @@ Setelah melakukan audit pada direktori `Implementation/`, berikut adalah realita
 
 1.  **DINOv2**:
     - **Ada**: Source code library di `Techs/dinov2-main` dan script pengujian `test_dinov2.py`.
-    - **TIDAK ADA**: `Dinov2Engine.py` di `v2_logic/models/`. Kita belum punya "Mesin" yang siap dihubungkan ke LangGraph untuk ekstraksi tekstur secara rutin.
+    - **TIDAK ADA**: `dinov2_engine.py` di `v2_logic/models/`. Kita belum punya "Mesin" yang siap dihubungkan ke LangGraph untuk ekstraksi tekstur secara rutin.
 2.  **AlphaShape**:
     - **Ada**: Library `alphashape` (pip installed).
     - **TIDAK ADA**: `AlphaHullWrapper.py`. Logika untuk melakukan _Binary Search_ mencari Golden Alpha belum diimplementasikan.

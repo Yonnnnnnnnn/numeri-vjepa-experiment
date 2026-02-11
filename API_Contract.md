@@ -24,7 +24,7 @@ This document defines the interfaces between the core modules of the Antigravity
 
 ## 1. Engine & Kernel Interfaces
 
-### 1.1. Density Engine (`DinoV2Engine` & `DensityPredictor`)
+### 1.1. Density Engine (`DINOv2Engine` & `DensityPredictor`)
 
 - **`analyze_specularity(image: np.ndarray) -> float`**
   - Input: Cropped object frame.
