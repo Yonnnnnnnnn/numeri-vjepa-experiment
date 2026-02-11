@@ -82,22 +82,22 @@ _slm_engine: Optional["SLMEngine"] = None
 _reid_engine: Optional["ReIDEngine"] = None
 _v2e_engine: Optional["V2EEngine"] = None
 _vjepa_engine: Optional["VJEPAEngine"] = None
-_dinov2_engine: Optional["DinoV2Engine"] = None
+_dinov2_engine: Optional["DINOv2Engine"] = None
 _density_predictor: Optional["DensityPredictor"] = None
 _alphashape_wrapper: Optional["AlphaHullWrapper"] = None
 
 
 def get_dinov2_engine():
-    """Lazy-load DinoV2Engine."""
+    """Lazy-load DINOv2Engine."""
     global _dinov2_engine
     if _dinov2_engine is None:
         try:
-            from ..models.dinov2_engine import DinoV2Engine
+            from ..models.dinov2_engine import DINOv2Engine
 
-            _dinov2_engine = DinoV2Engine()
-            logger.info("[Engines] DinoV2Engine initialized")
+            _dinov2_engine = DINOv2Engine()
+            logger.info("[Engines] DINOv2Engine initialized")
         except Exception as e:
-            logger.warning("[Engines] Failed to load DinoV2Engine: %s", e)
+            logger.warning("[Engines] Failed to load DINOv2Engine: %s", e)
     return _dinov2_engine
 
 
