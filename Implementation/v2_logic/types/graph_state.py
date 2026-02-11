@@ -79,12 +79,15 @@ class GlobalContext(BaseModel):
     max_loop_count: int = Field(
         default=3, description="Maximum recursive loops before forced exit"
     )
-    # Phase 4: Volumetric Priors
+    # Phase 4/5: Physical Priors
     unit_volume_prior: float = Field(
         default=0.001, description="Estimated volume of a single target object (m^3)"
     )
     depth_scale_factor: float = Field(
         default=10.0, description="Conversion factor from relative depth to meters"
+    )
+    density_prior: float = Field(
+        default=1.0, description="Initial density estimate (rho) for objects"
     )
 
 
@@ -171,6 +174,14 @@ class PerceptionState(BaseModel):
         default=0.0,
         description="Most recent total volume from point cloud (m^3)",
     )
+    golden_alpha: float = Field(
+        default=0.0,
+        description="The alpha parameter that reconciled calculated volume with target unit volume",
+    )
+    rho: float = Field(
+        default=1.0,
+        description="Predicted density/occupancy ratio (0.0-1.0+) based on texture analysis",
+    )
 
     # --- Fusion Output ---
     unexplained_blobs: List[Dict[str, Any]] = Field(
@@ -180,6 +191,16 @@ class PerceptionState(BaseModel):
     tracked_objects: List[Dict[str, Any]] = Field(
         default_factory=list,
         description="List of tracked objects with consistent IDs across loops",
+    )
+
+    # --- Phase 4: Multi-Shield Validation ---
+    shield_scores: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Per-shield confidence: {spatial, volumetric, latent}",
+    )
+    fusion_confidence: float = Field(
+        default=1.0,
+        description="Aggregate fusion confidence (0-1). Below 0.6 triggers SLM audit.",
     )
 
 

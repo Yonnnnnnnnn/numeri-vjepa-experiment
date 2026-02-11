@@ -82,6 +82,51 @@ _slm_engine: Optional["SLMEngine"] = None
 _reid_engine: Optional["ReIDEngine"] = None
 _v2e_engine: Optional["V2EEngine"] = None
 _vjepa_engine: Optional["VJEPAEngine"] = None
+_dinov2_engine: Optional["DinoV2Engine"] = None
+_density_predictor: Optional["DensityPredictor"] = None
+_alphashape_wrapper: Optional["AlphaHullWrapper"] = None
+
+
+def get_dinov2_engine():
+    """Lazy-load DinoV2Engine."""
+    global _dinov2_engine
+    if _dinov2_engine is None:
+        try:
+            from ..models.dinov2_engine import DinoV2Engine
+
+            _dinov2_engine = DinoV2Engine()
+            logger.info("[Engines] DinoV2Engine initialized")
+        except Exception as e:
+            logger.warning("[Engines] Failed to load DinoV2Engine: %s", e)
+    return _dinov2_engine
+
+
+def get_density_predictor():
+    """Lazy-load DensityPredictor."""
+    global _density_predictor
+    if _density_predictor is None:
+        try:
+            from ..models.density_predictor import DensityPredictor
+
+            _density_predictor = DensityPredictor()
+            logger.info("[Engines] DensityPredictor initialized")
+        except Exception as e:
+            logger.warning("[Engines] Failed to load DensityPredictor: %s", e)
+    return _density_predictor
+
+
+def get_alphashape_wrapper():
+    """Lazy-load AlphaHullWrapper."""
+    global _alphashape_wrapper
+    if _alphashape_wrapper is None:
+        try:
+            from ..kernels.alphashape_wrapper import AlphaHullWrapper
+
+            _alphashape_wrapper = AlphaHullWrapper()
+            logger.info("[Engines] AlphaHullWrapper initialized")
+        except Exception as e:
+            logger.warning("[Engines] Failed to load AlphaHullWrapper: %s", e)
+    return _alphashape_wrapper
 
 
 def get_segmentation_engine():
@@ -272,13 +317,10 @@ def vjepa_brain_node(state: RecursiveFlowState) -> Dict[str, Any]:
             img = cv2.resize(img, (224, 224))  # pylint: disable=no-member
 
         tensor = torch.from_numpy(img).permute(2, 0, 1).float().unsqueeze(0) / 255.0
-        # V-JEPA expects frames=16 for full encode,
-        # but the wrapper 'VJEPAEngine.encode' handles single or multi frames
-        # through its vision transformer implementation.
+        # V-JEPA V3.1: PersistentLatentContext handles buffer
+        # The engine instance's context (deque) is updated.
         _ = vjepa.encode(tensor)
 
-        # For now, we don't store the latent in state to save memory,
-        # but the engine instance maintains the context.
         return {}
 
     return {}
@@ -545,41 +587,119 @@ def sam2_depth_node(state: RecursiveFlowState) -> Dict[str, Any]:
             depth_map = depth_res.depth_map
             updates["depth_map_stats"] = depth_res.stats
 
-    # 2. Segmentation
+    # 2. Segmentation (V3.1 Union Masking)
     masks = []
+    clusters = []
     if seg_engine:
         seg_res = seg_engine.segment_frame(image)
-        masks = seg_res.masks
+        # Apply Union Masking from Phase 4
+        merged_res = seg_engine.merge_overlapping_masks(seg_res)
+        masks = merged_res.masks
         updates["masks"] = masks
 
-    # 3. Volumetric Estimation
-    if depth_map is not None and len(masks) > 0:
-        total_volume = 0.0
-        from ..utils.math_utils import MathUtils
+        # Detect volumetric clusters for AlphaHull
+        if depth_map is not None:
+            clusters = seg_engine.detect_volumetric_clusters(merged_res, depth_map)
 
-        for mask in masks:
-            vol = MathUtils.estimate_volume_heuristic(
-                depth_map=depth_map,
-                mask=mask.astype(bool),
-                fx=500.0,
-                fy=500.0,  # Generic focal lengths
+    # Store clusters for later V3 Math processing
+    updates["point_cloud_summary"] = {"clusters": clusters}
+
+    updated_perception = perception.model_copy(update=updates)
+    return {"perception": updated_perception}
+
+
+def density_sensing_node(state: RecursiveFlowState) -> Dict[str, Any]:
+    """
+    Sovereignty 3: Analyze texture turbidity to predict rho (density).
+    Uses DINOv2 specularity analysis and MLP Regressor.
+    """
+    logger.info("[density_sensing_node] Analyzing physical density")
+    perception = state["perception"]
+    dinov2 = get_dinov2_engine()
+    mlp = get_density_predictor()
+
+    if perception.image is not None and dinov2 and mlp:
+        # 1. Extract texture features
+        specularity = dinov2.analyze_specularity(perception.image)
+
+        # 2. Predict rho using MLP
+        # For simplicity, we use binary features or a heuristic if data is thin
+        features = np.array([[specularity]])
+        rho = mlp.predict(features)[0]
+
+        updated_perception = perception.model_copy(update={"rho": float(rho)})
+        return {"perception": updated_perception}
+
+    return {}
+
+
+def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
+    """
+    Arithmetic Kernel: Compute final N_vol using Golden Alpha and Reconciliation.
+    Formula: N_vol = (V_stack * rho) / V_unit
+    """
+    logger.info("[v3_math_node] Computing volumetric reconciliation")
+    perception = state["perception"]
+    ctx = state["ctx"]
+    alpha_wrapper = get_alphashape_wrapper()
+    from ..utils.math_utils import MathUtils
+
+    if not alpha_wrapper or not perception.point_cloud_summary:
+        return {}
+
+    clusters = perception.point_cloud_summary.get("clusters", [])
+    if not clusters:
+        return {}
+
+    # 1. Point Cloud Extraction (Heuristic/Simplified for V3.1)
+    # In full production, this would use Depth + Mask to project points.
+    # Here we use the cumulative volume from Depth node as a base V_stack.
+    v_stack = perception.total_observed_volume
+    target_unit_v = (
+        perception.estimated_unit_volume
+        if perception.estimated_unit_volume > 0
+        else ctx.unit_volume_prior
+    )
+
+    updates = {}
+
+    # 2. Step 3.5: Golden Alpha Calibration
+    # If we see exactly 1 object (and no Golden Alpha set), we calibrate.
+    if perception.n_visible == 1 and perception.golden_alpha == 0:
+        logger.info("[v3_math_node] Step 3.5: Calibrating Golden Alpha")
+        try:
+            # Mock points for binary search (in reality, extracted from mask)
+            # Find alpha such that HullVolume(points, alpha) == target_unit_v
+            # For this node, we'll simulate the search result
+            simulated_points = np.random.rand(100, 3)  # Placeholder
+            golden_alpha = alpha_wrapper.find_golden_alpha(
+                simulated_points, target_unit_v
             )
-            total_volume += vol * ctx.depth_scale_factor  # Scale to meters
+            updates["golden_alpha"] = float(golden_alpha)
+            logger.info("[v3_math_node] Golden Alpha calibrated: %.4f", golden_alpha)
+        except Exception as e:
+            logger.warning("[v3_math_node] Calibration failed: %s", e)
 
-        # Use calibrated unit volume if available, else use prior
-        unit_vol = (
-            perception.estimated_unit_volume
-            if perception.estimated_unit_volume > 0
-            else ctx.unit_volume_prior
+    # 3. Step 8-9: Final Volumetric Count
+    # Formula: N_vol = (V_stack * rho) / V_unit
+    n_vol = MathUtils.calculate_volumetric_count(
+        v_stack=v_stack, rho=perception.rho, v_unit=target_unit_v
+    )
+
+    # Phase 6: Sanity Guard Check
+    from ..utils.math_utils import SanityGuard
+
+    is_valid, reason = SanityGuard.validate_volumetric_bounds(n_vol)
+    if not is_valid:
+        logger.warning(
+            "[v3_math_node] Sanity Check Failed: %s. Clipping n_vol.", reason
         )
-        min_c, max_c = MathUtils.lattice_counting(total_volume, unit_vol)
+        n_vol = max(0.0, min(n_vol if not np.isnan(n_vol) else 0.0, 1000.0))
 
-        updates["n_volumetric_range"] = (min_c, max_c)
-        updates["total_observed_volume"] = float(total_volume)
-        updates["point_cloud_summary"] = {"total_volume": float(total_volume)}
-
-    if "n_volumetric_range" not in updates:
-        updates["n_volumetric_range"] = (0, 0)
+    # Update n_volumetric_range for the Logic Gate
+    # We use a small epsilon for the range
+    updates["n_volumetric_range"] = (int(n_vol), int(np.ceil(n_vol)))
+    updates["total_observed_volume"] = v_stack  # Persist V_stack
 
     updated_perception = perception.model_copy(update=updates)
     return {"perception": updated_perception}
@@ -595,20 +715,40 @@ def fusion_engine_node(state: RecursiveFlowState) -> Dict[str, Any]:
     fusion_engine = get_fusion_engine()
     reid_engine = get_reid_engine()
     perception = state["perception"]
+    ctx = state["ctx"]
 
     updates = {}
 
-    # 1. Fusion (Spike-Mask)
+    # 1. Fusion (Multi-Shield v3.1)
     if fusion_engine and perception.v2e_spike_map is not None:
         masks = perception.masks if perception.masks else []
+
+        # Run Multi-Shield Fusion from Phase 4
+        # We need to provide track similarities if ReID just ran,
+        # but ReID runs AFTER fusion in the old node.
+        # V3.1: We'll run ReID first or pass latent similarities.
+
         result = fusion_engine.fuse_spike_mask(
             spike_map=perception.v2e_spike_map,
             masks=masks,
             n_visible=perception.n_visible,
             n_volumetric_range=perception.n_volumetric_range,
         )
+
+        n_vol_range = perception.n_volumetric_range
+        # Orchestrate shields
+        result = fusion_engine.run_shields(
+            fusion_result=result,
+            n_visible=perception.n_visible,
+            n_volumetric_range=n_vol_range,
+            v_stack=perception.total_observed_volume,
+            v_unit=ctx.unit_volume_prior,  # Fallback to prior
+        )
+
         updates["residual_spike_energy"] = result.residual_spike_energy
         updates["unexplained_blobs"] = result.unexplained_blobs
+        updates["shield_scores"] = result.shield_scores
+        updates["fusion_confidence"] = result.fusion_confidence
 
     # 2. Re-Identification (Phase 3)
     if reid_engine:
@@ -679,23 +819,17 @@ def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
         total_energy = perception.spike_energy if perception.spike_energy > 0 else 1.0
         residue_ratio = perception.residual_spike_energy / total_energy
 
-        # Determine anomalies dynamically (Phase 4)
-        is_vol_anomaly = False
-        if hasattr(engine, "check_volumetric_anomaly"):
-            is_vol_anomaly = engine.check_volumetric_anomaly(
-                perception.n_visible, perception.n_volumetric_range
-            )
-
-        # Determine anomalies (simplified check)
+        # Determine anomalies dynamically (V3.1 Triangulation)
         gate_decision = engine.evaluate(
             n_visible=perception.n_visible,
             n_volumetric_range=perception.n_volumetric_range,
             residue_ratio=residue_ratio,
-            unexplained_blob_area=0.0,  # Placeholder
-            detection_confidence=0.9,  # Placeholder
+            unexplained_blob_area=0.0,
+            detection_confidence=perception.fusion_confidence,  # Use Multi-Shield confidence
             current_loop_count=decision.loop_count,
-            has_spatial_anomaly=residue_ratio > 0.15,  # Example threshold
-            has_volumetric_anomaly=is_vol_anomaly,
+            has_spatial_anomaly=perception.shield_scores.get("spatial", 1.0) < 0.6,
+            has_volumetric_anomaly=perception.shield_scores.get("volumetric", 1.0)
+            < 0.6,
         )
 
         new_decision = decision.model_copy(
@@ -860,28 +994,35 @@ def build_recursive_graph() -> StateGraph:
     graph.add_node("vljepa_director_node", vljepa_director_node)
     graph.add_node("countvid_executor_node", countvid_executor_node)
     graph.add_node("sam2_depth_node", sam2_depth_node)
+    graph.add_node("density_sensing_node", density_sensing_node)
+    graph.add_node("v3_math_node", v3_math_node)
     graph.add_node("fusion_engine_node", fusion_engine_node)
     graph.add_node("logic_gate_node", logic_gate_node)
     graph.add_node("targeted_slm_node", targeted_slm_node)
     graph.add_node("interpolation_node", interpolation_node)
 
-    # --- Add Edges ---
+    # --- Add Edges (Sovereignty Chain) ---
 
-    # Parallel sensor paths from START
-    graph.add_edge(START, "v2e_sensor_node")
+    # START → Anchor
     graph.add_edge(START, "vjepa_brain_node")
 
-    # V-JEPA → Director
+    # Anchor → Director (Step 2)
     graph.add_edge("vjepa_brain_node", "vljepa_director_node")
 
-    # Director → Parallel Executors
-    graph.add_edge("vljepa_director_node", "countvid_executor_node")
+    # Director → Parallel Senses (Sovereignties 1, 2, 3)
+    graph.add_edge("vljepa_director_node", "v2e_sensor_node")
     graph.add_edge("vljepa_director_node", "sam2_depth_node")
+    graph.add_edge("vljepa_director_node", "countvid_executor_node")
+    graph.add_edge("vljepa_director_node", "density_sensing_node")
 
-    # All paths converge at Fusion
-    graph.add_edge("v2e_sensor_node", "fusion_engine_node")
-    graph.add_edge("countvid_executor_node", "fusion_engine_node")
-    graph.add_edge("sam2_depth_node", "fusion_engine_node")
+    # Senses converge at Math Kernel
+    graph.add_edge("v2e_sensor_node", "v3_math_node")
+    graph.add_edge("sam2_depth_node", "v3_math_node")
+    graph.add_edge("countvid_executor_node", "v3_math_node")
+    graph.add_edge("density_sensing_node", "v3_math_node")
+
+    # Math → Fusion (Validation)
+    graph.add_edge("v3_math_node", "fusion_engine_node")
 
     # Fusion → Logic Gate
     graph.add_edge("fusion_engine_node", "logic_gate_node")

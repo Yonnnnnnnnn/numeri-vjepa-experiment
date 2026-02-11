@@ -654,3 +654,78 @@ class MathUtils:
         peak_coords = np.argwhere(peaks)
 
         return [tuple(coord) for coord in peak_coords]
+
+    # =========================================================================
+    # For Phase 3: V3.1 Volumetric Counting
+    # =========================================================================
+
+    @staticmethod
+    def calculate_volumetric_count(v_stack: float, rho: float, v_unit: float) -> float:
+        """
+        Calculate volumetric count using the V3.1 core formula:
+        N_vol = (V_stack × ρ) / V_unit
+
+        Args:
+            v_stack: Total volume of the stack (cm³).
+            rho: Packing density/efficiency (0-1). 1.0 = perfect packing.
+            v_unit: Known volume of a single object (cm³).
+
+        Returns:
+            Estimated count (float).
+        """
+        if v_unit <= 0:
+            return 0.0
+
+        return (v_stack * rho) / v_unit
+
+    @staticmethod
+    def estimate_stack_efficiency(
+        n_visible: int, v_stack: float, v_unit: float
+    ) -> float:
+        """
+        Inverse calculation: estimate packing efficiency if N_visible is trusted.
+        ρ = (N_visible × V_unit) / V_stack
+
+        Args:
+            n_visible: Trusted visible count.
+            v_stack: Total volume of the stack (cm³).
+            v_unit: Known volume of a single object (cm³).
+
+        Returns:
+            Estimated packing efficiency ρ (0-1).
+        """
+        if v_stack <= 0:
+            return 0.0
+
+        rho = (n_visible * v_unit) / v_stack
+        return min(1.0, rho)  # Cap at 1.0 (perfect packing)
+
+
+class SanityGuard:
+    """
+    Physical safety guardrails for volumetric and spatial reconciliation.
+    Pattern: Singleton/Static Guard
+    """
+
+    @staticmethod
+    def validate_volumetric_bounds(
+        n_vol: float, max_vram_buffer: int = 1000
+    ) -> Tuple[bool, str]:
+        """Check if final count is within physically possible bounds."""
+        if np.isnan(n_vol) or np.isinf(n_vol):
+            return False, "Non-finite volumetric count detected"
+        if n_vol < 0:
+            return False, "Negative volumetric count"
+        if n_vol > max_vram_buffer:
+            return False, f"Count {n_vol} exceeds safety buffer {max_vram_buffer}"
+        return True, "Success"
+
+    @staticmethod
+    def check_manifold_safety(points: np.ndarray) -> bool:
+        """Verify point cloud is sufficient for AlphaHull generation."""
+        if points is None or len(points) < 4:
+            return False
+        # Check for co-planar points (basic check)
+        if np.all(points[:, 2] == points[0, 2]):
+            return False
+        return True

@@ -35,6 +35,9 @@ This project adheres to the standards defined in the Global Project Rules.
 ## Enforced Rules
 
 - **Rule 2.1**: Law of Flatness (Guard Clauses first)
-- **Rule 2.2**: Law of DRY (Shared utilities for vision filters)
-- **Rule 3**: GoF Patterns (Adapter, Facade, Strategy)
+- **Rule 6.1**: Heavy models (JEPA, SAM2, DINOv2) **MUST** use the Singleton pattern (Lazy-Loading) in `recursive_flow.py`.
+- **Rule 6.2**: All volumetric calculations **MUST** be wrapped in `SanityGuard` bounds-checking.
+- **Rule 6.3**: Legacy pipelines (`engine.py`, `engine_v2.py`) are strictly for visualization/reference; logic changes must be made in LangGraph nodes.
 - **Rule 7**: CFG Documentation in every code file
+- **Phase 6 Guard**: **SanityGuard Enforcement** (Must use shared `SanityGuard` for all volumetric reconciliation to prevent NaN/Inf propagation).
+- **Engine Lifecycle**: Heavy models must be lazy-loaded as singletons in `recursive_flow.py`.

@@ -12,19 +12,20 @@
 
 ## 2. Component Roles & Interfaces
 
-| Component                | Role                            | Logic Type                 | Use Case                                                                                    |
-| ------------------------ | ------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------- |
-| **LangGraph**            | Workflow Orchestrator           | State Machine              | Routing traffic between Fast Path (Exit) and Slow Path (Loop).                              |
-| **Logic Gate**           | Primary Decision Maker          | Rule-Based (Deterministic) | High confidence checks, BBox overlap validation. Speed: <10ms.                              |
-| **Targeted SLM**         | Ambiguity Resolver              | Probabilistic (LLM)        | "Is this blob a cup or shadow?" triggered only when Logic Gate fails.                       |
-| **V2E**                  | Event-Based Sensor (Parallel)   | Physics Simulation         | Generates high-sensitivity event spikes from standard video for anomaly detection.          |
-| **FusionEngine**         | Anomaly Detector                | Hybrid Logic               | Mendeteksi **Residu Spike** dengan **Motion Compensation** (filter jitter kamera).          |
-| **MathUtils**            | Mathematical Kernel             | Pure Math                  | Mendapatkan $N_{volumetric}$ menggunakan **Unit Reference** (volume per kategori).          |
-| **SafetyGuard**          | Identity & Integrity            | Rule-Based (Deterministic) | Mencegah double counting dan memastikan konsistensi identitas objek antar frame.            |
-| **V-JEPA**               | Spatio-Temporal Memory          | Self-Supervised Learning   | **Spatio-Temporal Anchoring**: Membedakan objek identik berdasarkan koordinat.              |
-| **VL-JEPA**              | Director (RGB)                  | Vision-Language            | Generating/Updating Intent List based on feedback from the Slow Path.                       |
-| **CountGD**              | Visual Executor                 | Zero-Shot Counting         | Menghitung objek yang terlihat secara langsung ($N_{visible}$).                             |
-| **SAM2 + DepthAnything** | 3D Perception Kernel (Executor) | 3D Point Cloud             | Mencari objek (SAM2) dan memproyeksikannya ke ruang 3D (DepthAnything) secara terintegrasi. |
+| Component        | Role                          | Logic Type                 | Use Case                                                                                 |
+| ---------------- | ----------------------------- | -------------------------- | ---------------------------------------------------------------------------------------- |
+| **LangGraph**    | Workflow Orchestrator         | State Machine              | Routing traffic between Fast Path (Exit) and Slow Path (Loop).                           |
+| **Logic Gate**   | Primary Decision Maker        | Rule-Based (Deterministic) | High confidence checks, BBox overlap validation. Speed: <10ms.                           |
+| **Targeted SLM** | Ambiguity Resolver            | Probabilistic (LLM)        | "Is this blob a cup or shadow?" triggered only when Logic Gate fails.                    |
+| **V2E**          | Event-Based Sensor (Parallel) | Physics Simulation         | Generates high-sensitivity event spikes from standard video for anomaly detection.       |
+| **FusionEngine** | Anomaly Detector              | Hybrid Logic               | Mendeteksi **Residu Spike** dengan **Motion Compensation** (filter jitter kamera).       |
+| **MathUtils**    | Mathematical Kernel           | Pure Math                  | Mendapatkan $N_{volumetric}$ menggunakan **Unit Reference** (volume per kategori).       |
+| **SafetyGuard**  | Identity & Integrity          | Rule-Based (Deterministic) | Mencegah double counting dan memastikan konsistensi identitas objek antar frame.         |
+| **VL-JEPA**      | Director (RGB)                | Vision-Language            | Identifying "Reference Object" at $t=0$. Feeds intent to SLM.                            |
+| **DINOv2 + MLP** | Occupancy Detector            | Semantic Textures          | `sklearn.MLPRegressor` predicts $\rho$ from DINOv2 texture tokens.                       |
+| **V-JEPA**       | Spatio-Temporal Memory        | Self-Supervised Learning   | Uses **Context Tokens (`ctxt`)** from `jepa-main` to maintain persistent 3D world model. |
+| **AlphaShape**   | Hull Wrapper                  | Computational Geometry     | Library: `alphashape`. Wraps point clouds with **Golden Alpha** tightness.               |
+| **DepthEngine**  | 3D Perception                 | Monocular Depth            | Extracting metric depth maps calibrated by the reference object.                         |
 
 ### 2.1. Note on Bayesian Consistency
 
@@ -123,60 +124,52 @@ Instead of voting, we use hard thresholds to filter noise:
     - `Confidence` between 0.4 - 0.85 OR `Unexplained_Blob_Area > Threshold`
     - **Action**: LOOP (Wake up SLM).
 
-### 4.3. 3D Volumetric Counting (SAM2 + DepthAnything)
+### 4.3. 3D Volumetric Counting (Hybrid Geometric-Semantic Architecture)
 
-Sistem menggunakan pendekatan **Point Cloud Back-projection** untuk mendapatkan volume fisik tanpa dataset 3D:
+The system uses a **Decomposed 3D Counting (3DC)** approach, separating volume estimation from density prediction:
 
-1.  **Segmentation (SAM2)**: Mendapatkan pixel-perfect mask dari objek terdeteksi.
-2.  **Depth (DepthAnything)**: Mendapatkan map kedalaman relatif.
-3.  **3D Projection (MathUtils)**: Menggunakan formula intrinsik kamera untuk memproyeksikan pixel $(u, v)$ ke koordinat dunia $(x, y, z)$.
-    $$z = Depth(u,v)$$
-    $$x = (u - c_x) \times z / f_x$$
-    $$y = (v - c_y) \times z / f_y$$
-4.  **Lattice & Riemann Sums**: Menghitung volume berdasarkan densitas point cloud di dalam hull 3D.
-5.  **Heuristic Optimization (CountNet3D inspired)**:
-    - **Downsampling**: Reduksi kerapatan point cloud untuk efisiensi real-time ($< 50ms$).
-    - **Physical Bounds Validation**: Memastikan $\sum V_{objects} \leq V_{bounding\_box} \times PackingFactor$.
-    - **Volume Range Tracking**: Menggunakan nilai [Min, Max] volume per kategori untuk menangani variabilitas produk.
+1.  **Reference-First Calibration (The Anchor)**:
+    - At $t=0$, the system identifies a single "Template Object" (e.g., one cup).
+    - SLM provides the object's physical dimensions ($V_{\mu}$).
+    - **Metric Scale**: Pixels are mapped to CM based on the known height.
+    - **Alpha Calibration**: Uses `alphashape.optimize()` logic to find the **"Golden Alpha"** value where $V_{calc} \approx V_{\mu}$.
+2.  **Geometry Estimation (V-JEPA Memory + AlphaShape)**:
+    - SAM2 segments objects, and DepthAnything provides metric depth maps (now calibrated).
+    - V-JEPA's **Persistent Latent Context** (using `ctxt` tokens) acts as a pose proxy, fusing point clouds from a 180° orbit.
+    - **Alpha-Concave Hull** (via `alphashape` library) wraps the accumulated point cloud using the locked Golden Alpha.
+3.  **Density Prediction (DINOv2 + sklearn MLP)**:
+    - The **DINOv2 Engine** analyzes RGB (specular highlights) + Depth texture.
+    - A `sklearn.MLPRegressor` (trained or heuristic-initialized) maps texture tokens to **Occupancy Ratio ($\rho$)**.
+4.  **Final Volumetric Count ($N$)**:
+    $$N = \frac{V_{\text{stack}} \times \rho}{V_{\mu}}$$
 
 ---
 
 ## 5. Detailed Interaction Flow
 
-### Step 0: Parallel Acquisition & Initial Intent
+### Step 0: Reference Calibration (Phase 0)
 
-- **Stream A (RGB)**: Video frames flow to V-JEPA, VL-JEPA, CountGD, and SAM2.
-- **Initial Hint**: V-JEPA processes the **First Frame** to generate a latent representation.
-- **Director Wake-up**: VL-JEPA uses this first latent to set the **Initial Intent** (e.g., "Gelas").
-- **Stream B (Spikes)**: V2E converts frames to event spikes in parallel.
+- **Input**: First frame of the video.
+- **Identification**: VL-JEPA + SLM anchor the metric context (Scale, $V_{\mu}$, and Golden Alpha).
+- **Effect**: Locks the coordinate system and geometric parameters before counting starts.
 
-### Step 1: Perception & Execution
+### Step 1: Perception & Orbit (Phase 1)
 
-- **CountGD**: Receives the initial intent and provides $N_{visible}$ (Visual Count).
-- **SAM2 + Depth**: Receives the initial intent and provides the **3D Point Cloud**.
-- **V-JEPA**: Maintains temporal memory state.
-- **V2E**: Produces event energy (Spikes).
+- **Accumulation**: Camera orbits the stack (180°). V-JEPA builds the spatio-temporal memory.
+- **Perception**: CountGD tracks $N_{visible}$, SAM2/Depth provides point cloud frames.
+- **Fusion**: Point clouds are registered into the persistent V-JEPA context.
 
-### Step 2: 3D Fusion & Conflict Detection
+### Step 2: Volumetric Audit & Occupancy (Phase 2)
 
-- **Fusion**: Menghapus (_mask subtraction_) area SAM2 dari Spike Map untuk mendeteksi **Residu Spike** (gerakan di luar area mask).
-- **Math Analysis**: `MathUtils` memproses **Raw Point Cloud** dari SAM2 + DepthAnything:
-  - Menerapkan rumus **Riemann Sums / Lattice Counting** untuk mendapatkan $N_{volumetric}$.
-- **Logic Gate**: Memeriksa tiga jenis anomali (Hierarchical Counting):
-  1. **Anomali Spasial**: Jika ada Residu Spike tinggi (Discovery).
-  2. **Anomali Volumetrik**: Jika $N_{visible}$ tidak masuk dalam range $[N_{volume\_min}, N_{volume\_max}]$.
-  3. **Physical Constraint Violation**: Jika estimasi jumlah melampaui batas fisik ruang (Sanity Check).
+- **Calculation**: `MathUtils` computes $V_{\text{stack}}$ via `alphashape` hull.
+- **Occupancy**: DINOv2 + `sklearn.MLPRegressor` predicts $\rho$.
+- **Conflict Detection**: Logic Gate compares $N_{volumetric}$ vs. $N_{visible}$ and checks for **Residual Spikes**.
 
 ### Step 3: Targeted SLM $\to$ VL-JEPA (Sutradara)
 
-1.  **Reasoning**: SLM menganalisis bukti dari `Logic Gate` (discrepancy math vs visual, atau residu spike).
-2.  **Morphism**: SLM memberikan hipotesis dan instruksi spesifik ke **VL-JEPA (Director)**.
-3.  **Intent Update**: VL-JEPA memperbarui `Persistent_Context`.
-4.  **Looping (Bayesian Information Gain)**:
-    - **State Interpolation**: Hasil dari SLM diproyeksikan ke frame _current_ menggunakan prediksi temporal V-JEPA (mengatasi latensi berpikir SLM).
-    - **Parametric Rerun**:
-    * **Refinement**: SAM2 dipicu menggunakan **PointBeam Methodology** (Depth Peak Prompting - lokal maxima pada depth map) untuk memisahkan tumpukan.
-    - **Discovery**: VL-intent baru dijalankan pada koordinat residu spike.
+1.  **Reasoning**: SLM analyzes discrepancy between visual, volumetric, and event sensors.
+2.  **Morphism**: SLM adjusts $\rho$, Scale, or Alpha parameters if discrepancy persists.
+3.  **Refinement**: System reruns the loop with updated intentions or parameters.
 
 ## 4. Taxonomy of Recursive Loops
 

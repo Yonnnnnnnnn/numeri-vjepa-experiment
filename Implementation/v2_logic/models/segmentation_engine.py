@@ -22,13 +22,17 @@ Non-Terminals   :
 Terminals       : numpy.ndarray, torch.Tensor, list, dict
 
 Production Rules:
-  SegmentationEngine → __init__ + segment_frame
+  SegmentationEngine → __init__ + segment_frame + merge_overlapping_masks
+                     + detect_volumetric_clusters
   segment_frame → preprocess + SAM2 forward + postprocess → SegmentResult
+  merge_overlapping_masks → IoU filter + union → merged SegmentResult
+  detect_volumetric_clusters → depth grouping → List[VolumetricCluster]
 ═══════════════════════════════════════════════════════════════════════════════
 
-Pattern: Adapter
+Pattern: Adapter + Composite
 - Adapts SAM2's complex API to a simple interface
 - Hides model loading and preprocessing details
+- Composite: Treats a cluster of masks as a single volumetric unit (Phase 4)
 """
 
 import sys
@@ -300,6 +304,166 @@ class SegmentationEngine:
             output = (output * (1 - alpha) + colored_mask * alpha).astype(np.uint8)
 
         return output
+
+    # =========================================================================
+    # Phase 4: Union Masking & Cluster Detection
+    # =========================================================================
+
+    def merge_overlapping_masks(
+        self, result: SegmentResult, iou_threshold: float = 0.5
+    ) -> SegmentResult:
+        """
+        Merge overlapping masks that likely belong to the same physical object.
+        Prevents over-segmentation of single items in dense stacks.
+
+        Args:
+            result: Raw SegmentResult from segment_frame.
+            iou_threshold: IoU threshold for merging (default 0.5).
+
+        Returns:
+            SegmentResult with merged masks.
+        """
+        if result.num_segments <= 1:
+            return result
+
+        merged_indices = set()  # Indices already consumed by a merge
+        new_masks = []
+        new_boxes = []
+        new_scores = []
+
+        for i in range(result.num_segments):
+            if i in merged_indices:
+                continue
+
+            current_mask = result.masks[i].astype(np.float32)
+            current_score = result.scores[i]
+            merge_count = 1
+
+            for j in range(i + 1, result.num_segments):
+                if j in merged_indices:
+                    continue
+
+                # Calculate mask IoU
+                other_mask = result.masks[j].astype(np.float32)
+                intersection = np.sum(current_mask * other_mask)
+                union = np.sum(np.maximum(current_mask, other_mask))
+                iou = intersection / union if union > 0 else 0.0
+
+                if iou > iou_threshold:
+                    # Merge: union of masks, average score
+                    current_mask = np.maximum(current_mask, other_mask)
+                    current_score += result.scores[j]
+                    merge_count += 1
+                    merged_indices.add(j)
+
+            # Compute bounding box from merged mask
+            ys, xs = np.where(current_mask > 0.5)
+            if len(ys) > 0:
+                box = (int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max()))
+                new_masks.append(current_mask > 0.5)
+                new_boxes.append(box)
+                new_scores.append(current_score / merge_count)
+
+        merged_count = result.num_segments - len(new_masks)
+        if merged_count > 0:
+            print(
+                f"[SegmentationEngine] Union Masking: merged {merged_count} "
+                f"fragments → {len(new_masks)} physical units"
+            )
+
+        return SegmentResult(
+            masks=new_masks,
+            boxes=new_boxes,
+            scores=new_scores,
+            num_segments=len(new_masks),
+        )
+
+    def detect_volumetric_clusters(
+        self,
+        result: SegmentResult,
+        depth_map: Optional[np.ndarray] = None,
+        depth_tolerance: float = 0.15,
+    ) -> List[dict]:
+        """
+        Group masks into volumetric clusters for AlphaHull processing.
+        Objects at similar depth are grouped into the same cluster.
+
+        Args:
+            result: SegmentResult (ideally after union masking).
+            depth_map: Optional depth map (H, W) for depth-based grouping.
+            depth_tolerance: Relative depth tolerance for clustering (0.15 = 15%).
+
+        Returns:
+            List of cluster dicts: {mask_indices, mean_depth, combined_mask}.
+        """
+        if result.num_segments == 0:
+            return []
+
+        # If no depth map, treat all masks as one cluster
+        if depth_map is None:
+            combined = np.zeros_like(result.masks[0], dtype=np.float32)
+            for mask in result.masks:
+                combined = np.maximum(combined, mask.astype(np.float32))
+            return [
+                {
+                    "mask_indices": list(range(result.num_segments)),
+                    "mean_depth": 0.0,
+                    "combined_mask": combined > 0.5,
+                }
+            ]
+
+        # Calculate mean depth for each mask
+        mask_depths = []
+        for mask in result.masks:
+            masked_depth = depth_map[mask > 0.5]
+            mean_d = float(np.mean(masked_depth)) if len(masked_depth) > 0 else 0.0
+            mask_depths.append(mean_d)
+
+        # Greedy depth-based clustering
+        assigned = set()
+        clusters = []
+
+        for i in range(result.num_segments):
+            if i in assigned:
+                continue
+
+            cluster_indices = [i]
+            assigned.add(i)
+            ref_depth = mask_depths[i]
+
+            if ref_depth <= 0:
+                continue
+
+            for j in range(i + 1, result.num_segments):
+                if j in assigned:
+                    continue
+                if mask_depths[j] <= 0:
+                    continue
+
+                relative_diff = abs(mask_depths[j] - ref_depth) / ref_depth
+                if relative_diff < depth_tolerance:
+                    cluster_indices.append(j)
+                    assigned.add(j)
+
+            # Build combined mask
+            combined = np.zeros_like(result.masks[0], dtype=np.float32)
+            for idx in cluster_indices:
+                combined = np.maximum(combined, result.masks[idx].astype(np.float32))
+
+            cluster_depths = [mask_depths[k] for k in cluster_indices]
+            clusters.append(
+                {
+                    "mask_indices": cluster_indices,
+                    "mean_depth": float(np.mean(cluster_depths)),
+                    "combined_mask": combined > 0.5,
+                }
+            )
+
+        print(
+            f"[SegmentationEngine] Clustered {result.num_segments} masks "
+            f"into {len(clusters)} volumetric clusters"
+        )
+        return clusters
 
 
 if __name__ == "__main__":

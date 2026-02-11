@@ -1,23 +1,22 @@
-# Test Strategy: Vision & Loop Verification
+# Test Strategy: Sovereignty & Physical Truth
 
-This document outlines the strategy for verifying the Antigravity V2 pipeline.
+This document outlines the strategy for verifying the Antigravity V3.1 "Sovereignty" protocol.
 
-## 1. Unit Testing
+## 1. Unit Testing (Kernels)
 
-- **VJEPAEngine**: Verify weight loading, encoding shape, and prediction consistency.
-- **BertModelWarper Robustness**: Verify "Smart Dispatcher" fallback logic using mock objects to simulate missing `transformers` methods (`tests/test_bertwarper_robustness.py`).
-- **Preprocessing**: Test spike-to-frame conversion and normalization.
+- **VJEPAEngine**: Verify `PersistentLatentContext` buffer mechanics and latent-pose stability.
+- **Geometric Kernel**: Test `AlphaHullWrapper` for volume accuracy and Golden Alpha binary search convergence.
+- **Density Engine**: Validate MLP Regressor prediction bounds and specularity analysis robustness.
+- **MathUtils**: Verify `calculate_volumetric_count` against known stack sizes.
 
-## 2. Integration Testing
+## 2. Integration Testing (Sovereignty Chain)
 
-- **Recursive Flow**: Verify end-to-end execution from raw video to final count using `run_recursive_system.py`.
-- **Hybrid Decision Gate**: Validate that Logic Gate correctly routes frames based on spatial (V2E) and volumetric (SAM2+Depth) anomalies.
-- **V-JEPA Memory**: Verify that temporal latents provide consistent context for the countvid_executor_node.
+- **Recursive LangGraph**: Verify the 13-step flow using `test_phase5_orchestration.py`.
+- **Multi-Shield Fusion**: Validate that weighted consensus correctly handles single-shield failures (e.g., occlusion blocking SAM2 but not V2E).
+- **Discovery Loop**: Test the SLM's ability to inject new labels into the `main_intent` during volumetric anomalies.
 
-## 4. Runtime Debugging & Stability
+## 3. Runtime Debugging & Stability
 
-- **Persistence Verification**: Test the `temporal_filter_fast` mechanism to ensure object IDs are correctly tracked across window `w`.
-- **Multiprocessing**: Verify cross-platform compatibility (Windows spawn vs Unix fork) for object persistence checks by ensuring clean state passing in `starmap_args`.
-- **Traceability**: Utilize full traceback logging in `count_vid_engine.py` to diagnose device-specific serialization errors (e.g., `BatchEncoding.to()` failures).
-- **Bootstrap Robustness Testing**: Memverifikasi bahwa seluruh _Logical Graph_ tetap mencapai node akhir (`exit`) meskipun subsistem sekunder (seperti `SegmentationEngine`) gagal dimuat (Graceful Degradation).
-- **Dispatcher Diagnostics**: Memantau log `[CountVid Patch]` selama inisialisasi untuk memvalidasi apakah sistem menggunakan jalur _Modern_, _Positional_, atau _Nuclear Fallback_.
+- **Singleton Enforcement**: Verify that heavy engines (V-JEPA, SAM2) are cached as singletons to prevent VRAM overflow.
+- **Edge Case Sanity**: Test `SanityGuard` against division-by-zero or empty point clouds.
+- **Graceful Degradation**: Ensure the graph reaches `exit` even if secondary sensors (e.g., v2e) return empty data.

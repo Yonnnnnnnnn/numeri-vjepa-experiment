@@ -118,7 +118,8 @@ def setup_repo():
         "Depth-Anything-V2-main/Depth-Anything-V2-main": "https://github.com/depth-anything/Depth-Anything-V2.git",
         "sam2-main/sam2-main": "https://github.com/facebookresearch/sam2.git",
         "v2e-master/v2e-master": "https://github.com/YosuaNa/v2e.git", # Fork with Python 3.12 fixes
-        "CountVid-main/CountVid-main": "https://github.com/niki-amini-naieni/CountVid.git"
+        "CountVid-main/CountVid-main": "https://github.com/niki-amini-naieni/CountVid.git",
+        "alphashape-master/alphashape-master": "https://github.com/bellockk/alphashape.git"
     }
 
     for folder, url in needed_techs.items():
@@ -172,7 +173,7 @@ if setup_repo():
     !pip install -e Techs/v2e-master/v2e-master -q
     !pip install -e Techs/sam2-main/sam2-main -q
     !pip install timm einops submitit sentencepiece protobuf scikit-learn bitsandbytes accelerate numpy==1.26.4 -q
-    !pip install huggingface_hub[hf_xet] addict yapf langgraph pydantic pydantic-settings scipy numpy==1.26.4 -q
+    !pip install huggingface_hub[hf_xet] addict yapf langgraph pydantic pydantic-settings scipy trimesh alphashape numpy==1.26.4 -q
 
     import numpy as np
     import torch
@@ -265,7 +266,7 @@ PROJECT_DIR = "/content/numeri-vjepa-experiment"
 ```
 
 > [!NOTE]
-> Per **2026-02-02**: Perbaikan "Visualizer vs Logic" (Coordinate Scaling & StochasticDepth Patch) sekarang sudah diinjeksi langsung ke dalam file `.py`. Anda tidak perlu lagi melakukan patching manual di cell Colab. Cukup jalankan Langkah 5 di bawah.
+> Per **2026-02-11**: Perbaikan "Visualizer vs Logic" dan **Sovereignty Protocol V3.1** (SanityGuard & Engine Singletons) sekarang sudah fully integrated. Sistem menggunakan LangGraph untuk koordinasi volumetric reconciliation.
 
 ### 4.2 Download CountVid Checkpoints
 
@@ -410,8 +411,9 @@ VIDEO_FILE = "/content/my_video.mp4"
 
 ### VRAM Limit (T4 = 15GB)
 
-- PaliGemma (6GB) + V-JEPA (5GB) + CountGD (4GB) = ~15GB
-- Jika OOM: Gunakan `load_in_4bit=True` di `vl_jepa_engine.py`
+- PaliGemma (6GB) + V-JEPA (5GB) + CountGD (4GB) = ~15GB.
+- **V3.1 Optimization**: Sistem menggunakan **Engine Singletons (Lazy-Loading)** untuk menghemat VRAM. Model hanya di-load saat dipanggil pertama kali.
+- Jika OOM: Gunakan `load_in_4bit=True` di `vl_jepa_engine.py` atau kurangi `max_frames` di `VjepaBrain`.
 
 ### Bersihkan Disk Colab
 

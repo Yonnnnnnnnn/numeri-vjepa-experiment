@@ -24,7 +24,7 @@ Terminals       : str, float, int, bool, "cuda", "cpu"
 
 Production Rules:
   CountVidEngine  → imports + <CountVidEngine>
-  <CountVidEngine> → __init__ + count_frame + tally_unique
+  <CountVidEngine> → __init__ + count_frame + tally_unique + update_sensitivity
 ═══════════════════════════════════════════════════════════════════════════════
 """
 
@@ -120,7 +120,10 @@ class CountVidEngine:
             class Args:
                 """Arguments for CountVid model configuration."""
 
-                pass
+                # Dynamically set attributes in __init__?
+                # For now just use an empty object or a thin class.
+                def __init__(self):
+                    pass
 
             args = Args()
             for k, v in cfg_dict.items():
@@ -269,6 +272,7 @@ class CountVidEngine:
         Returns:
             Tuple[int, list]: (Predicted count, Predicted boxes [x1, y1, x2, y2])
         """
+        _ = exemplars  # Placeholder for few-shot mode
         # Normalize prompt: convert list to comma-separated string
         if isinstance(prompt, list):
             prompt = ", ".join(prompt) if prompt else "items"
@@ -282,7 +286,6 @@ class CountVidEngine:
 
         try:
             # pylint: disable=import-outside-toplevel
-            from PIL import Image
             import torchvision.transforms.functional as F
 
             # Use the pre-imported function to avoid module conflicts
@@ -335,7 +338,7 @@ class CountVidEngine:
                 pixel_boxes.append([x1, y1, x2, y2])
 
             return pred_count, pixel_boxes
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error("[CountVid] Error during counting: %s", str(e))
             logger.error(traceback.format_exc())
             return 1, []
@@ -360,3 +363,53 @@ class CountVidEngine:
 
         logger.info("[CountVid] Final Tally: %d", final_tally)
         return final_tally
+
+    # =========================================================================
+    # Phase 4: Adaptive Sensitivity
+    # =========================================================================
+
+    def update_sensitivity(
+        self,
+        feedback_score: float,
+        density_hint: float = 0.5,
+    ) -> float:
+        """
+        Adjust detection confidence threshold based on SLM audit feedback
+        and density characteristics from Phase 2.
+
+        Higher feedback_score = system was over-counting → raise threshold.
+        Lower feedback_score = system was under-counting → lower threshold.
+
+        Args:
+            feedback_score: SLM feedback in range [-1, 1].
+                -1 = "dramatically under-counting"
+                 0 = "count seems correct"
+                +1 = "dramatically over-counting"
+            density_hint: Density modifier from Phase 2 (0-1).
+                Higher density → more cautious (raise threshold slightly).
+
+        Returns:
+            float: Updated confidence threshold.
+        """
+        # Sensitivity step size
+        step = 0.02
+
+        # Density adjustment: high-density scenes need higher thresholds
+        density_bias = (density_hint - 0.5) * step  # Range: -0.01 to +0.01
+
+        # Calculate adjustment
+        adjustment = (feedback_score * step) + density_bias
+
+        # Apply with clamping to safe range [0.10, 0.60]
+        old_thresh = self.confidence_thresh
+        self.confidence_thresh = max(0.10, min(0.60, old_thresh + adjustment))
+
+        logger.info(
+            "[CountVid] Sensitivity updated: %.3f → %.3f (feedback=%.2f, density=%.2f)",
+            old_thresh,
+            self.confidence_thresh,
+            feedback_score,
+            density_hint,
+        )
+
+        return self.confidence_thresh

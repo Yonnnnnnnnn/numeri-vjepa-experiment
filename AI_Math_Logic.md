@@ -58,20 +58,22 @@ Operasi inti dari Strange Loop kita adalah komposisi yang menghasilkan referensi
 
 $$f_{loop} = loop \circ eval \circ act$$
 
-Secara visual, ini membentuk siklus:
+Secara visual, ini membentuk siklus **Sovereignty Chain** (13-Step Protocol):
 
 ```mermaid
 graph TD
-    Obs(Obs) -- enc --> Lat(Lat)
-    Lat -- dir --> Int(Int)
-    Int -- act --> Exe(Exe)
-    Lat -- act --> Exe
-    Exe -- eval --> Ref(Ref)
-    Lat -- eval --> Ref
-    Ref -- loop --> Int
+    Obs(Obs: Sensors) -- Step1:enc --> Lat(Lat: V-JEPA)
+    Lat -- Step2-3:dir --> Int(Int: Director)
+    Int -- Step4-7:act --> Exe(Exe: Sensors V2/SAM/Density)
+    Exe -- Step8-9:arith --> Math(Math: V3 Reconciliation)
+    Math -- Step10:fuse --> Fuse(Fuse: Multi-Shield)
+    Fuse -- Step11:eval --> Ref(Ref: Logic Gate)
+    Ref -- Step12-13:loop --> Int
+    Ref -- exit --> Result((Exit: Consensus))
 
     style Int fill:#f9f,stroke:#333,stroke-width:4px
     style Ref fill:#bbf,stroke:#333,stroke-width:2px
+    style Math fill:#dfd,stroke:#333,stroke-width:2px
 ```
 
 ### Isomorphism & Isomorphism Failure
@@ -90,16 +92,26 @@ $$x = (u - c_x) \times z / f_x$$
 $$y = (v - c_y) \times z / f_y$$
 Dimana $(c_x, c_y)$ adalah _principal point_ dan $(f_x, f_y)$ adalah _focal length_.
 
-### 4.2. Lattice Counting & Riemann Sums
+### 4.2. Lattice Counting & Riemann Sums (V-Core)
 
 Volume total $V_{total}$ dihitung menggunakan integrasi numerik pada hull objek:
 $$V_{total} = \sum_{i \in Mask} \Delta x_i \cdot \Delta y_i \cdot \Delta z_i$$
-Hasil ini kemudian dipetakan ke jumlah objek $N_{volumetric}$ berdasarkan prior volume per unit $V_{μ}$:
-$$N_{volumetric} = \text{round}(V_{total} / V_{μ})$$
 
-### 4.4. Volumetric Auto-Calibration (Self-Correction)
+### 4.3. Physical Density Sensing ($\rho$)
 
-Untuk memecahkan _infinite loop_ anomali volumetrik, sistem mengkalibrasi ulang prior $V_{μ}$ secara dinamis berdasarkan umpan balik SLM:
+Morphism $eval$ kini memperhitungkan densitas tumpukan $\rho$ melalui analisis spekularitas visual ($S$):
+$$ \rho = MLP(DINOv2_Features(Int), S) $$
+$$N*{volumetric} = \text{round}\left(\frac{V*{total} \times \rho}{V\_{\mu}}\right)$$
+
+### 4.4. Golden Alpha Calibration (The Isomorphism Anchor)
+
+Untuk memastikan $V_{total}$ akurat, sistem melakukan kalibrasi $\alpha$-hull ($\alpha \in \mathbb{R}^+$) saat $N_{visible} = 1$:
+$$ \alpha*{golden} = \arg \min*{\alpha} |HullVolume(points, \alpha) - V*{\mu}| $$
+Binary search digunakan untuk menemukan $\alpha*{golden}$, yang kemudian mengunci morphism pemetaan geometri untuk objek serupa.
+
+### 4.5. Volumetric Auto-Calibration (Self-Correction)
+
+Untuk memecahkan _infinite loop_ anomali volumetrik, sistem mengkalibrasi ulang prior $V_{\mu}$ secara dinamis berdasarkan umpan balik SLM:
 $$V_{μ}^{new} = \frac{V_{total}}{N_{visible}} \quad \text{if } N_{confirmed\_SLM} = N_{visible}$$
 Hal ini memungkinkan morphism $eval$ mencapai isomorfisme pada iterasi berikutnya.
 
@@ -109,6 +121,15 @@ Untuk sinkronisasi antara "Otak" (internal processing @ 224x224) dan "Mata" (Vis
 $$u_{visual} = u_{latent} \times \frac{W_{video}}{W_{latent}}$$
 $$v_{visual} = v_{latent} \times \frac{H_{video}}{H_{latent}}$$
 Hal ini memastikan metadata anomali dari $Exe$ dipetakan kembali secara akurat ke ruang observasi $Obs$.
+
+### 4.6. Sanity Functor (Safe Bounds Validation)
+
+Morphism $eval$ menyertakan **SanityGuard** ($\sigma$) untuk mencegah propagasi nilai fisik yang tidak masuk akal (Error Isolation):
+
+- **Numerical Guard**: $\sigma(N_{vol}) \to [0, 1000]$. Nilai $NaN$ atau $\infty$ dipotong ke batas aman.
+- **Topological Guard**: Memeriksa manifold safety pada point cloud sebelum morfisme AlphaHull dijalankan untuk menghindari kegagalan kernel geometris.
+
+$$ N*{final} = \sigma\left(\text{round}\left(\frac{V*{total} \times \rho}{V\_{\mu}}\right)\right) $$
 
 ## 5. Fixed Point (Titik Kesetimbangan)
 

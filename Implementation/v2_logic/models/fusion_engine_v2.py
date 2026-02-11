@@ -1,7 +1,8 @@
 """
-Fusion Engine V2 (Spike-Mask Residue Detection)
+Fusion Engine V2 (Multi-Shield Validation)
 
-Fuses V2E spike data with SAM2 masks to detect anomalies.
+Fuses V2E spike data with SAM2 masks and volumetric analysis
+to detect anomalies through a Multi-Shield Architecture.
 Core component of the Recursive Intent "Triple Check" system.
 
 CFG Structure:
@@ -10,25 +11,29 @@ Start Symbol    : FusionEngineV2 (this module)
 
 Non-Terminals   :
   ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
-  │  <FusionEngineV2>  → Main fusion logic for anomaly detection              │
-  │  <FusionResult>    → Output dataclass with residue and anomaly info       │
+  │  <FusionEngineV2>  → Main fusion orchestrator                            │
+  │  <FusionResult>    → Output dataclass with residue and anomaly info      │
+  │  <ShieldResult>    → Per-shield verdict (confidence + detail)            │
+  │  <MotionState>     → Camera jitter tracking state                        │
   └───────────────────────────────────────────────────────────────────────────┘
 
   ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
-  │  <PerceptionState>  ← from types.graph_state (State container)            │
+  │  <PerceptionState>  ← from types.graph_state (State container)           │
+  │  <AlphaHullWrapper> ← from kernels.alphashape_wrapper (Volume calc)      │
   └───────────────────────────────────────────────────────────────────────────┘
 
 Terminals       : numpy.ndarray, float, int, List, Dict
 
 Production Rules:
-  FusionEngineV2     → __init__ + fuse_spike_mask + detect_anomaly
-  fuse_spike_mask    → subtract_masks + calculate_residue → FusionResult
-  detect_anomaly     → check_spatial + check_volumetric → anomaly_type
+  FusionEngineV2 → __init__ + fuse_spike_mask + run_shields
+  run_shields    → shield_spatial + shield_volumetric + shield_latent
+                 → weighted_sum → fusion_confidence
+  fuse_spike_mask → subtract_masks + calculate_residue → FusionResult
 ═══════════════════════════════════════════════════════════════════════════════
 
-Pattern: Strategy
-- Encapsulates the spike-mask fusion algorithm.
-- Can be extended for different fusion strategies.
+Pattern: Strategy + Chain of Responsibility
+- Each Shield encapsulates one validation dimension.
+- Shields are evaluated in order; aggregate confidence drives decisions.
 """
 
 import logging
@@ -38,6 +43,16 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class ShieldResult:
+    """Result from a single validation shield."""
+
+    name: str  # Shield identifier
+    confidence: float  # 0.0 (fail) to 1.0 (pass)
+    passed: bool  # Whether this shield passed
+    details: Dict[str, Any] = field(default_factory=dict)  # Diagnostic info
 
 
 @dataclass
@@ -60,6 +75,10 @@ class FusionResult:
     motion_compensated: bool
     camera_motion_energy: float
 
+    # Phase 4: Multi-Shield Scores
+    shield_scores: Dict[str, float] = field(default_factory=dict)
+    fusion_confidence: float = 1.0  # Aggregate confidence (0-1)
+
 
 @dataclass
 class MotionState:
@@ -72,14 +91,14 @@ class MotionState:
 
 class FusionEngineV2:
     """
-    Spike-Mask Fusion Engine for anomaly detection.
+    Multi-Shield Fusion Engine for perception validation.
 
     Implements:
-    1. Mask Subtraction: spike_map - (spike_map * combined_mask)
-    2. Residue Calculation: Energy in unexplained regions
-    3. Motion Compensation: Filter out camera jitter
+    1. Shield 1 (Spatial): spike_map - (spike_map * combined_mask)
+    2. Shield 2 (Volumetric): N_visible vs AlphaHull volume estimate
+    3. Shield 3 (Latent): Identity stability via V-JEPA similarity
 
-    Pattern: Strategy
+    Pattern: Strategy + Chain of Responsibility
     """
 
     def __init__(
@@ -98,6 +117,14 @@ class FusionEngineV2:
         self.motion_threshold = motion_threshold
         self.min_blob_area = min_blob_area
         self.motion_state = MotionState()
+
+        # Phase 4: Shield weights (must sum to 1.0)
+        self.shield_weights = {
+            "spatial": 0.5,
+            "volumetric": 0.3,
+            "latent": 0.2,
+        }
+        self.confidence_threshold = 0.6  # Below this → SLM Audit
 
     def fuse_spike_mask(
         self,
@@ -264,6 +291,193 @@ class FusionEngineV2:
         """Reset motion tracking state (call on new video/session)."""
         self.motion_state = MotionState()
 
+    # =========================================================================
+    # Phase 4: Multi-Shield Architecture
+    # =========================================================================
+
+    def shield_spatial(self, fusion_result: FusionResult) -> ShieldResult:
+        """
+        Shield 1 (Spatio-Temporal): Evaluate spike-mask residue.
+        High residue means something is moving outside detected masks.
+
+        Returns:
+            ShieldResult with spatial confidence.
+        """
+        # Confidence = 1 - residue_ratio (clamped to 0-1)
+        confidence = max(0.0, 1.0 - fusion_result.residue_ratio)
+        passed = not fusion_result.has_spatial_anomaly
+
+        return ShieldResult(
+            name="spatial",
+            confidence=confidence,
+            passed=passed,
+            details={
+                "residue_ratio": fusion_result.residue_ratio,
+                "threshold": self.residue_threshold,
+                "blob_count": len(fusion_result.unexplained_blobs),
+            },
+        )
+
+    def shield_volumetric(
+        self,
+        n_visible: int,
+        n_volumetric_range: Tuple[int, int],
+        v_stack: float = 0.0,
+        v_unit: float = 0.0,
+    ) -> ShieldResult:
+        """
+        Shield 2 (Volumetric): Check if the visual count is physically
+        plausible given the measured volume.
+
+        Args:
+            n_visible: Count from CountVid.
+            n_volumetric_range: (min, max) from volumetric estimation.
+            v_stack: Total observed stack volume (m³).
+            v_unit: Known unit volume (m³).
+
+        Returns:
+            ShieldResult with volumetric confidence.
+        """
+        min_v, max_v = n_volumetric_range
+
+        if max_v <= 0:
+            # No volumetric data available; shield is neutral
+            return ShieldResult(
+                name="volumetric",
+                confidence=0.5,
+                passed=True,
+                details={"reason": "no_volumetric_data"},
+            )
+
+        # How far is n_visible from the valid range?
+        if min_v <= n_visible <= max_v:
+            confidence = 1.0
+        else:
+            range_span = max(1, max_v - min_v)
+            if n_visible < min_v:
+                distance = min_v - n_visible
+            else:
+                distance = n_visible - max_v
+            # Confidence decays with distance from valid range
+            confidence = max(0.0, 1.0 - (distance / range_span))
+
+        passed = min_v <= n_visible <= max_v
+
+        return ShieldResult(
+            name="volumetric",
+            confidence=confidence,
+            passed=passed,
+            details={
+                "n_visible": n_visible,
+                "range": (min_v, max_v),
+                "v_stack": v_stack,
+                "v_unit": v_unit,
+            },
+        )
+
+    def shield_latent(
+        self,
+        track_similarities: Optional[List[float]] = None,
+    ) -> ShieldResult:
+        """
+        Shield 3 (Latent Identity): Evaluate identity stability using
+        V-JEPA / ReID latent similarity scores.
+
+        A high mean similarity means objects are consistently tracked.
+        Low similarity suggests identity confusion or new objects.
+
+        Args:
+            track_similarities: List of cosine similarities for each track.
+                                None if V-JEPA data is unavailable.
+
+        Returns:
+            ShieldResult with latent confidence.
+        """
+        if not track_similarities or len(track_similarities) == 0:
+            # No latent data; shield is neutral
+            return ShieldResult(
+                name="latent",
+                confidence=0.5,
+                passed=True,
+                details={"reason": "no_latent_data"},
+            )
+
+        mean_similarity = float(np.mean(track_similarities))
+        # Clamp similarity to 0-1 range as confidence
+        confidence = max(0.0, min(1.0, mean_similarity))
+        passed = confidence >= 0.4  # Lenient threshold for latent
+
+        return ShieldResult(
+            name="latent",
+            confidence=confidence,
+            passed=passed,
+            details={
+                "mean_similarity": mean_similarity,
+                "num_tracks": len(track_similarities),
+                "min_similarity": float(np.min(track_similarities)),
+            },
+        )
+
+    def run_shields(
+        self,
+        fusion_result: FusionResult,
+        n_visible: int,
+        n_volumetric_range: Tuple[int, int],
+        v_stack: float = 0.0,
+        v_unit: float = 0.0,
+        track_similarities: Optional[List[float]] = None,
+    ) -> FusionResult:
+        """
+        Run all three shields and compute aggregate fusion_confidence.
+        Updates the FusionResult in-place with shield scores.
+
+        Args:
+            fusion_result: Result from fuse_spike_mask.
+            n_visible: Visual count from CountVid.
+            n_volumetric_range: Volume-estimated count range.
+            v_stack: Total stack volume.
+            v_unit: Unit object volume.
+            track_similarities: ReID/V-JEPA similarity list.
+
+        Returns:
+            Updated FusionResult with shield_scores and fusion_confidence.
+        """
+        # Run each shield
+        s1 = self.shield_spatial(fusion_result)
+        s2 = self.shield_volumetric(n_visible, n_volumetric_range, v_stack, v_unit)
+        s3 = self.shield_latent(track_similarities)
+
+        shields = [s1, s2, s3]
+
+        # Compute weighted confidence
+        fusion_confidence = sum(
+            self.shield_weights[s.name] * s.confidence for s in shields
+        )
+
+        # Store results
+        fusion_result.shield_scores = {s.name: s.confidence for s in shields}
+        fusion_result.fusion_confidence = fusion_confidence
+
+        # Log shield verdicts
+        shield_summary = " | ".join(
+            f"{s.name}: {'✓' if s.passed else '✗'} ({s.confidence:.2f})"
+            for s in shields
+        )
+        logger.info(
+            "[FusionV2] Shields: %s → confidence=%.3f (threshold=%.2f)",
+            shield_summary,
+            fusion_confidence,
+            self.confidence_threshold,
+        )
+
+        if fusion_confidence < self.confidence_threshold:
+            logger.warning(
+                "[FusionV2] LOW CONFIDENCE (%.3f) — SLM Audit recommended.",
+                fusion_confidence,
+            )
+
+        return fusion_result
+
 
 if __name__ == "__main__":
     # Quick test
@@ -281,8 +495,17 @@ if __name__ == "__main__":
         n_volumetric_range=(4, 6),
     )
 
+    # Run Multi-Shield validation
+    result = engine.run_shields(
+        fusion_result=result,
+        n_visible=5,
+        n_volumetric_range=(4, 6),
+        track_similarities=[0.85, 0.92, 0.78],
+    )
+
     print(f"Residual Energy: {result.residual_spike_energy:.4f}")
     print(f"Residue Ratio: {result.residue_ratio:.4f}")
     print(f"Spatial Anomaly: {result.has_spatial_anomaly}")
     print(f"Volumetric Anomaly: {result.has_volumetric_anomaly}")
-    print(f"Unexplained Blobs: {len(result.unexplained_blobs)}")
+    print(f"Shield Scores: {result.shield_scores}")
+    print(f"Fusion Confidence: {result.fusion_confidence:.3f}")

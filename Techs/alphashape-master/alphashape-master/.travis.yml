@@ -1,0 +1,51 @@
+# Config file for automatic testing at travis-ci.org
+
+language: python
+python:
+  - 3.9
+  - 3.8
+  - 3.7
+  - 3.6
+
+os:
+  - linux
+#  - windows
+#  - osx
+
+# Apt dependencies
+before_install:
+  - sudo apt update
+  - sudo apt install wget
+install: 
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - source "$HOME/miniconda/etc/profile.d/conda.sh"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION 
+  - conda activate test-environment
+  - python -m pip install tox
+
+# Command to run tests, e.g. python setup.py test
+script: tox -e $(echo py$TRAVIS_PYTHON_VERSION | tr -d .)
+
+# Assuming you have installed the travis-ci CLI tool, after you
+# create the Github repo and add it to Travis, run the
+# following command to finish PyPI deployment setup:
+# $ travis encrypt --add deploy.password
+deploy:
+  provider: pypi
+  distributions: sdist bdist_wheel
+  user: bellockk
+  password:
+    secure: oF2iGNbTPbcU3at8i5jOiEX2d2QT4HRzm7dptg3NjS41O7MkyPdxL6hmmzsq7vNBnTgred/eOLxNcE3mBMHnEls0baoMfY0YhhUF0+7cKFW5DL/ykFCiqS5304U4vxd4qQhonjSC1cUytTp6FJ/ZDdyahdKZVcSKE7EF+zxBYJfZB0Qq3ZgQLpjjKaMRer8Jm9SvRQWvYcT4hZjMIJs66TnYZFDoKzCPATrDT02H8jBjSMainKgguGG6Q5D+uyYWP5hFmAAwBY7PvtuM5rk4VFM5r/m8HKF17RjGfllof3AFUK/zJytWFlOVpWCeYvhlDR00w3dNrEZErxQlk5iPh31+cjHQsXH+7vqHpP/325v6mMD7u6EAcqzuqaaz5E59ZzhQhoQnZIZVTIGPkkpbQXqykUAAoIo3FCuwQZBGHgX488dIbWX3WxeLuFZde9Z77KKHjOAKXMit2zwMnsbrROQIxOFQdzOLO99uhQ8A+fcpyRfjQz8VkAckmUFlM3wx9kdWMuq4Z41sWxDiuwTN5MscVb7dRGXmKW6E3aEsOxsRydNHbEK99/pu5qMiCepP2JvGeoe4YaiBon/EbJoPJtlIY6Zf02NdEgsmXCh8GRzy+lEYiYUlpuJmZK58LBv9PImYCft0dIDk7izWon0Q2j9xthPVp1QZuiLTbE8Tzxg=
+  on:
+    tags: true
+    repo: bellockk/alphashape
+    python: 3.8

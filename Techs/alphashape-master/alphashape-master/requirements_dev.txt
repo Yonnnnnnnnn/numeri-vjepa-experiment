@@ -1,0 +1,16 @@
+pip==23.3
+bumpversion==0.6.0
+wheel==0.38.1
+watchdog==0.10.3
+flake8==3.8.3
+tox==3.19.0
+coverage==5.2.1
+codecov==2.1.8
+Sphinx==3.2.1
+twine==3.2.0
+shapely==1.7.0
+scipy==1.10.0
+m2r2==0.2.7
+geopandas==0.8.1
+trimesh==3.9.8
+networkx==2.5

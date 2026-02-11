@@ -22,39 +22,45 @@ APIContract → <EngineAPI>+ <LoopAPI>\*
 
 This document defines the interfaces between the core modules of the Antigravity V2 system.
 
-## 1. Engine Interfaces
+## 1. Engine & Kernel Interfaces
 
-### 1.1. Input & Spikes (`V2EEngine`)
+### 1.1. Density Engine (`DinoV2Engine` & `DensityPredictor`)
 
-- **`generate_events(frame: np.ndarray, timestamp: float) -> np.ndarray`**
-  - Input: Raw RGB frame and relative timestamp.
-  - Output: Event spike array (x, y, p, t).
+- **`analyze_specularity(image: np.ndarray) -> float`**
+  - Input: Cropped object frame.
+  - Output: Statistical variance coefficient (S).
+- **`predict(features: np.ndarray) -> float`**
+  - Input: DINOv2 latent vector + S.
+  - Output: Predicted density ($\rho$).
 
-### 1.2. Brain (`VJEPAEngine`)
+### 1.2. Geometric Kernel (`AlphaHullWrapper`)
 
-- **`encode(frame_tensor: Tensor) -> Latent`**
-  - Input: Normalized RGB frame or event-reconstructed frame (B, 3, 224, 224).
-  - Output: Latent representation (B, N, 1024).
+- **`compute_hull(points: np.ndarray, alpha: float) -> Trimesh`**
+  - Input: 3D point cloud and concavity parameter.
+  - Output: Mesh object with `.volume` property.
+- **`find_golden_alpha(points: np.ndarray, target: float) -> float`**
+  - Input: Calibration point cloud and target unit volume ($V_{\mu}$).
+  - Output: The "Golden Alpha" ($\alpha_{golden}$) where $Vol \approx V_{\mu}$.
 
-### 1.3. Director (`VLJEPAEngine`)
+### 1.3. Physical Safety Utility (`MathUtils.SanityGuard`)
 
-- **`identify_intent(frame: np.ndarray) -> str`**
-  - Input: Initial RGB frame.
-  - Output: Textual intent (e.g., "cup").
-- **`generate_intent(latent: Latent, prompt: str) -> Intent`**
-  - Input: V-JEPA latent features and a high-level task description.
-  - Output: Structured instruction for the Executor.
+- **`validate_volumetric_bounds(n_vol: float) -> Tuple[bool, str]`**
+  - Input: Calculated volumetric count.
+  - Output: `(is_valid, reason)` – true if within physically possible range [0, 1000].
+- **`check_manifold_safety(points: np.ndarray) -> bool`**
+  - Input: Raw point cloud.
+  - Output: true if point set is valid for AlphaHull (non-coplanar, N>=4).
 
-### 1.4. Executor (`CountGDEngine` & `SegmentationEngine`)
+### 1.4. Logic Gate (`LogicGate`)
 
-- **`count(image: np.ndarray, prompt: str, target_size: Optional[Tuple[int, int]]) -> (count, detections)`**
-  - Input: Raw frame, textual prompt, and optional target size for coordinate scaling.
-  - Output: Integer count and detection metadata (scaled to target_size if provided).
-- **`segment_frame(image: np.ndarray) -> SegmentResult`**
-  - Input: Raw frame.
-  - Output: List of binary masks and bounding boxes.
+- **`evaluate(perception: PerceptionState) -> GateDecision`**
+  - Input: Holistic state containing visible vs volumetric vs spike metrics.
+  - Output: `action` (exit/loop) and `anomaly_type`.
 
-## 2. Feedback Loops (Recursive Intent)
+## 2. State Contract (RecursiveFlowState)
 
-- **`update_intent(failure_signal: Reflection) -> NewIntent`**
-  - Triggered when the Executor detects an anomaly or low-confidence match.
+The LangGraph state is governed by the following Pydantic schemas in `graph_state.py`:
+
+- **`GlobalContext`**: `session_id`, `main_intent`, `unit_volume_prior`, `density_prior`.
+- **`PerceptionState`**: `rho`, `golden_alpha`, `v_stack`, `n_volumetric_range`, `fusion_confidence`, `shield_scores`.
+- **`DecisionState`**: `status` (loop/exit), `anomaly_type`, `loop_count`.

@@ -1,0 +1,13 @@
+dependencies:
+  - sphinx=3.2.1
+  - geopandas=0.8.1
+  - cartopy=0.18.0
+  - descartes=1.1.0
+  - networkx=2.5
+  - ipympl=0.7.0
+  - pip=20.2.2
+  - pip:
+    - trimesh==3.9.12
+    - m2r2==0.2.5
+    - sphinx-issues==1.2.0
+    - sphinx-gallery==0.7.0

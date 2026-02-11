@@ -1,5 +1,9 @@
 """
-V2 Inference Engine (Glide-and-Count Visualizer)
+[SUPERSEDED] V2 Inference Engine (Legacy Segmentation Pipeline)
+NOTE: This script is superseded by v2_logic.controllers.recursive_flow.py (LangGraph).
+It remains available for historical reference but lacks V3.1 volumetric reconciliation.
+NOTE: This script is superseded by v2_logic.controllers.recursive_flow.py (LangGraph).
+It remains available for legacy side-by-side visualization but does not use the 13-step recursive logic.
 
 Orchestrates the 4-layer asynchronous stack with side-by-side visualization.
 Optimized for Google Colab (cv2.VideoWriter + IPython compatibility).

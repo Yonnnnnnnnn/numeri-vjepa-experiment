@@ -22,22 +22,25 @@ DatabaseSchema → <InventoryTable> <MemoryTable>
 
 The Antigravity V2 system uses a lightweight local storage for inventory states and temporal memory. In production, this can be mapped to a PostgreSQL/MongoDB instance.
 
-## 1. Inventory State (`inventory_items`)
+## 1. Inventory & Track State (`inventory_items`)
 
-| Column        | Type      | Description                                           |
-| ------------- | --------- | ----------------------------------------------------- |
-| `id`          | UUID      | Unique identifier for the object instance.            |
-| `type_id`     | Integer   | ID assigned by DBSCAN/VL-JEPA.                        |
-| `label`       | String    | Semantic label (e.g., "Brand X Milk").                |
-| `confidence`  | Float     | Confidence score from the Executor.                   |
-| `bbox`        | JSON      | [x, y, w, h] of the last detection.                   |
-| `last_seen`   | Timestamp | Last time the object was visually matched.            |
-| `is_occluded` | Boolean   | True if inferred by V-JEPA but not currently visible. |
+| Column              | Type   | Description                                             |
+| ------------------- | ------ | ------------------------------------------------------- |
+| `id`                | UUID   | Unique identifier for the object instance.              |
+| `label`             | String | Semantic label (e.g., "Brand X Milk").                  |
+| `rho`               | Float  | Predicted density from DINOv2 specularity.              |
+| `golden_alpha`      | Float  | Calibrated Alpha parameter for this object type.        |
+| `rho_confidence`    | Float  | MLP prediction confidence.                              |
+| `shield_scores`     | JSON   | {spatial, volumetric, latent} scores from Multi-Shield. |
+| `fusion_confidence` | Float  | Final weighted consensus score.                         |
+| `bbox`              | JSON   | [x, y, w, h] of the last detection.                     |
+| `last_seen`         | Float  | Last relative timestamp seen.                           |
 
-## 2. Temporal Memory (`latent_memory`)
+## 2. Temporal Context (`latent_memory`)
 
-| Column       | Type    | Description                            |
-| ------------ | ------- | -------------------------------------- |
-| `frame_id`   | Integer | Sequential frame ID.                   |
-| `latent_vec` | Blob    | 1024-dim latent embedding from V-JEPA. |
-| `timestamp`  | Float   | Event timestamp in milliseconds.       |
+| Column        | Type    | Description                                        |
+| ------------- | ------- | -------------------------------------------------- |
+| `session_id`  | String  | Re-loadable session identifier.                    |
+| `buffer_size` | Integer | Current size of the PersistentLatentContext deque. |
+| `latent_vec`  | Blob    | 1024-dim context embedding from V-JEPA.            |
+| `timestamp`   | Float   | Relative timestamp in milliseconds.                |
