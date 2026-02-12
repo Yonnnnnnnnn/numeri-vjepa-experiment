@@ -86,7 +86,7 @@ class SegmentationEngine:
         min_mask_area: int = 500,  # Minimum mask area (filter small/far objects)
         max_mask_area: int = 100000,  # Maximum mask area (filter background)
         score_threshold: float = 0.7,
-        roi_margin: float = 0.15,  # Ignore 15% edge of frame (focus on center)
+        roi_margin: float = 0.05,  # Ignore 5% edge of frame (was 15%, now loosened)
     ):
         self.device = device if torch.cuda.is_available() else "cpu"
         self.min_mask_area = min_mask_area
