@@ -715,7 +715,9 @@ class MathUtils:
         Returns:
             Estimated count (float).
         """
-        if v_unit <= 0:
+        if v_unit <= 1e-6:
+            # Safeguard: prevent division by zero or negative/tiny unit volumes
+            # If unit volume is unknown, we cannot estimate count volumetrically.
             return 0.0
 
         return (v_stack * rho) / v_unit

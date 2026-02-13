@@ -257,8 +257,20 @@ class VJEPAEngine:
             latent_map = self.latent_context
 
         if latent_map is None:
+            # Try to recover from disk (Process-Sharing fallback)
+            ctx_path = "vjepa_context_dump.pt"
+            if os.path.exists(ctx_path):
+                try:
+                    loaded = torch.load(ctx_path, map_location=self.device)
+                    self.latent_context = loaded
+                    latent_map = loaded
+                    logging.info("[V-JEPA] Recovered latent context from %s", ctx_path)
+                except Exception as e:
+                    logging.warning("[V-JEPA] Failed to recover context: %s", e)
+
+        if latent_map is None:
             raise RuntimeError(
-                "[V-JEPA] No latent context available. Call encode() first."
+                "[V-JEPA] No latent context available. Call encode() first or ensure context dump exists."
             )
 
         with torch.no_grad():
@@ -366,3 +378,11 @@ class VJEPAEngine:
         self.latent_context = None
         self.context.reset()
         logger.info("[V-JEPA] Context and buffer reset")
+
+    def export_context(self, path: str = "vjepa_context_dump.pt") -> None:
+        """Export current latent context to disk for external visualizers."""
+        if self.latent_context is not None:
+            try:
+                torch.save(self.latent_context, path)
+            except Exception as e:
+                logger.warning("[V-JEPA] Failed to export context: %s", e)

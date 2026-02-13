@@ -320,9 +320,12 @@ def vjepa_brain_node(state: RecursiveFlowState) -> Dict[str, Any]:
             img = cv2.resize(img, (224, 224))  # pylint: disable=no-member
 
         tensor = torch.from_numpy(img).permute(2, 0, 1).float().unsqueeze(0) / 255.0
-        # V-JEPA V3.1: PersistentLatentContext handles buffer
         # The engine instance's context (deque) is updated.
         _ = vjepa.encode(tensor)
+
+        # PERSISTENCE FOR VISUALIZER: Save context to disk
+        # This allows separate visualizer processes (like engine_v2) to access the latent state
+        vjepa.export_context("vjepa_context_dump.pt")
 
         return {}
 
@@ -443,26 +446,53 @@ def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
             # Pattern: "3 objects" or "three objects" or "I see 3"
             count_match = re.search(r"(\d+)\s+object", hypothesis)
             if count_match:
-                slm_confirmed_count = int(count_match.group(1))
-                if (
-                    slm_confirmed_count == perception.n_visible
-                    and perception.n_visible > 0
-                ):
-                    # SLM agrees with visual count -> recalibrate unit volume
-                    # Formula: new_unit_volume = total_observed_volume / n_visible
-                    total_vol = perception.total_observed_volume
-                    if total_vol > 0:
-                        new_unit_volume = total_vol / perception.n_visible
-                        updates["estimated_unit_volume"] = new_unit_volume
-                        logger.info(
-                            "[director] VOLUMETRIC CALIBRATION: SLM confirmed count=%d, "
-                            "recalibrating unit_volume = %.6f m^3",
-                            perception.n_visible,
-                            new_unit_volume,
-                        )
+                try:
+                    slm_confirmed_count = int(count_match.group(1))
+                    if (
+                        slm_confirmed_count == perception.n_visible
+                        and perception.n_visible > 0
+                    ):
+                        # SLM agrees with visual count -> recalibrate unit volume
+                        # Formula: new_unit_volume = total_observed_volume / n_visible
+                        total_vol = perception.total_observed_volume
+                        if total_vol > 0:
+                            new_unit_volume = total_vol / perception.n_visible
+                            updates["estimated_unit_volume"] = new_unit_volume
+                            logger.info(
+                                "[director] VOLUMETRIC CALIBRATION: SLM confirmed count=%d, "
+                                "recalibrating unit_volume = %.6f m^3",
+                                perception.n_visible,
+                                new_unit_volume,
+                            )
+                except Exception as e:
+                    logger.warning("[director] Failed to parse SLM count: %s", e)
+
+    # --- INITIAL VOLUME ESTIMATION FROM SLM ---
+    # If we have an intent but no valid volume prior (still 0 or default 0.001), ask SLM.
+    current_vol = perception.estimated_unit_volume
+    if current_vol <= 0.001:  # Assuming 0.001 is the "uninformed" default
+        # Get target label from updates (if just discovered) or existing state
+        target_list = updates.get(
+            "active_intent", perception.active_intent or list(ctx.main_intent)
+        )
+        target_label = target_list[0] if target_list else "object"
+
+        slm = get_slm_engine()
+        if slm:
+            try:
+                slm_vol = slm.estimate_object_volume(target_label)
+                if slm_vol > 0 and slm_vol != 0.001:
+                    updates["estimated_unit_volume"] = slm_vol
+                    logger.info(
+                        "[director] SLM PHYSICAL PRIOR: Estimated volume for '%s' is %.5f m^3",
+                        target_label,
+                        slm_vol,
+                    )
+            except Exception as e:
+                logger.warning("[director] Failed to get SLM volume prior: %s", e)
 
     # Always ensure active_intent is populated (even if no changes)
-    if "active_intent" not in updates and not perception.active_intent:
+    if not perception.active_intent and "active_intent" not in updates:
         updates["active_intent"] = list(ctx.main_intent)
 
     if updates:
@@ -609,16 +639,40 @@ def sam2_depth_node(state: RecursiveFlowState) -> Dict[str, Any]:
 
             # Scale depth map to real-world units (meters)
             # depth_map is normalized 0-1, scale_factor (e.g. 1.0m) gives physical Z
-            scaled_depth = depth_map * ctx.depth_scale_factor
+            scale_factor = ctx.depth_scale_factor
+
+            # Sanity check: if scale factor is clearly in cm (>10), convert to meters
+            if scale_factor > 10.0:
+                logger.warning(
+                    "[sam2_depth_node] Depth scale factor %.1f likely in cm, converting to meters",
+                    scale_factor,
+                )
+                scale_factor /= 100.0
+
+            # Normalize depth map if it's 8-bit (0-255) to 0-1 range before scaling
+            if np.max(depth_map) > 2.0:  # Assuming anything > 2.0 is not meters
+                logger.warning(
+                    "[sam2_depth_node] Depth map values > 2.0 (max=%.1f), normalizing to 0-1",
+                    np.max(depth_map),
+                )
+                scaled_depth = (depth_map / 255.0) * scale_factor
+            else:
+                scaled_depth = depth_map * scale_factor
 
             total_v = 0.0
+            # Use camera intrinsics if available inside ctx, else default
+            # Note: ctx is GlobalContext (Pydantic), so use getattr or direct access
+            intrinsics = getattr(ctx, "camera_intrinsics", {}) or {}
+            fx = intrinsics.get("fx", 500.0)
+            fy = intrinsics.get("fy", 500.0)
+
             for cluster in clusters:
                 mask = cluster["combined_mask"]
                 cluster_v, cluster_pts = MathUtils.project_to_physical_volume(
                     depth_map=scaled_depth,
                     mask=mask,
-                    fx=500.0,
-                    fy=500.0,
+                    fx=fx,
+                    fy=fy,
                 )
                 total_v += cluster_v
                 cluster["points"] = cluster_pts  # Store real 3D points for V3 Math

@@ -164,3 +164,53 @@ class SLMEngine:
         if len(sentences) > 0:
             return sentences[0].strip()
         return "Unknown anomaly."
+
+    def estimate_object_volume(
+        self, label: str, image: Optional[np.ndarray] = None
+    ) -> float:
+        """
+        Ask SLM for a physical volume estimate (prior) for a given object label.
+
+        Args:
+            label: Object label (e.g., "bottle", "person").
+            image: Context image (optional).
+
+        Returns:
+            Estimated volume in m^3 (float).
+        """
+        self._ensure_model_loaded()
+
+        prompt = (
+            f"Estimate the average physical volume of a '{label}' in cubic meters (m^3). "
+            "Consider standard real-world dimensions. "
+            "Reply with a SINGLE numeric value in scientific notation or decimal. "
+            "Example: 0.0005. Do NOT include units or explanation."
+        )
+
+        # Use a blank image if none provided (pure knowledge retrieval)
+        if image is None:
+            image = np.zeros((224, 224, 3), dtype=np.uint8)
+
+        try:
+            logger.info("[SLMEngine] Requesting volume prior for '%s'", label)
+            response = self.vlm.predict(image, prompt_text=prompt)
+            logger.info("[SLMEngine] Volume Response: %s", response)
+
+            # Parse number
+            import re
+
+            # Match scientific notation or float: 1.2e-3, 0.005, 5e-4
+            match = re.search(r"[-+]?\d*\.?\d+([eE][-+]?\d+)?", response)
+            if match:
+                val = float(match.group())
+                # Sanity bounds (filters out hallucinations like 1000m^3 for a bottle)
+                if val <= 0:
+                    return 0.001
+                return val
+            else:
+                logger.warning("[SLMEngine] Could not parse volume from: %s", response)
+                return 0.001  # Fallback
+
+        except Exception as e:
+            logger.error("[SLMEngine] Volume estimation failed: %s", e)
+            return 0.001
