@@ -62,5 +62,5 @@ This document defines the interfaces between the core modules of the Antigravity
 The LangGraph state is governed by the following Pydantic schemas in `graph_state.py`:
 
 - **`GlobalContext`**: `session_id`, `main_intent`, `unit_volume_prior`, `density_prior`.
-- **`PerceptionState`**: `rho`, `golden_alpha`, `v_stack`, `n_volumetric_range`, `fusion_confidence`, `shield_scores`.
+- **`PerceptionState`**: `rho`, `golden_alpha`, `total_observed_volume`, `n_volumetric_range`, `fusion_confidence`, `shield_scores`.
 - **`DecisionState`**: `status` (loop/exit), `anomaly_type`, `loop_count`.

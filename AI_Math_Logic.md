@@ -94,8 +94,9 @@ Dimana $(c_x, c_y)$ adalah _principal point_ dan $(f_x, f_y)$ adalah _focal leng
 
 ### 4.2. Lattice Counting & Riemann Sums (V-Core)
 
-Volume total $V_{total}$ dihitung menggunakan integrasi numerik pada hull objek:
-$$V_{total} = \sum_{i \in Mask} \Delta x_i \cdot \Delta y_i \cdot \Delta z_i$$
+Volume total $V_{total}$ dihitung dengan menjumlahkan estimasi volume dari setiap cluster volumetrik yang terdeteksi:
+$$V_{total} = \sum_{c \in Clusters} MathUtils.estimate\_volume\_heuristic(DepthMap, c_{mask})$$
+Dimana $c_{mask}$ adalah masker gabungan untuk cluster tersebut.
 
 ### 4.3. Physical Density Sensing ($\rho$)
 

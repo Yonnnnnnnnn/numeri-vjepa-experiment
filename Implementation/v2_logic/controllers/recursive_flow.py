@@ -136,8 +136,11 @@ def get_segmentation_engine():
         try:
             from ..models.segmentation_engine import SegmentationEngine
 
-            _segmentation_engine = SegmentationEngine()
-            logger.info("[Engines] SegmentationEngine initialized")
+            # Loosened ROI margin from 0.05 to 0.02 to capture objects at the very edge of the frame
+            _segmentation_engine = SegmentationEngine(roi_margin=0.02)
+            logger.info(
+                "[Engines] SegmentationEngine initialized with loosened ROI (0.02)"
+            )
         except Exception as e:
             logger.warning("[Engines] Failed to load SegmentationEngine: %s", e)
     return _segmentation_engine
@@ -597,9 +600,36 @@ def sam2_depth_node(state: RecursiveFlowState) -> Dict[str, Any]:
         masks = merged_res.masks
         updates["masks"] = masks
 
-        # Detect volumetric clusters for AlphaHull
+        # 3. Detect volumetric clusters for AlphaHull
         if depth_map is not None:
             clusters = seg_engine.detect_volumetric_clusters(merged_res, depth_map)
+
+            # --- VOLUME AGGREGATION FIX ---
+            from ..utils.math_utils import MathUtils
+
+            # Scale depth map to real-world units (meters)
+            # depth_map is normalized 0-1, scale_factor (e.g. 1.0m) gives physical Z
+            scaled_depth = depth_map * ctx.depth_scale_factor
+
+            total_v = 0.0
+            for cluster in clusters:
+                mask = cluster["combined_mask"]
+                cluster_v, cluster_pts = MathUtils.project_to_physical_volume(
+                    depth_map=scaled_depth,
+                    mask=mask,
+                    fx=500.0,
+                    fy=500.0,
+                )
+                total_v += cluster_v
+                cluster["points"] = cluster_pts  # Store real 3D points for V3 Math
+
+            # Convert cubic meters to cm^3 for easier reading in logs/math
+            updates["total_observed_volume"] = total_v * 1e6
+            logger.info(
+                "[sam2_depth_node] Aggregated volume: %.2f cm^3 from %d clusters",
+                total_v * 1e6,
+                len(clusters),
+            )
 
     # Store clusters for later V3 Math processing
     updates["point_cloud_summary"] = {"clusters": clusters}
@@ -668,22 +698,38 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
     if perception.n_visible == 1 and perception.golden_alpha == 0:
         logger.info("[v3_math_node] Step 3.5: Calibrating Golden Alpha")
         try:
-            # Mock points for binary search (in reality, extracted from mask)
-            # Find alpha such that HullVolume(points, alpha) == target_unit_v
-            # For this node, we'll simulate the search result
-            simulated_points = np.random.rand(100, 3)  # Placeholder
+            # Use real points from the cluster if available
+            calibration_points = None
+            if clusters and "points" in clusters[0]:
+                calibration_points = clusters[0]["points"]
+            else:
+                # Fallback to simple simulated points only if no cluster data
+                calibration_points = np.random.rand(100, 3)
+
             golden_alpha = alpha_wrapper.find_golden_alpha(
-                simulated_points, target_unit_v
+                calibration_points, target_unit_v
             )
             updates["golden_alpha"] = float(golden_alpha)
-            logger.info("[v3_math_node] Golden Alpha calibrated: %.4f", golden_alpha)
+            logger.info(
+                "[v3_math_node] Golden Alpha calibrated: %.4f using %d points",
+                golden_alpha,
+                len(calibration_points),
+            )
         except Exception as e:
             logger.warning("[v3_math_node] Calibration failed: %s", e)
 
-    # 3. Step 8-9: Final Volumetric Count
-    # Formula: N_vol = (V_stack * rho) / V_unit
+    # 3. Step 8-9: Final Volumetric Count (CORE 3DC LOGIC)
+    # Formula: N_vol = (V_stack * rho) / v_unit
     n_vol = MathUtils.calculate_volumetric_count(
         v_stack=v_stack, rho=perception.rho, v_unit=target_unit_v
+    )
+
+    logger.info(
+        "[v3_math_node] 3DC Result: %.2f units (From V_stack: %.2f cm^3, rho: %.2f, V_unit: %.2f)",
+        n_vol,
+        v_stack,
+        perception.rho,
+        target_unit_v,
     )
 
     # Phase 6: Sanity Guard Check

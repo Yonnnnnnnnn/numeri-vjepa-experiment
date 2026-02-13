@@ -172,7 +172,7 @@ class PerceptionState(BaseModel):
     )
     total_observed_volume: float = Field(
         default=0.0,
-        description="Most recent total volume from point cloud (m^3)",
+        description="Most recent total volume from point cloud (cm^3)",
     )
     golden_alpha: float = Field(
         default=0.0,

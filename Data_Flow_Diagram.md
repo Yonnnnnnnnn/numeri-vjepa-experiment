@@ -36,7 +36,7 @@ sequenceDiagram
     D->>S: Step 2-3: Target Intent & Dynamic Bounds
 
     Note over S: Phase 1: Orbit (Discovery)
-    S->>M: Step 4-7: Volume & Point Clouds
+    S->>M: Step 4-7: Per-Cluster Volumes & Point Clouds
     S->>F: Step 4-7: Visible Counts & Spikes
 
     Note over M,F: Phase 2: Audit

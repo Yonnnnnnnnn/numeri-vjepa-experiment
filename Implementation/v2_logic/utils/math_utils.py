@@ -449,6 +449,48 @@ class MathUtils:
     # =========================================================================
 
     @staticmethod
+    def project_to_physical_volume(
+        depth_map: np.ndarray,
+        mask: np.ndarray,
+        fx: float = 500.0,
+        fy: float = 500.0,
+        cx: Optional[float] = None,
+        cy: Optional[float] = None,
+    ) -> Tuple[float, np.ndarray]:
+        """
+        Project 2D depth + mask to 3D physical volume and return both volume and points.
+
+        Returns:
+            Tuple[volume_m3, Nx3_points]
+        """
+        h, w = depth_map.shape
+        if cx is None:
+            cx = w / 2
+        if cy is None:
+            cy = h / 2
+
+        # Apply mask and filter valid depth
+        masked_depth = depth_map * mask
+        u = np.arange(w)
+        v = np.arange(h)
+        uu, vv = np.meshgrid(u, v)
+
+        valid_mask = (masked_depth > 0) & (mask > 0)
+        if not np.any(valid_mask):
+            return 0.0, np.zeros((0, 3))
+
+        z = masked_depth[valid_mask]
+        x = (uu[valid_mask] - cx) * z / fx
+        y = (vv[valid_mask] - cy) * z / fy
+
+        points = np.stack((x, y, z), axis=1)
+
+        # Calculate volume
+        volume = MathUtils.calculate_convex_hull_volume(points.tolist())
+
+        return volume, points
+
+    @staticmethod
     def estimate_volume_heuristic(
         depth_map: np.ndarray,
         mask: np.ndarray,

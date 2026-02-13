@@ -29,7 +29,7 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 
 - **v2e**: Asynchronous event source for residue detection.
 - **SAM2**: Union Masking and Cluster Detection for occlusion management.
-- **Depth Anything V2**: Physical truth source for volumetric scaling.
+- **Depth Anything V2**: Physical truth source for volumetric scaling (Cluster-based estimation).
 - **DINOv2**: Semantic feature source for ReID and Density Sensing.
 
 ### 1.2. Cognitive Layer (Otak)
