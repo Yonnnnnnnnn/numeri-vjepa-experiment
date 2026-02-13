@@ -677,10 +677,12 @@ def sam2_depth_node(state: RecursiveFlowState) -> Dict[str, Any]:
                 total_v += cluster_v
                 cluster["points"] = cluster_pts  # Store real 3D points for V3 Math
 
-            # Convert cubic meters to cm^3 for easier reading in logs/math
-            updates["total_observed_volume"] = total_v * 1e6
+            # Store in cubic meters (standard unit)
+            # No longer multiplying by 1e6 to avoid scale confusion
+            updates["total_observed_volume"] = total_v
             logger.info(
-                "[sam2_depth_node] Aggregated volume: %.2f cm^3 from %d clusters",
+                "[sam2_depth_node] Aggregated volume: %.6f m^3 (%.2f cm^3) from %d clusters",
+                total_v,
                 total_v * 1e6,
                 len(clusters),
             )
@@ -779,7 +781,7 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
     )
 
     logger.info(
-        "[v3_math_node] 3DC Result: %.2f units (From V_stack: %.2f cm^3, rho: %.2f, V_unit: %.2f)",
+        "[v3_math_node] 3DC Result: %.2f units (From V_stack: %.6f m^3, rho: %.2f, V_unit: %.6f m^3)",
         n_vol,
         v_stack,
         perception.rho,

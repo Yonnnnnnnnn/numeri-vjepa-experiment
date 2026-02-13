@@ -708,9 +708,9 @@ class MathUtils:
         N_vol = (V_stack × ρ) / V_unit
 
         Args:
-            v_stack: Total volume of the stack (cm³).
+            v_stack: Total volume of the stack (m³).
             rho: Packing density/efficiency (0-1). 1.0 = perfect packing.
-            v_unit: Known volume of a single object (cm³).
+            v_unit: Known volume of a single object (m³).
 
         Returns:
             Estimated count (float).
@@ -732,8 +732,8 @@ class MathUtils:
 
         Args:
             n_visible: Trusted visible count.
-            v_stack: Total volume of the stack (cm³).
-            v_unit: Known volume of a single object (cm³).
+            v_stack: Total volume of the stack (m³).
+            v_unit: Known volume of a single object (m³).
 
         Returns:
             Estimated packing efficiency ρ (0-1).

@@ -204,14 +204,24 @@ class VJEPAEngine:
             Latent tensor from the ViT encoder.
         """
         with torch.no_grad():
-            # Update persistent context with the new frame
-            if frame_tensor.ndim == 4 and frame_tensor.shape[0] == 1:
-                self.context.update(frame_tensor.squeeze(0).cpu())
+            # Handle 5D temporal batch (B, C, T, H, W) directly
+            if frame_tensor.ndim == 5:
+                context_tensor = frame_tensor
+                # Update internal buffer with frames from this batch for consistency
+                if frame_tensor.shape[0] == 1:
+                    t_dim = frame_tensor.shape[2]
+                    for i in range(t_dim):
+                        # Ensure we don't exceed queue size
+                        self.context.update(frame_tensor[0, :, i, :, :].cpu())
+            else:
+                # Update persistent context with the new frame (4D)
+                if frame_tensor.ndim == 4 and frame_tensor.shape[0] == 1:
+                    self.context.update(frame_tensor.squeeze(0).cpu())
 
-            # Build temporal context from sliding window
-            context_tensor = self.context.get_context_tensor()
+                # Build temporal context from sliding window
+                context_tensor = self.context.get_context_tensor()
+
             context_tensor = context_tensor.to(self.device)
-
             latent = self.encoder(context_tensor)
             self.latent_context = latent
         return latent
