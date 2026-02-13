@@ -7,7 +7,7 @@ Start Symbol : APIContract (this document)
 
 Non-Terminals :
 ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
-│ <EngineAPI> → VJEPAEngine | Director | Executor │
+│ <EngineAPI> → VJEPAEngine | SLMEngine | Director | Executor │
 │ <LoopAPI> → Feedback mechanisms │
 └───────────────────────────────────────────────────────────────────────────┘
 
@@ -51,11 +51,23 @@ This document defines the interfaces between the core modules of the Antigravity
   - Input: Raw point cloud.
   - Output: true if point set is valid for AlphaHull (non-coplanar, N>=4).
 
-### 1.4. Logic Gate (`LogicGate`)
+### 1.5. Targeted SLM (`SLMEngine`)
 
-- **`evaluate(perception: PerceptionState) -> GateDecision`**
-  - Input: Holistic state containing visible vs volumetric vs spike metrics.
-  - Output: `action` (exit/loop) and `anomaly_type`.
+- **`generate_reasoning(image, anomaly_type, context) -> ReasoningResult`**
+  - Input: Current frame, anomaly classification, and state context.
+  - Output: Textual explanation and next-step hypothesis.
+- **`estimate_object_volume(label: str) -> float`**
+  - Input: Object label (e.g., "bottle").
+  - Output: SLM-derived physical volume prior ($V_{prior}$) in $m^3$.
+
+### 1.6. V-JEPA Engine (`VJEPAEngine`)
+
+- **`encode(video_tensor) -> Latent`**
+  - Input: Temporal frame sequence.
+  - Output: Hierarchical latent feature map.
+- **`export_context(path: str)`**
+  - Input: Target file path.
+  - Action: Persists latent state to disk for external process sharing (Visualizer).
 
 ## 2. State Contract (RecursiveFlowState)
 

@@ -64,3 +64,11 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 ### 3.3. Coordinate Scaling
 
 Pemetaan spasial disinkronkan antara loop logika (224x224) dan visualizer (resolusi asli video) melalui transformasi koordinat linier untuk memastikan representasi anomali yang akurat.
+
+### 3.4. Persistent Memory Persistence (Process Sharing)
+
+- To support separate visualization or analysis processes without re-encoding, V-JEPA latent states are persisted to shared disk (`vjepa_context_dump.pt`). This enables "Process-Sharing Fallback" where a decoupled visualizer can recover target object embeddings even if the main orchestration engine is running in a different memory space.
+
+### 3.5. SLM Physical Priors
+
+- **Knowledge-Driven Calibration**: The system utilizes the **SLM Reasoner** not just for anomaly explanation, but as a source of physical world knowledge. It queries the SLM for object volume priors ($V_{unit}$) to bootstrap the volumetric calculation before empirical calibration is achieved.
