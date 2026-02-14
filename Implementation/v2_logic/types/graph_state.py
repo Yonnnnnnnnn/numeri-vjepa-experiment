@@ -84,7 +84,7 @@ class GlobalContext(BaseModel):
         default=0.001, description="Estimated volume of a single target object (m^3)"
     )
     depth_scale_factor: float = Field(
-        default=1.0, description="Conversion factor from relative depth to meters"
+        default=0.25, description="Conversion factor from relative depth to meters"
     )
     density_prior: float = Field(
         default=1.0, description="Initial density estimate (rho) for objects"
