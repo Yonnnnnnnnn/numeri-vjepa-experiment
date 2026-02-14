@@ -668,14 +668,31 @@ def sam2_depth_node(state: RecursiveFlowState) -> Dict[str, Any]:
 
             for cluster in clusters:
                 mask = cluster["combined_mask"]
+                # 3.1 Project to Physical Volume
                 cluster_v, cluster_pts = MathUtils.project_to_physical_volume(
                     depth_map=scaled_depth,
                     mask=mask,
                     fx=fx,
                     fy=fy,
                 )
-                total_v += cluster_v
+
+                # 3.2 Extract 2D Bounding Box for Spatial Branding (Phase 4)
+                y_coords, x_coords = np.where(mask > 0)
+                if len(x_coords) > 0:
+                    x1, y1 = np.min(x_coords), np.min(y_coords)
+                    x2, y2 = np.max(x_coords), np.max(y_coords)
+                    cluster["bbox"] = {
+                        "x": float(x1),
+                        "y": float(y1),
+                        "w": float(x2 - x1),
+                        "h": float(y2 - y1),
+                    }
+                else:
+                    cluster["bbox"] = {"x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0}
+
+                cluster["volume_m3"] = cluster_v
                 cluster["points"] = cluster_pts  # Store real 3D points for V3 Math
+                total_v += cluster_v
 
             # Store in cubic meters (standard unit)
             # No longer multiplying by 1e6 to avoid scale confusion
@@ -737,10 +754,40 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
     if not clusters:
         return {}
 
-    # 1. Point Cloud Extraction (Heuristic/Simplified for V3.1)
-    # In full production, this would use Depth + Mask to project points.
-    # Here we use the cumulative volume from Depth node as a base V_stack.
-    v_stack = perception.total_observed_volume
+    # 1. Intent-Based Cluster Filtering (Phase 4: Spatial Branding)
+    # We only want to include volume from clusters that match our target intent.
+    target_intents = ctx.main_intent or ["cup"]
+    raw_detections = perception.raw_detections or []
+
+    filtered_clusters = []
+    v_stack = 0.0
+
+    for cluster in clusters:
+        cluster_bbox = cluster.get("bbox")
+        if not cluster_bbox or cluster_bbox["w"] == 0:
+            continue
+
+        # Check if this cluster overlaps with any detection matching our target intent
+        is_target = False
+        for det in raw_detections:
+            det_label = det.get("label", "").lower()
+            if any(intent.lower() in det_label for intent in target_intents):
+                # Calculate IoU between cluster and detection
+                iou = MathUtils.calculate_bbox_overlap(cluster_bbox, det["bbox"])
+                if iou > 0.3:  # 30% overlap threshold for branding
+                    is_target = True
+                    break
+
+        if is_target:
+            filtered_clusters.append(cluster)
+            v_stack += cluster.get("volume_m3", 0.0)
+        else:
+            logger.info(
+                "[v3_math_node] Excluding cluster with mean_depth %.2f (No overlapping target intent)",
+                cluster.get("mean_depth", 0.0),
+            )
+
+    # 2. V3 Core Calibration
     target_unit_v = (
         perception.estimated_unit_volume
         if perception.estimated_unit_volume > 0
