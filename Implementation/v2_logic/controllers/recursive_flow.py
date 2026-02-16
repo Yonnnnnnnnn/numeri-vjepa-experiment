@@ -362,38 +362,86 @@ def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
         hypothesis = decision.slm_hypothesis.lower()
         logger.info("[director] SLM Hypothesis received: %s", decision.slm_hypothesis)
 
-        # --- DISCOVERY LOOP: Parse for new object labels ---
-        # Common object keywords to look for
-        discovery_keywords = [
-            "ball",
-            "sphere",
-            "bottle",
-            "mug",
-            "glass",
-            "plate",
-            "bowl",
-            "hand",
-            "finger",
-            "arm",
-            "person",
-            "box",
-            "container",
+        # --- DISCOVERY LOOP V3.3: Genesis Intent Matching ---
+        # Replace hardcoded keywords with dynamic matching against genesis_intents
+        genesis_labels = [
+            gi.get("label", "").lower()
+            for gi in perception.genesis_intents
+            if not gi.get("is_contra", False)
+        ]
+        contra_labels = [
+            ci.get("label", "").lower() for ci in perception.contra_intents
         ]
 
         discovered_labels = []
-        for keyword in discovery_keywords:
-            if keyword in hypothesis and keyword not in current_intent:
-                discovered_labels.append(keyword)
+        new_contras = []
+
+        # Parse hypothesis for mentioned objects
+        for genesis_label in genesis_labels:
+            # Check if any genesis intent label appears in the hypothesis
+            if genesis_label in hypothesis and genesis_label not in [
+                x.lower() for x in current_intent
+            ]:
+                discovered_labels.append(genesis_label)
+
+        # Check for known Contra Intents mentioned (should stay suppressed)
+        for contra_label in contra_labels:
+            if contra_label in hypothesis:
+                logger.info(
+                    "[director] IMMUNITY: Known contra intent '%s' detected, ignoring",
+                    contra_label,
+                )
+
+        # Check for NEW unknown objects not in genesis or contra lists
+        # These need VLM classification (Step 12: is it New Genesis or Contra?)
+        import re
+
+        # Look for quoted object names or "found X" patterns
+        mentioned_objects = re.findall(
+            r'"([^"]+)"|found\s+(?:a|an)?\s*(\w+)', hypothesis
+        )
+        for match_groups in mentioned_objects:
+            obj_name = (match_groups[0] or match_groups[1]).lower().strip()
+            if not obj_name:
+                continue
+            is_known_genesis = any(obj_name in gl for gl in genesis_labels)
+            is_known_contra = any(obj_name in cl for cl in contra_labels)
+            is_current = obj_name in [x.lower() for x in current_intent]
+
+            if not is_known_genesis and not is_known_contra and not is_current:
+                # Step 12: Unknown anomaly → classify as Contra Intent
+                # (VLM already analyzed in genesis; anything new is a distractor)
+                new_contras.append(
+                    {
+                        "label": obj_name,
+                        "latent_id": f"contra_{decision.loop_count}_{obj_name}",
+                        "bbox": {},
+                    }
+                )
+                logger.info(
+                    "[director] STEP 12: New Contra Intent registered: '%s'",
+                    obj_name,
+                )
 
         if discovered_labels:
-            # Type Guard: Ensure we're appending strings, not lists
             for label in discovered_labels:
                 if isinstance(label, str) and label not in current_intent:
                     current_intent.append(label)
             logger.info(
-                "[director] DISCOVERY LOOP: Added new labels: %s", discovered_labels
+                "[director] DISCOVERY LOOP V3.3: Added genesis labels: %s",
+                discovered_labels,
             )
             updates["active_intent"] = current_intent
+
+        if new_contras:
+            updated_contras = list(perception.contra_intents) + new_contras
+            updates["contra_intents"] = updated_contras
+            # Step 12.1: Generate negative masks for new contras
+            # (Actual mask generation happens in fusion_engine_node)
+            logger.info(
+                "[director] STEP 12.1: %d new Contra Intents → Negative Masks pending",
+                len(new_contras),
+            )
 
         # --- REFINEMENT LOOP: Parse for occlusion/sensitivity hints ---
         refinement_hints = [
@@ -1106,38 +1154,49 @@ def build_recursive_graph() -> StateGraph:
     Architecture:
     ```
     START
-      ├─(parallel)─> v2e_sensor_node ────────────────────┐
-      └─(parallel)─> vjepa_brain_node                    │
-                            │                            │
-                            v                            │
-                     vljepa_director_node                │
-                       ├───────────────┬─────────────────┤
-                       v               v                 v
-              countvid_executor   sam2_depth         (v2e output)
-                       │               │                 │
-                       └───────────────┴─────────────────┘
-                                       │
-                                       v
-                              fusion_engine_node
-                                       │
-                                       v
-                                logic_gate_node
-                                       │
-                          ┌────────────┴────────────┐
-                          v                         v
-                        (exit)              targeted_slm_node
-                          │                         │
-                          v                         v
-                         END               interpolation_node
-                                                    │
-                                                    v
-                                           vljepa_director_node (loop)
+      │
+      v
+    intent_genesis_node (Step 0: Scout + Analyst)
+      │
+      v
+    vjepa_brain_node (Step 1: Anchor)
+      │
+      v
+    vljepa_director_node (Step 2: Director)
+      ├───────────────┬───────────────┬─────────────┐
+      v               v               v             v
+    countvid     sam2_depth     density_sense    v2e_sensor
+      │               │               │             │
+      └───────────────┴───────────────┴─────────────┘
+                              │
+                              v
+                       v3_math_node (Steps 3.5-9)
+                              │
+                              v
+                     fusion_engine_node (Step 10)
+                              │
+                              v
+                       logic_gate_node (Step 11)
+                              │
+                 ┌────────────┴────────────┐
+                 v                         v
+               (exit)              targeted_slm_node (Step 12)
+                 │                         │
+                 v                         v
+                END               interpolation_node
+                                           │
+                                           v
+                                  vljepa_director_node (loop)
     ```
     """
     # Initialize the graph with the state schema
     graph = StateGraph(RecursiveFlowState)
 
     # --- Add Nodes ---
+    # V3.3: Import Intent Genesis (Step 0)
+    from .intent_genesis_node import intent_genesis_node
+
+    graph.add_node("intent_genesis_node", intent_genesis_node)
     graph.add_node("v2e_sensor_node", v2e_sensor_node)
     graph.add_node("vjepa_brain_node", vjepa_brain_node)
     graph.add_node("vljepa_director_node", vljepa_director_node)
@@ -1150,12 +1209,11 @@ def build_recursive_graph() -> StateGraph:
     graph.add_node("targeted_slm_node", targeted_slm_node)
     graph.add_node("interpolation_node", interpolation_node)
 
-    # --- Add Edges (Sovereignty Chain) ---
+    # --- Add Edges (V3.3 Sovereignty Chain) ---
 
-    # START → Anchor
-    graph.add_edge(START, "vjepa_brain_node")
-
-    # Anchor → Director (Step 2)
+    # V3.3: START → Intent Genesis (Step 0) → Anchor (Step 1) → Director (Step 2)
+    graph.add_edge(START, "intent_genesis_node")
+    graph.add_edge("intent_genesis_node", "vjepa_brain_node")
     graph.add_edge("vjepa_brain_node", "vljepa_director_node")
 
     # Director → Parallel Senses (Sovereignties 1, 2, 3)

@@ -27,8 +27,10 @@ The following diagram represents the system as a Category where **Objects** are 
 ```mermaid
 graph TD
     %% Define Objects (Nodes)
-    vjepa_brain_node("vjepa_brain_node<br>(Temporal Context)")
-    vljepa_director_node("vljepa_director_node<br>(Intent & Calibration)")
+    %% Define Objects (Nodes)
+    intent_genesis_node("intent_genesis_node<br>(Step 0: Scout & Analyst)")
+    vjepa_brain_node("vjepa_brain_node<br>(Step 1: Anchor)")
+    vljepa_director_node("vljepa_director_node<br>(Step 2-3: Intent & Calibration)")
     v2e_sensor_node("v2e_sensor_node<br>(Residue Guard)")
     sam2_depth_node("sam2_depth_node<br>(3D Geometry)")
     density_sensing_node("density_sensing_node<br>(Density Sensing)")
@@ -38,8 +40,9 @@ graph TD
     logic_gate_node("logic_gate_node<br>(Sovereignty Guard)")
     targeted_slm_node("targeted_slm_node<br>(Reasoning Hook)")
 
-    %% Define Sovereignty Flow (13-Step)
-    START["START"] -- "Step 1" --> vjepa_brain_node
+    %% Define Sovereignty Flow (14-Step Recursive)
+    START["START"] -- "Step 0: Genesis" --> intent_genesis_node
+    intent_genesis_node -- "Step 1: Anchor" --> vjepa_brain_node
     vjepa_brain_node -- "Step 2-3" --> vljepa_director_node
     vljepa_director_node -- "Step 4-7: Orbit" --> v2e_sensor_node
     vljepa_director_node -- "Step 4-7: Orbit" --> sam2_depth_node
@@ -60,5 +63,5 @@ graph TD
     %% Styling
     linkStyle default stroke-width:2px,fill:none,stroke:white;
     classDef object fill:#1a1a1a,stroke:#4a4a4a,stroke-width:2px,color:white;
-    class vjepa_brain_node,vljepa_director_node,v2e_sensor_node,sam2_depth_node,density_sensing_node,countvid_executor_node,v3_math_node,fusion_engine_node,logic_gate_node,targeted_slm_node object;
+    class intent_genesis_node,vjepa_brain_node,vljepa_director_node,v2e_sensor_node,sam2_depth_node,density_sensing_node,countvid_executor_node,v3_math_node,fusion_engine_node,logic_gate_node,targeted_slm_node object;
 ```

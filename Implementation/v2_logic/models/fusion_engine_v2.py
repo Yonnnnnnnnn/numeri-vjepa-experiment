@@ -26,9 +26,11 @@ Terminals       : numpy.ndarray, float, int, List, Dict
 
 Production Rules:
   FusionEngineV2 → __init__ + fuse_spike_mask + run_shields
+                 + suppress_contra_intents
   run_shields    → shield_spatial + shield_volumetric + shield_latent
                  → weighted_sum → fusion_confidence
-  fuse_spike_mask → subtract_masks + calculate_residue → FusionResult
+  fuse_spike_mask → suppress_contras + subtract_masks + calculate_residue
+                 → FusionResult
 ═══════════════════════════════════════════════════════════════════════════════
 
 Pattern: Strategy + Chain of Responsibility
@@ -126,6 +128,10 @@ class FusionEngineV2:
         }
         self.confidence_threshold = 0.6  # Below this → SLM Audit
 
+        # V3.3: Negative mask storage for Contra Intent suppression
+        self._negative_masks: List[np.ndarray] = []
+        self._negative_mask_dilation_px: int = 5  # Prevent geometric leakage
+
     def fuse_spike_mask(
         self,
         spike_map: np.ndarray,
@@ -162,6 +168,17 @@ class FusionEngineV2:
         # Calculate masked spike energy (explained by detections)
         masked_spike = spike_map * combined_mask
         masked_energy = float(np.sum(masked_spike))
+
+        # V3.3: Subtract negative masks (Contra Intent suppression)
+        # This prevents distractors from triggering anomaly alarms
+        contra_mask = self._build_combined_negative_mask(h, w)
+        if contra_mask is not None:
+            # Energy inside contra masks is "explained" (suppressed)
+            spike_map = spike_map * (1 - contra_mask)
+            logger.debug(
+                "[FusionV2] Contra mask applied: suppressed %.2f%% of spike energy",
+                float(np.sum(contra_mask)) / (h * w) * 100,
+            )
 
         # Calculate residual (unexplained) energy
         residual_map = spike_map * (1 - combined_mask)
@@ -477,6 +494,76 @@ class FusionEngineV2:
             )
 
         return fusion_result
+
+    def suppress_contra_intents(
+        self,
+        negative_masks: List[np.ndarray],
+    ) -> None:
+        """
+        V3.3 Step 12.2: Register Contra Intent negative masks for permanent
+        suppression. Once registered, energy inside these masks will never
+        trigger anomaly alarms.
+
+        Args:
+            negative_masks: List of binary masks (H, W) for each distractor.
+                           Typically generated from SAM2 segmenting the contra object.
+        """
+        for mask in negative_masks:
+            if mask is not None and mask.ndim >= 2:
+                self._negative_masks.append(mask.astype(np.float32))
+
+        logger.info(
+            "[FusionV2] Registered %d negative masks (total: %d)",
+            len(negative_masks),
+            len(self._negative_masks),
+        )
+
+    def _build_combined_negative_mask(
+        self,
+        target_h: int,
+        target_w: int,
+    ) -> Optional[np.ndarray]:
+        """
+        Combine all registered negative masks into one, with dilation
+        to prevent geometric leakage at mask boundaries.
+
+        Args:
+            target_h: Target height for resizing.
+            target_w: Target width for resizing.
+
+        Returns:
+            Combined binary mask (H, W) or None if no negative masks.
+        """
+        if not self._negative_masks:
+            return None
+
+        import cv2  # pylint: disable=import-outside-toplevel
+
+        combined = np.zeros((target_h, target_w), dtype=np.float32)
+
+        for mask in self._negative_masks:
+            # Resize mask if dimensions don't match
+            if mask.shape[:2] != (target_h, target_w):
+                mask_resized = cv2.resize(
+                    mask, (target_w, target_h), interpolation=cv2.INTER_NEAREST
+                )
+            else:
+                mask_resized = mask
+
+            combined = np.maximum(combined, mask_resized)
+
+        # Apply dilation to prevent leakage at boundaries
+        dilation_px = self._negative_mask_dilation_px
+        if dilation_px > 0:
+            kernel = cv2.getStructuringElement(
+                cv2.MORPH_ELLIPSE, (dilation_px * 2 + 1, dilation_px * 2 + 1)
+            )
+            combined = cv2.dilate(combined, kernel, iterations=1)
+
+        # Clip to binary [0, 1]
+        combined = np.clip(combined, 0.0, 1.0)
+
+        return combined
 
 
 if __name__ == "__main__":

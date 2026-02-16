@@ -25,14 +25,16 @@ Terminals       : str, int, float, List, Dict, Tuple, Optional, Literal
 
 Production Rules:
   GraphStateModels     → imports + <ContextModels> + <StateModels> + <RootContainer>
-  <ContextModels>      → GlobalContext
-  <StateModels>        → PerceptionState | DecisionState | OutputAccumulator
+  <ContextModels>      → GlobalContext (user_prompt, main_intent, priors)
+  <StateModels>        → PerceptionState (genesis/contra intents, negative masks)
+                       | DecisionState | OutputAccumulator
   <RootContainer>      → RecursiveFlowState(TypedDict)
 ═══════════════════════════════════════════════════════════════════════════════
 
 Pattern: Data Transfer Object (DTO)
 - Encapsulates state data for transfer between LangGraph nodes.
 - Provides validation and serialization via Pydantic.
+- V3.3: Added Intent Genesis & Contra Intent Immunity fields.
 """
 
 import operator
@@ -74,6 +76,11 @@ class GlobalContext(BaseModel):
     session_id: str = Field(..., description="Unique identifier for this session")
     main_intent: List[str] = Field(
         default_factory=list, description="List of target object labels to count"
+    )
+    # V3.3: Raw user prompt for Intent Genesis (Step 0)
+    user_prompt: str = Field(
+        default="",
+        description="Raw user prompt (e.g., 'count soda') for Intent Genesis",
     )
     start_time: float = Field(..., description="Timestamp of session start (epoch)")
     max_loop_count: int = Field(
@@ -203,6 +210,33 @@ class PerceptionState(BaseModel):
         description="Aggregate fusion confidence (0-1). Below 0.6 triggers SLM audit.",
     )
 
+    # --- V3.3: Intent Genesis & Contra Intent Immunity ---
+    genesis_intents: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description=(
+            "SKU-specific intents from Step 0. Each dict: "
+            "{'label': str, 'confidence': float, 'bbox': dict, 'frame_idx': int}"
+        ),
+    )
+    reference_crops: List[Any] = Field(
+        default_factory=list,
+        description="Cropped reference images from Step 0 for V-JEPA visual queries",
+    )
+    contra_intents: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description=(
+            "Identified distractors from Discovery Loop. Each dict: "
+            "{'label': str, 'latent_id': str, 'bbox': dict}"
+        ),
+    )
+    negative_masks: List[Any] = Field(
+        default_factory=list,
+        description=(
+            "Binary masks for Contra Intent suppression in Fusion Engine. "
+            "Applied with dilation to prevent geometric leakage."
+        ),
+    )
+
 
 # =============================================================================
 # DECISION STATE (Logic-Level)
@@ -311,6 +345,7 @@ def create_initial_state(
     session_id: str,
     main_intent: List[str],
     start_time: float,
+    user_prompt: str = "",
 ) -> RecursiveFlowState:
     """
     Factory function to create a fresh initial state for each session.
@@ -319,6 +354,7 @@ def create_initial_state(
         session_id: Unique identifier for this session.
         main_intent: List of target object labels to count.
         start_time: Timestamp of session start (epoch).
+        user_prompt: Raw user prompt for Intent Genesis (V3.3).
 
     Returns:
         RecursiveFlowState: Initialized state container.
@@ -328,6 +364,7 @@ def create_initial_state(
             session_id=session_id,
             main_intent=main_intent,
             start_time=start_time,
+            user_prompt=user_prompt,
         ),
         perception=PerceptionState(),
         decision=DecisionState(),

@@ -106,9 +106,25 @@ $$N*{volumetric} = \text{round}\left(\frac{V*{total} \times \rho}{V\_{\mu}}\righ
 
 ### 4.4. Golden Alpha Calibration (The Isomorphism Anchor)
 
-Untuk memastikan $V_{total}$ akurat, sistem melakukan kalibrasi $\alpha$-hull ($\alpha \in \mathbb{R}^+$) saat $N_{visible} = 1$:
-$$ \alpha*{golden} = \arg \min*{\alpha} |HullVolume(points, \alpha) - V*{\mu}| $$
-Binary search digunakan untuk menemukan $\alpha*{golden}$, yang kemudian mengunci morphism pemetaan geometri untuk objek serupa.
+Untuk memastikan $V_{total}$ akurat, sistem melakukan kalibrasi $\alpha$-hull autonomik melalui `GoldenAlphaCalibrator`.
+
+**Problem Formalization:**
+Kita mencari $\alpha^* \in \mathbb{R}^+$ yang meminimalkan error volume:
+$$ \alpha^\* = \arg \min*{\alpha} |V*{concave}(points, \alpha) - V\_{unit}| $$
+
+**Monotonicity Property:**
+Fungsi volume $V(\alpha)$ adalah monotonik menurun:
+$$ \alpha_1 < \alpha_2 \implies V(\alpha_1) \ge V(\alpha_2) $$
+Semakin besar $\alpha$, hull semakin "ketat" (tight), volume menyusut.
+
+**Binary Search Algorithm:**
+Karena sifat monotonik ini, kita dapat menggunakan Binary Search untuk menemukan $\alpha^*$ dengan toleransi $\epsilon = 5\%$:
+
+1. $Low = 0, High = 100$
+2. $Mid = (Low + High) / 2$
+3. If $V(Mid) > V_{unit} \implies Low = Mid$ (Perketat hull/naikkan Alpha)
+4. If $V(Mid) < V_{unit} \implies High = Mid$ (Longgarkan hull/turunkan Alpha)
+5. Repeat until $|V(Mid) - V_{unit}| / V_{unit} < \epsilon$
 
 ### 4.5. Volumetric Auto-Calibration (Self-Correction)
 

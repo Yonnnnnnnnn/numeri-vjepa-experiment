@@ -8,8 +8,8 @@ Start Symbol : SystemDesign (this document)
 Non-Terminals :
 ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
 │ <Perception> → v2e, SAM2, CountVid, DINOv2 │
-│ <Brain> → V-JEPA │
-│ <Controller> → VL-JEPA, CountVid, SAM2 │
+│ <Brain> → V-JEPA, Intent Genesis (VLM+GroundingDINO) │
+│ <Controller> → VL-JEPA, CountVid, SAM2, Fusion │
 └───────────────────────────────────────────────────────────────────────────┘
 
 Terminals : str, component_names
@@ -35,13 +35,15 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 ### 1.2. Cognitive Layer (Otak)
 
 - **V-JEPA**: Spatio-temporal world model providing latent memory.
+- **Intent Genesis (Step 0)**: A "Scout & Analyst" module that uses GroundingDINO and VLM to generating specific intents and reference crops before the main loop logic begins.
 - **Density Engine**: MLP that fuses DINOv2 features with visual specularity to predict packing density ($\rho$).
-- **Geometric Kernel**: `alphashape` binary search for Golden Alpha calibration.
+- **Geometric Kernel**: `GoldenAlphaCalibrator` (Binary Search) for finding the optimal $\alpha$ where $V_{concave} \approx V_{unit}$.
 
 ### 1.3. Logical Orchestrator (Pikiran)
 
-- **LangGraph (Sovereignty Chain)**: Implements the 13-step recursive logic.
+- **LangGraph (Sovereignty Chain)**: Implements the 14-step recursive logic (starting from Step 0).
 - **Multi-Shield Fusion**: Triangulates Spatial (Spikes), Volumetric (Math), and Latent (JEPA) evidence.
+- **Immunity System (Step 12.1/12.2)**: A subsystem within the Director and Fusion Engine that classifies distractors as "Contra Intents" and generates negative masks to permanently suppress their anomaly signals.
 - **Logic Gate**: High-speed deterministic guard for anomaly classification.
 - **SLM Reasoner**: Large language logic for intent refinement and discovery.
 

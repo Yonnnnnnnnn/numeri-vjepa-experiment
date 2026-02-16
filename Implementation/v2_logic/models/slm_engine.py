@@ -23,6 +23,7 @@ Terminals       : str, dict, Image, int
 Production Rules:
   SLMEngineModule → imports + <ReasoningResult> + <SLMEngine>
   SLMEngine       → __init__ + generate_reasoning + _construct_prompt
+                  + estimate_object_volume + generate_initial_intents
 ═══════════════════════════════════════════════════════════════════════════════
 
 Pattern: Facade (wrapping VLM) + Strategy (different prompts for different anomalies)
@@ -30,7 +31,7 @@ Pattern: Facade (wrapping VLM) + Strategy (different prompts for different anoma
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -214,3 +215,100 @@ class SLMEngine:
         except Exception as e:
             logger.error("[SLMEngine] Volume estimation failed: %s", e)
             return 0.001
+
+    def generate_initial_intents(
+        self,
+        prompt: str,
+        frame: np.ndarray,
+        detections: List[Any],
+    ) -> List[Dict[str, Any]]:
+        """
+        V3.3 Step 0 Analyst: Generate specific SKU names from user prompt + detections.
+
+        Uses VLM to analyze GroundingDINO detections and produce specific labels
+        (e.g., 'Coca Cola 330ml Bottle' instead of generic 'bottle').
+
+        Args:
+            prompt: Raw user prompt (e.g., 'count soda').
+            frame: The best frame selected by GroundingDINO scout.
+            detections: Raw detections from GroundingDINO.
+
+        Returns:
+            List of genesis intent dicts:
+            [{'label': str, 'confidence': float, 'source': 'vlm'}]
+        """
+        self._ensure_model_loaded()
+
+        n_detected = len(detections) if detections else 0
+
+        vlm_prompt = (
+            f"The user asked to '{prompt}'. I detected {n_detected} candidate objects "
+            "in this image using a visual detector.\n\n"
+            "Your task:\n"
+            "1. Look at the detected regions and identify the SPECIFIC product/object names.\n"
+            "2. Distinguish between different types if there are multiple object categories.\n"
+            "3. Identify any objects that are NOT relevant to the user's query "
+            "(e.g., hands, shadows, background clutter).\n\n"
+            "Reply in this EXACT format (one per line):\n"
+            "INTENT: [specific label]\n"
+            "CONTRA: [distractor label]\n\n"
+            "Example:\n"
+            "INTENT: Coca Cola 330ml Bottle\n"
+            "INTENT: Sprite 500ml Bottle\n"
+            "CONTRA: human hand\n"
+        )
+
+        try:
+            response = self.vlm.predict(frame, prompt_text=vlm_prompt)
+            logger.info("[SLMEngine] Genesis response: %s", response)
+
+            intents = []
+            for line in response.strip().split("\n"):
+                line = line.strip()
+                if line.upper().startswith("INTENT:"):
+                    label = line[len("INTENT:") :].strip()
+                    if label:
+                        intents.append(
+                            {
+                                "label": label,
+                                "confidence": 0.8,
+                                "source": "vlm",
+                                "is_contra": False,
+                            }
+                        )
+                elif line.upper().startswith("CONTRA:"):
+                    label = line[len("CONTRA:") :].strip()
+                    if label:
+                        intents.append(
+                            {
+                                "label": label,
+                                "confidence": 0.7,
+                                "source": "vlm",
+                                "is_contra": True,
+                            }
+                        )
+
+            if not intents:
+                # VLM did not follow format — fallback to prompt
+                logger.warning("[SLMEngine] Could not parse intents, using fallback")
+                intents = [
+                    {
+                        "label": prompt,
+                        "confidence": 0.5,
+                        "source": "fallback",
+                        "is_contra": False,
+                    }
+                ]
+
+            return intents
+
+        except Exception as e:
+            logger.error("[SLMEngine] generate_initial_intents failed: %s", e)
+            return [
+                {
+                    "label": prompt,
+                    "confidence": 0.3,
+                    "source": "error",
+                    "is_contra": False,
+                }
+            ]

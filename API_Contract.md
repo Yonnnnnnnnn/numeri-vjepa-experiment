@@ -33,14 +33,21 @@ This document defines the interfaces between the core modules of the Antigravity
   - Input: DINOv2 latent vector + S.
   - Output: Predicted density ($\rho$).
 
-### 1.2. Geometric Kernel (`AlphaHullWrapper`)
+### 1.1.5. Intent Genesis (`IntentGenesisModule`)
 
+- **`intent_genesis_node(state: RecursiveFlowState) -> Dict`**
+  - Input: Initial state with `user_prompt`.
+  - Output: `genesis_intents`, `reference_crops`, `active_intent`.
+  - Action: Runs GroundingDINO + VLM Analyst to seed the recursive loop.
+
+### 1.2. Geometric Kernel (`AlphaHullWrapper` & `GoldenAlphaCalibrator`)
+
+- **`calibrate(clusters, v_unit) -> CalibrationResult`**
+  - Input: Point cloud clusters + V_unit target.
+  - Output: Optimal `golden_alpha` where $V_{concave} \approx V_{target}$.
 - **`compute_hull(points: np.ndarray, alpha: float) -> Trimesh`**
   - Input: 3D point cloud and concavity parameter.
   - Output: Mesh object with `.volume` property.
-- **`find_golden_alpha(points: np.ndarray, target: float) -> float`**
-  - Input: Calibration point cloud and target unit volume ($V_{\mu}$).
-  - Output: The "Golden Alpha" ($\alpha_{golden}$) where $Vol \approx V_{\mu}$.
 
 ### 1.3. Physical Safety Utility (`MathUtils.SanityGuard`)
 
@@ -53,6 +60,9 @@ This document defines the interfaces between the core modules of the Antigravity
 
 ### 1.5. Targeted SLM (`SLMEngine`)
 
+- **`generate_initial_intents(prompt, frame, detections) -> List[Dict]`**
+  - Input: User prompt, GroundingDINO frame + detections.
+  - Output: List of specific intent labels vs contra labels.
 - **`generate_reasoning(image, anomaly_type, context) -> ReasoningResult`**
   - Input: Current frame, anomaly classification, and state context.
   - Output: Textual explanation and next-step hypothesis.
@@ -73,6 +83,6 @@ This document defines the interfaces between the core modules of the Antigravity
 
 The LangGraph state is governed by the following Pydantic schemas in `graph_state.py`:
 
-- **`GlobalContext`**: `session_id`, `main_intent`, `unit_volume_prior`, `density_prior`.
-- **`PerceptionState`**: `rho`, `golden_alpha`, `total_observed_volume`, `n_volumetric_range`, `fusion_confidence`, `shield_scores`.
+- **`GlobalContext`**: `session_id`, `main_intent`, `user_prompt` (V3.3), `unit_volume_prior`, `density_prior`.
+- **`PerceptionState`**: `genesis_intents` (V3.3), `contra_intents` (V3.3), `negative_masks` (V3.3), `rho`, `golden_alpha`, `total_observed_volume`, `n_volumetric_range`, `fusion_confidence`, `shield_scores`.
 - **`DecisionState`**: `status` (loop/exit), `anomaly_type`, `loop_count`.
