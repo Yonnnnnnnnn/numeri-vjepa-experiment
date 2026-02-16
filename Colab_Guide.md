@@ -172,7 +172,7 @@ if setup_repo():
     !pip install hydra-core omegaconf numpy==1.26.4 -q
     !pip install -e Techs/v2e-master/v2e-master -q
     !pip install -e Techs/sam2-main/sam2-main -q
-    !pip install timm einops submitit sentencepiece protobuf scikit-learn bitsandbytes accelerate numpy==1.26.4 -q
+    !pip install timm einops submitit sentencepiece protobuf scikit-learn bitsandbytes accelerate qwen-vl-utils numpy==1.26.4 -q
     !pip install huggingface_hub[hf_xet] addict yapf langgraph pydantic pydantic-settings scipy trimesh alphashape numpy==1.26.4 -q
 
     import numpy as np
@@ -266,7 +266,7 @@ PROJECT_DIR = "/content/numeri-vjepa-experiment"
 ```
 
 > [!NOTE]
-> Per **2026-02-11**: Perbaikan "Visualizer vs Logic" dan **Sovereignty Protocol V3.1** (SanityGuard & Engine Singletons) sekarang sudah fully integrated. Sistem menggunakan LangGraph untuk koordinasi volumetric reconciliation.
+> Per **2026-02-16**: Perbaikan "Visualizer vs Logic" dan **Recursive Intent Protocol V3.3** (Intent Genesis, Golden Alpha, & Contra Intent Immunity) sekarang sudah fully integrated. Sistem menggunakan Step 0 (Scout & Analyst) untuk mengidentifikasi objek secara spesifik sebelum loop rekursif dimulai.
 
 ### 4.2 Download CountVid Checkpoints
 
@@ -367,10 +367,10 @@ OUTPUT_FILE = "/content/output_v2.mp4"
 # Pastikan kita di folder yang benar
 %cd $PROJECT_DIR
 
-print("🧠 BAGIAN 1: Menjalankan Recursive Intent Logic (LangGraph)...")
+print("🧠 BAGIAN 1: Menjalankan Recursive Intent Logic V3.3 (LangGraph)...")
 print("-" * 50)
-# Gunakan path absolut ke script
-!python {PROJECT_DIR}/Implementation/run_recursive_system.py --video "$VIDEO_FILE"
+# Step 0 wajib menyertakan --prompt untuk Intent Genesis
+!python {PROJECT_DIR}/Implementation/run_recursive_system.py --video "$VIDEO_FILE" --prompt "count red cups"
 
 print("\n\n👁️ BAGIAN 2: Menghasilkan Video Visualisasi (MP4)...")
 print("-" * 50)
@@ -412,8 +412,8 @@ VIDEO_FILE = "/content/my_video.mp4"
 ### VRAM Limit (T4 = 15GB)
 
 - PaliGemma (6GB) + V-JEPA (5GB) + CountGD (4GB) = ~15GB.
-- **V3.1 Optimization**: Sistem menggunakan **Engine Singletons (Lazy-Loading)** untuk menghemat VRAM. Model hanya di-load saat dipanggil pertama kali.
-- Jika OOM: Gunakan `load_in_4bit=True` di `vl_jepa_engine.py` atau kurangi `max_frames` di `VjepaBrain`.
+- **V3.3 Optimization**: Sistem menggunakan **Step 0 Memory Flushing**. GroundingDINO (Scout) dan Qwen2.5-VL (Analyst) di-load hanya di awal (Step 0) untuk melakukan Intent Genesis, kemudian dipindahkan ke CPU/unloaded sebelum V-JEPA dan SAM2 mengambil alih VRAM.
+- Jika OOM: Gunakan `load_in_4bit=True` di engine wrapper atau kurangi `max_frames` di `VjepaBrain`.
 
 ### Bersihkan Disk Colab
 
