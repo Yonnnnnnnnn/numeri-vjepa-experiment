@@ -242,18 +242,18 @@ class SLMEngine:
         n_detected = len(detections) if detections else 0
 
         vlm_prompt = (
-            f"The user asked to '{prompt}'. I detected {n_detected} candidate objects "
-            "in this image using a visual detector.\n\n"
-            "Your task:\n"
-            "1. Look at the detected regions and identify the SPECIFIC product/object names.\n"
-            "2. Distinguish between different types if there are multiple object categories.\n"
-            "3. Identify any objects that are NOT relevant to the user's query "
-            "(e.g., hands, shadows, background clutter).\n\n"
+            f"The user's EXPLICIT instruction is: '{prompt}'.\n"
+            f"I detected {n_detected} candidate objects.\n\n"
+            "CRITICAL INSTRUCTIONS:\n"
+            "1. Every single object type mentioned in the user's instruction MUST be classified as 'INTENT'.\n"
+            "2. Identify SPECIFIC product names (SKUs) for these requested objects.\n"
+            "3. Identify only objects that are UNRELATED or distracting (e.g., human hands, background) as 'CONTRA'.\n"
+            "4. If there are multiple different items requested (e.g., cups and balls), provide a separate INTENT line for each SKU type you see.\n\n"
             "Reply in this EXACT format (one per line):\n"
-            "INTENT: [specific label]\n"
+            "INTENT: [specific SKU label]\n"
             "CONTRA: [distractor label]\n\n"
-            "Example:\n"
-            "INTENT: Coca Cola 330ml Bottle\n"
+            "Example prompt: 'count coke and sprite'\n"
+            "INTENT: Coca Cola 330ml Can\n"
             "INTENT: Sprite 500ml Bottle\n"
             "CONTRA: human hand\n"
         )
@@ -288,10 +288,32 @@ class SLMEngine:
                             }
                         )
 
-            if not intents:
+            # --- Safety Validation: Reclassify if VLM ignored user intent ---
+            validated_intents = []
+            user_keywords = [
+                k.lower().strip(",").strip()
+                for k in prompt.lower().split()
+                if len(k) > 2
+            ]
+
+            for item in intents:
+                label_lower = item["label"].lower()
+                # If a CONTRA contains a keyword from the prompt, it should be an INTENT
+                if item["is_contra"]:
+                    for kw in user_keywords:
+                        if kw in label_lower:
+                            logger.warning(
+                                "[SLMEngine] Overriding CONTRA -> INTENT for: %s",
+                                item["label"],
+                            )
+                            item["is_contra"] = False
+                            break
+                validated_intents.append(item)
+
+            if not validated_intents:
                 # VLM did not follow format — fallback to prompt
                 logger.warning("[SLMEngine] Could not parse intents, using fallback")
-                intents = [
+                validated_intents = [
                     {
                         "label": prompt,
                         "confidence": 0.5,
@@ -300,7 +322,7 @@ class SLMEngine:
                     }
                 ]
 
-            return intents
+            return validated_intents
 
         except Exception as e:
             logger.error("[SLMEngine] generate_initial_intents failed: %s", e)
