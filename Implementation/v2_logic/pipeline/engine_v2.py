@@ -58,50 +58,65 @@ logger = logging.getLogger(__name__)
 
 def draw_dashboard(
     image: np.ndarray,
-    intent: str,
-    n_visible: int,
+    sku_counts: dict,
     n_volume: float,
     final_tally: int,
     status: str,
+    sku_colors: dict = None,
 ) -> np.ndarray:
-    """Draw a professional V3.3 telemetry dashboard for Recursive Intent."""
+    """Draw a professional V3.3 telemetry dashboard with Multi-SKU Breakdown."""
     h, _ = image.shape[:2]
     overlay = image.copy()
 
-    # Dashboard Area (Upper Left) - Slightly wider for V3.3
-    cv2.rectangle(overlay, (0, 0), (380, 165), (15, 15, 15), -1)
-    cv2.rectangle(overlay, (0, 0), (380, 165), (0, 255, 255), 1)
+    # Calculate dashboard height based on number of SKUs
+    n_skus = len(sku_counts) if sku_counts else 1
+    dash_h = 100 + (n_skus * 22)
+
+    # Dashboard Area (Upper Left)
+    cv2.rectangle(overlay, (0, 0), (400, dash_h), (15, 15, 15), -1)
+    cv2.rectangle(overlay, (0, 0), (400, dash_h), (0, 255, 255), 1)
 
     # Title
     cv2.putText(
         overlay,
-        "V3.3 RECURSIVE INTENT",
+        "V3.3 MULTI-SKU INVENTORY",
         (10, 25),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.7,
+        0.6,
         (0, 255, 255),
         2,
     )
 
-    # Telemetry V3.3 Schema
     y_off = 55
-    items = [
-        (f"SKU INTENT (GENESIS) : {intent.upper()}", (0, 200, 255)),
-        (f"N-VISIBLE (SCOUT)     : {n_visible}", (0, 255, 0)),
-        (f"N-VOLUME (MATH RECON) : {n_volume:.2f}", (255, 100, 255)),
-        (f"RECON TALLY (FINAL)   : {final_tally}", (255, 255, 0)),
+    # 1. Show SKU Breakdown
+    for sku, count in sku_counts.items():
+        color = sku_colors.get(sku, (0, 255, 0)) if sku_colors else (0, 255, 0)
+        # Indicator box
+        cv2.rectangle(overlay, (10, y_off - 12), (25, y_off + 2), color, -1)
+        cv2.putText(
+            overlay,
+            f"{sku.upper()[:20]}: {count}",
+            (35, y_off),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (255, 255, 255),
+            1,
+        )
+        y_off += 22
+
+    # 2. Show System Metrics
+    y_off += 5
+    cv2.line(overlay, (10, y_off - 15), (380, y_off - 15), (60, 60, 60), 1)
+
+    metrics = [
+        (f"N-VOLUME (3DC RECON) : {n_volume:.2f}", (255, 100, 255)),
+        (f"TOTAL RECON TALLY    : {final_tally}", (255, 255, 0)),
         (f"SYSTEM STATUS         : {status}", (200, 200, 200)),
     ]
 
-    for text, color in items:
+    for text, color in metrics:
         cv2.putText(
-            overlay,
-            text,
-            (10, y_off),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.45,
-            color,
-            1,
+            overlay, text, (10, y_off), cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 1
         )
         y_off += 22
 
@@ -158,25 +173,46 @@ def run_v2_visualizer(
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     writer = cv2.VideoWriter(output_path, fourcc, fps, (out_w, out_h))
 
-    # Buffers
+    # Buffers & Multi-SKU State
     frame_buffer = []
     temporal_counts = []
-    intent = "Identifying..."
+
+    # NEW: Multi-SKU Tracking
+    sku_list = []
+    sku_colors = {}
+    sku_counts = {}
+
     final_tally = 0
-    current_count = 0
+    current_total_count = 0
 
-    # Visualization states
-    ai_overlay = np.zeros((h, w, 3), dtype=np.uint8)
-    depth_overlay = np.zeros((h, w, 3), dtype=np.uint8)
-
-    # Process First Frame for Intent
+    # Process First Frame for Intent Discovery (Step 0 Simulation)
     ret, first_frame = cap.read()
     if not ret:
         return
-    intent = director.identify_intent(first_frame)
-    logger.info("[Director] Initial Intent: %s", intent)
 
-    pbar = tqdm(total=total_frames, desc="V2 Inference")
+    # Identify intents
+    raw_intent = director.identify_intent(first_frame)
+    # Split if multiple items (e.g. "cup, ball" -> ["cup", "ball"])
+    sku_list = [s.strip() for s in raw_intent.replace(",", " . ").split(".")]
+    sku_list = [s for s in sku_list if s and s.lower() != "none"]
+    if not sku_list:
+        sku_list = ["items"]
+
+    # Assign Colors
+    palette = [
+        (0, 255, 255),
+        (0, 255, 0),
+        (255, 0, 255),
+        (0, 165, 255),
+        (255, 0, 0),
+        (200, 200, 200),
+    ]
+    for i, sku in enumerate(sku_list):
+        sku_colors[sku] = palette[i % len(palette)]
+        sku_counts[sku] = 0
+
+    logger.info("[Director] Discovered SKUs: %s", sku_list)
+    pbar = tqdm(total=total_frames, desc="V3.3 Multi-SKU Inference")
 
     frame_idx = 1
     while cap.isOpened():
@@ -227,34 +263,45 @@ def run_v2_visualizer(
                     .to(device)
                 )
 
-            # Run Brain & Executor
+            # Run Brain & Multi-SKU Executor
             try:
                 _ = brain.encode(input_batch)
-                # target_size=(w, h) ensures CountVid scales boxes from 224x224 back to video size
-                current_count, boxes = executor.count(
-                    frame, prompt=intent, target_size=(w, h)
-                )
+
+                # RECURSIVE ITERATION: Count each SKU separately
+                current_total_count = 0
+                all_boxes_with_labels = []
+
+                for sku in sku_list:
+                    count_val, boxes = executor.count(
+                        frame, prompt=sku, target_size=(w, h)
+                    )
+                    sku_counts[sku] = count_val
+                    current_total_count += count_val
+                    for b in boxes:
+                        all_boxes_with_labels.append((b, sku))
+
             except Exception as e:
                 logger.error("[Brain/Executor] Error: %s", e)
-                boxes = []
+                all_boxes_with_labels = []
 
             # Run SAM2 Segmentation
             try:
                 seg_result = segmenter.segment_frame(frame)
                 ai_overlay = segmenter.visualize_masks(frame, seg_result)
 
-                # Draw CountVid Boxes on top of SAM2 masks
-                for box in boxes:
+                # Draw Multi-SKU Color-Coded Boxes
+                for box, label in all_boxes_with_labels:
+                    color = sku_colors.get(label, (0, 255, 255))
                     cv2.rectangle(
-                        ai_overlay, (box[0], box[1]), (box[2], box[3]), (0, 255, 255), 2
+                        ai_overlay, (box[0], box[1]), (box[2], box[3]), color, 2
                     )
                     cv2.putText(
                         ai_overlay,
-                        intent,
+                        label,
                         (box[0], box[1] - 5),
                         cv2.FONT_HERSHEY_SIMPLEX,
                         0.4,
-                        (0, 255, 255),
+                        color,
                         1,
                     )
             except Exception as e:
@@ -268,23 +315,21 @@ def run_v2_visualizer(
                 logger.error("[Depth] Error: %s", e)
 
             if frame_idx > 1:
-                temporal_counts.append((timestamp, current_count))
+                temporal_counts.append((timestamp, current_total_count))
                 final_tally = executor.tally_unique(temporal_counts)
                 frame_buffer = []
 
-        # 3. Assemble 2x2 Grid with V3.3 Logic
-        # For visualization, we simulate the reconciliation tally
-        # Note: In production, these come from the LangGraph state
-        # Here we approximate for the visualizer
-        n_volume = current_count * 0.95 + (np.random.rand() * 0.1)  # Simulated drift
+        # 3. Assemble 2x2 Grid with V3.3 Multi-SKU Logic
+        # n_volume simulation based on total
+        n_volume = current_total_count * 0.98 + (np.random.rand() * 0.05)
 
         dash_frame = draw_dashboard(
             image=frame,
-            intent=intent,
-            n_visible=current_count,
+            sku_counts=sku_counts,
             n_volume=n_volume,
             final_tally=final_tally,
             status=status,
+            sku_colors=sku_colors,
         )
 
         # Row 1: Dashboard | Events
