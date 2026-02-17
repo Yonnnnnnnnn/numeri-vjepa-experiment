@@ -104,6 +104,12 @@ def main():
         help="Path to input video file",
         default="Techs/sam2-main/sam2-main/demo/data/gallery/02_cups.mp4",
     )
+    parser.add_argument(
+        "--prompt",
+        type=str,
+        help="User prompt for Intent Genesis Step 0 (e.g. 'count red cups')",
+        default="",
+    )
     args = parser.parse_args()
 
     # 1. Initialize Graph
@@ -126,11 +132,28 @@ def main():
 
     # 3. Initial Configuration
     session_id = f"session_{int(time.time())}"
-    target_intent = ["cup"]
-    initial_state = create_initial_state(session_id, target_intent, time.time())
+    user_prompt = args.prompt.strip() if args.prompt else ""
+
+    # V3.3: Derive initial intent from prompt; Step 0 will refine it
+    if user_prompt:
+        # Extract the last word as a seed intent (e.g. "count red cups" → "cups")
+        seed_words = user_prompt.lower().split()
+        # Filter out common verbs
+        skip_verbs = {"count", "find", "detect", "track", "show", "identify"}
+        target_intent = [w for w in seed_words if w not in skip_verbs] or ["object"]
+    else:
+        target_intent = ["object"]
+
+    initial_state = create_initial_state(
+        session_id,
+        target_intent,
+        time.time(),
+        user_prompt=user_prompt,
+    )
 
     logger.info(f"Session started: {session_id}")
-    logger.info(f"Target Intent: {target_intent}")
+    logger.info(f"User Prompt: '{user_prompt}'")
+    logger.info(f"Seed Intent: {target_intent}")
 
     frame_idx = 0
     while True:
