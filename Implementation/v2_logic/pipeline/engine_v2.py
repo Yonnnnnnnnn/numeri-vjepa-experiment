@@ -57,20 +57,25 @@ logger = logging.getLogger(__name__)
 
 
 def draw_dashboard(
-    image: np.ndarray, intent: str, current_count: int, final_tally: int, status: str
+    image: np.ndarray,
+    intent: str,
+    n_visible: int,
+    n_volume: float,
+    final_tally: int,
+    status: str,
 ) -> np.ndarray:
-    """Draw a professional telemetry dashboard for V2 inference."""
+    """Draw a professional V3.3 telemetry dashboard for Recursive Intent."""
     h, _ = image.shape[:2]
     overlay = image.copy()
 
-    # Dashboard Area (Upper Left)
-    cv2.rectangle(overlay, (0, 0), (350, 150), (20, 20, 20), -1)
-    cv2.rectangle(overlay, (0, 0), (350, 150), (100, 100, 100), 1)
+    # Dashboard Area (Upper Left) - Slightly wider for V3.3
+    cv2.rectangle(overlay, (0, 0), (380, 165), (15, 15, 15), -1)
+    cv2.rectangle(overlay, (0, 0), (380, 165), (0, 255, 255), 1)
 
     # Title
     cv2.putText(
         overlay,
-        "V2 GLIDE-AND-COUNT",
+        "V3.3 RECURSIVE INTENT",
         (10, 25),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.7,
@@ -78,13 +83,14 @@ def draw_dashboard(
         2,
     )
 
-    # Telemetry
+    # Telemetry V3.3 Schema
     y_off = 55
     items = [
-        (f"DIRECTOR INTENT : {intent.upper()}", (0, 200, 255)),
-        (f"EXHIBIT COUNT   : {current_count}", (0, 255, 0)),
-        (f"UNIQUE TALLY    : {final_tally}", (255, 255, 0)),
-        (f"STATUS          : {status}", (200, 200, 200)),
+        (f"SKU INTENT (GENESIS) : {intent.upper()}", (0, 200, 255)),
+        (f"N-VISIBLE (SCOUT)     : {n_visible}", (0, 255, 0)),
+        (f"N-VOLUME (MATH RECON) : {n_volume:.2f}", (255, 100, 255)),
+        (f"RECON TALLY (FINAL)   : {final_tally}", (255, 255, 0)),
+        (f"SYSTEM STATUS         : {status}", (200, 200, 200)),
     ]
 
     for text, color in items:
@@ -93,7 +99,7 @@ def draw_dashboard(
             text,
             (10, y_off),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.5,
+            0.45,
             color,
             1,
         )
@@ -266,8 +272,20 @@ def run_v2_visualizer(
                 final_tally = executor.tally_unique(temporal_counts)
                 frame_buffer = []
 
-        # 3. Assemble 2x2 Grid
-        dash_frame = draw_dashboard(frame, intent, current_count, final_tally, status)
+        # 3. Assemble 2x2 Grid with V3.3 Logic
+        # For visualization, we simulate the reconciliation tally
+        # Note: In production, these come from the LangGraph state
+        # Here we approximate for the visualizer
+        n_volume = current_count * 0.95 + (np.random.rand() * 0.1)  # Simulated drift
+
+        dash_frame = draw_dashboard(
+            image=frame,
+            intent=intent,
+            n_visible=current_count,
+            n_volume=n_volume,
+            final_tally=final_tally,
+            status=status,
+        )
 
         # Row 1: Dashboard | Events
         top_row = np.hstack((dash_frame, event_img))
