@@ -359,23 +359,23 @@ print("\n✅ Semua checkpoint & video siap!")
 Jalankan cell ini untuk melihat **Logika (Teks)** dan menghasilkan **Video (Visual)** secara berurutan.
 
 ```python
-# 1. Konfigurasi File
+# 1. Konfigurasi & Eksekusi (Gunakan Form di sebelah kanan ->)
 PROJECT_DIR = "/content/numeri-vjepa-experiment"
-VIDEO_FILE = f"{PROJECT_DIR}/Techs/sam2-main/sam2-main/demo/data/gallery/02_cups.mp4"
-OUTPUT_FILE = "/content/output_v2.mp4"
+#@title 🧠 Recursive Intent Logic V3.3
+prompt = "count red cups" #@param {type:"string"}
+video_file = "/content/numeri-vjepa-experiment/Techs/sam2-main/sam2-main/demo/data/gallery/02_cups.mp4" #@param {type:"string"}
+output_file = "/content/output_v2.mp4" #@param {type:"string"}
 
 # Pastikan kita di folder yang benar
 %cd $PROJECT_DIR
 
-print("🧠 BAGIAN 1: Menjalankan Recursive Intent Logic V3.3 (LangGraph)...")
+print(f"🧠 BAGIAN 1: Menjalankan Recursive Intent Logic V3.3 untuk: '{prompt}'")
 print("-" * 50)
-# Step 0 wajib menyertakan --prompt untuk Intent Genesis
-!python {PROJECT_DIR}/Implementation/run_recursive_system.py --video "$VIDEO_FILE" --prompt "count red cups"
+!python {PROJECT_DIR}/Implementation/run_recursive_system.py --video "$video_file" --prompt "$prompt"
 
 print("\n\n👁️ BAGIAN 2: Menghasilkan Video Visualisasi (MP4)...")
 print("-" * 50)
-# Gunakan path absolut ke script
-!python {PROJECT_DIR}/Implementation/main.py --video "$VIDEO_FILE" --output "$OUTPUT_FILE"
+!python {PROJECT_DIR}/Implementation/main.py --video "$video_file" --output "$output_file"
 
 print("\n\n✅ Pengujian Selesai!")
 ```
