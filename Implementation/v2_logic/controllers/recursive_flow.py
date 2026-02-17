@@ -802,13 +802,29 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
     if not clusters:
         return {}
 
-    # 1. Intent-Based Cluster Filtering (Phase 4: Spatial Branding)
-    # We only want to include volume from clusters that match our target intent.
-    target_intents = ctx.main_intent or ["cup"]
-    raw_detections = perception.raw_detections or []
+    # 1. Intent-Based Cluster Filtering (Reconciliation Layer)
+    # Get all target SKUs from Intent Genesis (V3.3 logic)
+    target_intents = []
+    if perception.genesis_intents:
+        target_intents = [
+            i["label"].lower()
+            for i in perception.genesis_intents
+            if not i.get("is_contra", False)
+        ]
 
+    # Fallback to main intent if genesis is empty
+    if not target_intents:
+        target_intents = (
+            ctx.main_intent
+            if isinstance(ctx.main_intent, list)
+            else [ctx.main_intent or "items"]
+        )
+
+    raw_detections = perception.raw_detections or []
     filtered_clusters = []
     v_stack = 0.0
+
+    logger.info("[v3_math_node] Target intents for reconciliation: %s", target_intents)
 
     for cluster in clusters:
         cluster_bbox = cluster.get("bbox")
@@ -819,10 +835,17 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
         is_target = False
         for det in raw_detections:
             det_label = det.get("label", "").lower()
-            if any(intent.lower() in det_label for intent in target_intents):
-                # Calculate IoU between cluster and detection
+
+            # Semantic Check: Does the detection label relate to any of our target intents?
+            matches_intent = any(
+                intent.lower() in det_label or det_label in intent.lower()
+                for intent in target_intents
+            )
+
+            if matches_intent:
+                # Calculate IoU - Reduced threshold (0.1) because SAM2 masks and DINO boxes differ in shape
                 iou = MathUtils.calculate_bbox_overlap(cluster_bbox, det["bbox"])
-                if iou > 0.3:  # 30% overlap threshold for branding
+                if iou > 0.1:
                     is_target = True
                     break
 
@@ -830,10 +853,20 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
             filtered_clusters.append(cluster)
             v_stack += cluster.get("volume_m3", 0.0)
         else:
-            logger.info(
-                "[v3_math_node] Excluding cluster with mean_depth %.2f (No overlapping target intent)",
-                cluster.get("mean_depth", 0.0),
-            )
+            # OPTIMIZATION: If we only have target intents defined, be more aggressive in keeping clusters
+            # if they have ANY overlap with visual detections.
+            for det in raw_detections:
+                iou = MathUtils.calculate_bbox_overlap(cluster_bbox, det["bbox"])
+                if iou > 0.05:
+                    v_stack += cluster.get("volume_m3", 0.0)
+                    is_target = True
+                    break
+
+            if not is_target:
+                logger.info(
+                    "[v3_math_node] Excluding cluster with mean_depth %.2f (No overlapping target intent)",
+                    cluster.get("mean_depth", 0.0),
+                )
 
     # 2. V3 Core Calibration
     target_unit_v = (
