@@ -201,16 +201,42 @@ class SLMEngine:
             import re
 
             # Match scientific notation or float: 1.2e-3, 0.005, 5e-4
+            # Improved regex to be more robust
             match = re.search(r"[-+]?\d*\.?\d+([eE][-+]?\d+)?", response)
+
+            # Context-aware fallback values (in m^3)
+            fallbacks = {
+                "cup": 0.00025,
+                "bottle": 0.0005,
+                "ball": 0.00005,
+                "can": 0.00033,
+            }
+            default_fallback = 0.001
+
             if match:
                 val = float(match.group())
-                # Sanity bounds (filters out hallucinations like 1000m^3 for a bottle)
-                if val <= 0:
-                    return 0.001
+                # Rule 6.1/6.10: Safety Floor (1cm^3) to prevent division by zero or extreme counts
+                if val < 1e-6:
+                    logger.warning(
+                        "[SLMEngine] Volume too low (%.2e), applying safety floor", val
+                    )
+                    return 1e-6
+
+                # Rule 6.9: Sanity bounds (filters out hallucinations like 1000m^3 for a bottle)
+                if val > 1.0:  # Nothing we count is bigger than 1 cubic meter
+                    logger.warning(
+                        "[SLMEngine] Volume too high (%.2f), clamping to 1.0", val
+                    )
+                    return 1.0
+
                 return val
             else:
                 logger.warning("[SLMEngine] Could not parse volume from: %s", response)
-                return 0.001  # Fallback
+                # Use contextual fallback if label matches common objects
+                for k, v in fallbacks.items():
+                    if k in label.lower():
+                        return v
+                return default_fallback
 
         except Exception as e:
             logger.error("[SLMEngine] Volume estimation failed: %s", e)
@@ -290,24 +316,49 @@ class SLMEngine:
 
             # --- Safety Validation: Reclassify if VLM ignored user intent ---
             validated_intents = []
+
+            # Refined keyword extraction: ignore common filler words
+            stop_words = {
+                "count",
+                "the",
+                "and",
+                "with",
+                "there",
+                "are",
+                "many",
+                "please",
+                "video",
+            }
             user_keywords = [
-                k.lower().strip(",").strip()
+                k.lower().strip(",").strip().strip("s")  # rudimentary de-pluralization
                 for k in prompt.lower().split()
-                if len(k) > 2
+                if len(k) > 2 and k not in stop_words
             ]
 
             for item in intents:
                 label_lower = item["label"].lower()
-                # If a CONTRA contains a keyword from the prompt, it should be an INTENT
+
+                # Rule 6.9: Business Logic Enforcement
+                # If a CONTRA contains a keyword from the prompt, it MUST be an INTENT
                 if item["is_contra"]:
                     for kw in user_keywords:
-                        if kw in label_lower:
+                        if kw in label_lower or label_lower in kw:
                             logger.warning(
-                                "[SLMEngine] Overriding CONTRA -> INTENT for: %s",
+                                "[SLMEngine] SEMANTIC GUARD: Overriding CONTRA -> INTENT for '%s' because it matches user keyword '%s'",
                                 item["label"],
+                                kw,
                             )
                             item["is_contra"] = False
                             break
+
+                # Special Case: Prevent "human hand" from ever becoming an intent unless explicitly asked
+                if not item["is_contra"] and "hand" in label_lower:
+                    if not any("hand" in kw for kw in user_keywords):
+                        logger.warning(
+                            "[SLMEngine] SEMANTIC GUARD: Forcing 'hand' back to CONTRA (Safety Override)"
+                        )
+                        item["is_contra"] = True
+
                 validated_intents.append(item)
 
             if not validated_intents:

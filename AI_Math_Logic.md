@@ -94,9 +94,9 @@ Dimana $(c_x, c_y)$ adalah _principal point_ dan $(f_x, f_y)$ adalah _focal leng
 
 ### 4.2. Lattice Counting & Riemann Sums (V-Core)
 
-Volume total $V_{total}$ dihitung dengan menjumlahkan estimasi volume dari setiap cluster volumetrik yang terdeteksi:
+Volume total $V_{total}$ dihitung dengan menjumlahkan estimasi volume dari setiap cluster volumetrik yang terdeteksi melalui **Fuzzy Semantic Reconciliation**:
 $$V_{total} = \sum_{c \in Clusters} MathUtils.estimate\_volume\_heuristic(DepthMap, c_{mask})$$
-Dimana $c_{mask}$ adalah masker gabungan untuk cluster tersebut.
+Dimana $c_{mask}$ adalah masker gabungan untuk cluster yang lolos filter **Fuzzy Label Matching** (IoU > 0.1) terhadap intent target.
 
 ### 4.3. Physical Density Sensing ($\rho$)
 
@@ -141,12 +141,15 @@ Hal ini memastikan metadata anomali dari $Exe$ dipetakan kembali secara akurat k
 
 ### 4.6. Sanity Functor (Safe Bounds Validation)
 
-Morphism $eval$ menyertakan **SanityGuard** ($\sigma$) untuk mencegah propagasi nilai fisik yang tidak masuk akal (Error Isolation):
+Morphism $eval$ menyertakan **SanityGuard** ($\sigma$) untuk mencegah propagasi nilai fisik yang tidak masuk akal (Error Isolation). Perbaikan V3.3.1 menambahkan proteksi pada pembagi ($V_{\mu}$):
 
-- **Numerical Guard**: $\sigma(N_{vol}) \to [0, 1000]$. Nilai $NaN$ atau $\infty$ dipotong ke batas aman.
+- **Numerical Guard (Volume)**: $\sigma(V_{\mu}) \to [1.0 \times 10^{-6}, 1.0]$.
+  - **Safety Floor ($10^{-6} m^3$)**: Mencegah _division-by-zero_ atau hasil hitungan yang meledak secara atomik.
+  - **Clamping ($1.0 m^3$)**: Membatasi halusinasi VLM untuk objek inventory standar.
+- **Numerical Guard (Count)**: $\sigma(N_{vol}) \to [0, 1000]$. Nilai $NaN$ atau $\infty$ dipotong ke batas aman.
 - **Topological Guard**: Memeriksa manifold safety pada point cloud sebelum morfisme AlphaHull dijalankan untuk menghindari kegagalan kernel geometris.
 
-$$ N*{final} = \sigma\left(\text{round}\left(\frac{V*{total} \times \rho}{V\_{\mu}}\right)\right) $$
+$$ N*{final} = \sigma\left(\text{round}\left(\frac{V*{total} \times \rho}{\sigma(V\_{\mu})}\right)\right) $$
 
 ## 5. Fixed Point (Titik Kesetimbangan)
 
