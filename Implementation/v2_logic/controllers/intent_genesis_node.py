@@ -363,11 +363,11 @@ def intent_genesis_node(state: RecursiveFlowState) -> Dict[str, Any]:
         active_labels,
     )
 
-    updated = perception.model_copy(
-        update={
+    return {
+        "perception": {
             "genesis_intents": genesis_intents,
             "reference_crops": reference_crops,
             "active_intent": active_labels,
-        }
-    )
-    return {"perception": updated}
+        },
+        "decision": {"is_genesis_complete": True},
+    }

@@ -290,9 +290,10 @@ def v2e_sensor_node(state: RecursiveFlowState) -> Dict[str, Any]:
             np.add.at(spike_map, (ys[mask], xs[mask]), np.abs(ps[mask]))
 
         return {
-            "perception": PerceptionState(
-                v2e_spike_map=spike_map, spike_energy=float(np.sum(spike_map))
-            )
+            "perception": {
+                "v2e_spike_map": spike_map,
+                "spike_energy": float(np.sum(spike_map)),
+            }
         }
 
     return {}
@@ -541,8 +542,11 @@ def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
     if not perception.active_intent and "active_intent" not in updates:
         updates["active_intent"] = list(ctx.main_intent)
 
+    # V3.3.4: Reset Circuit Breaker at start of sensor orbit
+    updates["is_volumetric_data_fresh"] = False
+
     if updates:
-        return {"perception": PerceptionState(**updates)}
+        return {"perception": updates}
 
     return {}
 
@@ -626,10 +630,10 @@ def countvid_executor_node(state: RecursiveFlowState) -> Dict[str, Any]:
                 formatted_detections.append(det)  # Already formatted
 
         return {
-            "perception": PerceptionState(
-                n_visible=count_val,
-                raw_detections=formatted_detections,
-            )
+            "perception": {
+                "n_visible": count_val,
+                "raw_detections": formatted_detections,
+            }
         }
 
     return {}
@@ -751,7 +755,7 @@ def sam2_depth_node(state: RecursiveFlowState) -> Dict[str, Any]:
     # Store clusters for later V3 Math processing
     updates["point_cloud_summary"] = {"clusters": clusters}
 
-    return {"perception": PerceptionState(**updates)}
+    return {"perception": updates}
 
 
 def density_sensing_node(state: RecursiveFlowState) -> Dict[str, Any]:
@@ -773,7 +777,7 @@ def density_sensing_node(state: RecursiveFlowState) -> Dict[str, Any]:
         features = np.array([[specularity]])
         rho = mlp.predict(features)[0]
 
-        return {"perception": PerceptionState(rho=float(rho))}
+        return {"perception": {"rho": float(rho)}}
 
     return {}
 
@@ -951,8 +955,9 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
     # We use a small epsilon for the range
     updates["n_volumetric_range"] = (int(n_vol), int(np.ceil(n_vol)))
     updates["total_observed_volume"] = v_stack  # Persist V_stack
+    updates["is_volumetric_data_fresh"] = True  # Step 3.6: Circuit Breaker Reset
 
-    return {"perception": PerceptionState(**updates)}
+    return {"perception": updates}
 
 
 def fusion_engine_node(state: RecursiveFlowState) -> Dict[str, Any]:
@@ -1050,7 +1055,7 @@ def fusion_engine_node(state: RecursiveFlowState) -> Dict[str, Any]:
         # For now, let's keep n_visible as CountGD's output,
         # but OutputAccumulator should use tracked objects count.
 
-    return {"perception": PerceptionState(**updates)}
+    return {"perception": updates}
 
 
 def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
@@ -1081,6 +1086,27 @@ def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
             < 0.6,
         )
 
+        # --- STEP 3.6: CIRCUIT BREAKER (Stale Data Guard) ---
+        if (
+            gate_decision.anomaly_type.value == "volumetric"
+            and not perception.is_volumetric_data_fresh
+        ):
+            logger.warning(
+                "[logic_gate_node] CIRCUIT BREAKER: Volumetric anomaly with STALE data detected. Forcing Exit."
+            )
+            return {
+                "decision": {
+                    "status": "exit",
+                    "anomaly_type": "none",
+                    "logic_gate_result": {
+                        "rule_applied": "CIRCUIT_BREAKER_STALE_DATA",
+                        "confidence": 0.0,
+                        "action": "exit",
+                        "reasoning": "Circuit Breaker: Volumetric data is stale (V3 Math did not update). Terminating to prevent loop deadlock.",
+                    },
+                }
+            }
+
         new_decision = decision.model_copy(
             update={
                 "status": gate_decision.action,
@@ -1101,9 +1127,7 @@ def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
             gate_decision.rule_applied,
         )
 
-        return {
-            "decision": DecisionState(**new_decision.model_dump(exclude_unset=True))
-        }
+        return {"decision": new_decision.model_dump(exclude_unset=True)}
 
     return {}
 
@@ -1139,14 +1163,28 @@ def targeted_slm_node(state: RecursiveFlowState) -> Dict[str, Any]:
         )
 
         return {
-            "decision": DecisionState(
-                slm_triggered=True,
-                slm_reasoning=result.reasoning_text,
-                slm_hypothesis=result.hypothesis,
-            )
+            "decision": {
+                "slm_triggered": True,
+                "slm_reasoning": result.reasoning_text,
+                "slm_hypothesis": result.hypothesis,
+            }
         }
 
     return {}
+
+
+def route_to_genesis_or_brain(
+    state: RecursiveFlowState,
+) -> Literal["intent_genesis_node", "vjepa_brain_node"]:
+    """
+    Conditional edge: Route to Intent Genesis (Step 0) ONLY if not initialized.
+    """
+    decision = state["decision"]
+    if not decision.is_genesis_complete:
+        logger.info("[route] Genesis not complete, routing to Step 0")
+        return "intent_genesis_node"
+
+    return "vjepa_brain_node"
 
 
 def route_after_logic_gate(
@@ -1184,10 +1222,10 @@ def interpolation_node(state: RecursiveFlowState) -> Dict[str, Any]:
     # to prepare for the next loop.
 
     return {
-        "decision": DecisionState(
-            loop_count=decision.loop_count + 1,
-            status="looping",
-        )
+        "decision": {
+            "loop_count": decision.loop_count + 1,
+            "status": "looping",
+        }
     }
 
 
@@ -1263,9 +1301,20 @@ def build_recursive_graph() -> StateGraph:
 
     # --- Add Edges (V3.3 Sovereignty Chain) ---
 
-    # V3.3: START → Intent Genesis (Step 0) → Anchor (Step 1) → Director (Step 2)
-    graph.add_edge(START, "intent_genesis_node")
+    # V3.3.4: START → check initialization → Genesis (Step 0) OR Brain (Step 1)
+    graph.add_conditional_edges(
+        START,
+        route_to_genesis_or_brain,
+        {
+            "intent_genesis_node": "intent_genesis_node",
+            "vjepa_brain_node": "vjepa_brain_node",
+        },
+    )
+
+    # Genesis flows to Brain once complete
     graph.add_edge("intent_genesis_node", "vjepa_brain_node")
+
+    # Brain → Director (Step 2)
     graph.add_edge("vjepa_brain_node", "vljepa_director_node")
 
     # Director → Parallel Senses (Sovereignties 1, 2, 3)

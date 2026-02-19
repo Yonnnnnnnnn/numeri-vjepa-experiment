@@ -355,9 +355,9 @@ class SLMEngine:
             f"The user's EXPLICIT instruction is: '{prompt}'.\n"
             f"I detected {n_detected} candidate objects.\n\n"
             "CRITICAL INSTRUCTIONS:\n"
-            "1. You MUST identify EVERY unique type of object requested in the prompt.\n"
-            "2. For each unique type (e.g., if prompt says 'cups and balls'), you must provide at least one INTENT line for each.\n"
-            "3. Identify SPECIFIC product names (SKUs) based on visual features (color, brand, shape).\n"
+            "1. MANDATORY: You MUST identify EVERY unique type of object requested in the prompt (PRO objects).\n"
+            "2. Even if an object is small or partially occluded, you MUST provide an INTENT line for it if it matches the prompt.\n"
+            "3. Identify SPECIFIC product names (SKUs) based on visual features.\n"
             "4. Identify UNRELATED objects (human hands, table, background) as 'CONTRA'.\n\n"
             "Reply in this EXACT format (one per line):\n"
             "INTENT: [specific SKU label]\n"
@@ -400,10 +400,10 @@ class SLMEngine:
                             }
                         )
 
-            # --- Safety Validation: Reclassify if VLM ignored user intent ---
+            # --- Safety Validation (Defense in Depth) ---
             validated_intents = []
 
-            # Refined keyword extraction: ignore common filler words
+            # Refined keyword extraction
             stop_words = {
                 "count",
                 "the",
@@ -416,36 +416,55 @@ class SLMEngine:
                 "video",
             }
             user_keywords = [
-                k.lower().strip(",").strip().strip("s")  # rudimentary de-pluralization
+                k.lower().strip(",").strip().rstrip("s")
                 for k in prompt.lower().split()
                 if len(k) > 2 and k not in stop_words
             ]
 
+            found_keywords = set()
             for item in intents:
                 label_lower = item["label"].lower()
 
-                # Rule 6.9: Business Logic Enforcement
-                # If a CONTRA contains a keyword from the prompt, it MUST be an INTENT
-                if item["is_contra"]:
-                    for kw in user_keywords:
-                        if kw in label_lower or label_lower in kw:
-                            logger.warning(
-                                "[SLMEngine] SEMANTIC GUARD: Overriding CONTRA -> INTENT for '%s' because it matches user keyword '%s'",
-                                item["label"],
-                                kw,
-                            )
-                            item["is_contra"] = False
-                            break
+                # Semantic Guard: PRO Verification
+                is_pro = False
+                for kw in user_keywords:
+                    if kw in label_lower or label_lower in kw:
+                        is_pro = True
+                        found_keywords.add(kw)
+                        break
 
-                # Special Case: Prevent "human hand" from ever becoming an intent unless explicitly asked
-                if not item["is_contra"] and "hand" in label_lower:
-                    if not any("hand" in kw for kw in user_keywords):
-                        logger.warning(
-                            "[SLMEngine] SEMANTIC GUARD: Forcing 'hand' back to CONTRA (Safety Override)"
-                        )
-                        item["is_contra"] = True
+                if is_pro and item["is_contra"]:
+                    logger.warning(
+                        "[SLMEngine] PRO GUARD: '%s' found in CONTRA but matches PRO keyword. Overriding to INTENT.",
+                        item["label"],
+                    )
+                    item["is_contra"] = False
+
+                # Safety Override for Hands
+                if (
+                    not item["is_contra"]
+                    and "hand" in label_lower
+                    and "hand" not in user_keywords
+                ):
+                    item["is_contra"] = True
 
                 validated_intents.append(item)
+
+            # Check for MISSING PRO keywords (Mandatory Object Verification)
+            for kw in user_keywords:
+                if kw not in found_keywords:
+                    logger.warning(
+                        "[SLMEngine] MISSING PRO: keyword '%s' from prompt not found in VLM intents. Force adding generic intent.",
+                        kw,
+                    )
+                    validated_intents.append(
+                        {
+                            "label": kw.capitalize(),
+                            "confidence": 0.4,
+                            "source": "pro_guard_fallback",
+                            "is_contra": False,
+                        }
+                    )
 
             if not validated_intents:
                 # VLM did not follow format — fallback to prompt

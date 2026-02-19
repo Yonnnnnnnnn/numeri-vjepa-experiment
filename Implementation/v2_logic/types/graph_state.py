@@ -43,18 +43,23 @@ from typing import Annotated, Any, Dict, List, Literal, Optional, Tuple, TypedDi
 from pydantic import BaseModel, Field
 
 
-def merge_perception(
-    old: "PerceptionState", new: "PerceptionState"
-) -> "PerceptionState":
+def merge_perception(old: "PerceptionState", new: Any) -> "PerceptionState":
     """Reducer to merge perception state updates."""
-    # Updates from 'new' override 'old' for non-None/unset fields
+    # V3.3.4: Support Partial Dictionary Updates to prevent stale data
+    if isinstance(new, dict):
+        return old.model_copy(update=new)
+
+    # Fallback for full object updates
     updates = new.model_dump(exclude_unset=True)
     return old.model_copy(update=updates)
 
 
-def merge_decision(old: "DecisionState", new: "DecisionState") -> "DecisionState":
+def merge_decision(old: "DecisionState", new: Any) -> "DecisionState":
     """Reducer to merge decision state updates."""
-    # Updates from 'new' override 'old' for non-None/unset fields
+    # V3.3.4: Support Partial Dictionary Updates
+    if isinstance(new, dict):
+        return old.model_copy(update=new)
+
     updates = new.model_dump(exclude_unset=True)
     return old.model_copy(update=updates)
 
@@ -236,6 +241,10 @@ class PerceptionState(BaseModel):
             "Applied with dilation to prevent geometric leakage."
         ),
     )
+    is_volumetric_data_fresh: bool = Field(
+        default=False,
+        description="Circuit Breaker flag: True if V3 Math has run in current frame",
+    )
 
 
 # =============================================================================
@@ -286,6 +295,9 @@ class DecisionState(BaseModel):
     loop_count: int = Field(default=0, description="Number of recursive loops so far")
     loop_trigger_reason: Optional[str] = Field(
         default=None, description="Reason for triggering the loop"
+    )
+    is_genesis_complete: bool = Field(
+        default=False, description="Whether Step 0 (Intent Genesis) has been executed"
     )
 
 
