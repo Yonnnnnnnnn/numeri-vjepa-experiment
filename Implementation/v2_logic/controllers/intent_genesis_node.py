@@ -1,9 +1,14 @@
 """
-Intent Genesis Node (Step 0)
+Intent Genesis Node (Step 0) — V3.5 Global Pre-Scan
 
 Pre-emptive semantic scanning that runs ONCE before the main recursive loop.
-Uses GroundingDINO (Scout) to locate objects and VLM Qwen (Analyst)
-to produce SKU-specific intent labels and reference crop images.
+Uses GroundingDINO (Scout) to locate objects across ALL pre-scanned video
+keyframes, then VLM Qwen (Analyst) to produce SKU-specific intent labels
+and reference crop images.
+
+V3.5: Genesis now receives `perception.video_frames` — keyframes sampled from
+the ENTIRE video duration (~1 frame/2sec). This ensures the system discovers
+ALL brands/variants that appear anywhere in the video, not just the first frame.
 
 CFG Structure:
 ═══════════════════════════════════════════════════════════════════════════════
@@ -11,11 +16,12 @@ Start Symbol    : IntentGenesisModule (this file)
 
 Non-Terminals   :
   ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
-  │  <intent_genesis_node>  → Main LangGraph node function                    │
-  │  <_sample_frames>       → Sparse video sampling helper                    │
-  │  <_run_grounding_scout> → GroundingDINO detection on sampled frames       │
-  │  <_run_vlm_analyst>     → VLM classification of detected objects          │
-  │  <_crop_detections>     → Extract reference crop images from detections   │
+  │  <intent_genesis_node>       → Main LangGraph node function               │
+  │  <_sample_frames>            → Sparse video sampling helper               │
+  │  <_run_grounding_scout_all>  → GroundingDINO on ALL sampled frames        │
+  │  <_run_vlm_analyst>          → VLM classification (single frame)          │
+  │  <_run_vlm_analyst_multi>    → Multi-frame VLM + dedup (V3.5)             │
+  │  <_crop_detections>          → Extract reference crop images              │
   └───────────────────────────────────────────────────────────────────────────┘
 
   ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
@@ -28,8 +34,8 @@ Terminals       : str, dict, list, numpy.ndarray, int, float
 
 Production Rules:
   IntentGenesisModule  → imports + <intent_genesis_node>
-  intent_genesis_node  → _sample_frames + _run_grounding_scout
-                       + _run_vlm_analyst + _crop_detections
+  intent_genesis_node  → _sample_frames + _run_grounding_scout_all
+                       + _run_vlm_analyst_multi + _crop_detections
                        → genesis_intents + reference_crops
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -38,6 +44,7 @@ Pattern: Template Method
 - Subcomponents (GroundingDINO, VLM) are pluggable strategies.
 
 V3.3: This node replaces hardcoded discovery_keywords with dynamic intent generation.
+V3.5: Global Pre-Scan — multi-frame Genesis across entire video duration.
 """
 
 import logging
@@ -82,28 +89,33 @@ def _sample_frames(
 # =============================================================================
 
 
-def _run_grounding_scout(
+def _run_grounding_scout_all(
     sampled_frames: List[Tuple[int, np.ndarray]],
     user_prompt: str,
     countvid_engine: Any,
-) -> Optional[Dict[str, Any]]:
+    max_results: int = 10,
+) -> List[Dict[str, Any]]:
     """
-    Run GroundingDINO on sampled frames to find the highest-confidence detection.
+    V3.5: Run GroundingDINO on ALL sampled frames and return every frame
+    that has detections, sorted by confidence descending.
+
+    This replaces the old _run_grounding_scout which only returned the
+    single best-confidence frame, causing "First-Frame Bias".
 
     Args:
         sampled_frames: List of (frame_idx, frame) from sparse sampling.
         user_prompt: Raw user intent (e.g., "count soda").
         countvid_engine: CountVidEngine instance (wraps GroundingDINO).
+        max_results: Maximum number of frames to return.
 
     Returns:
-        Dict with 'frame_idx', 'frame', 'detections', 'best_confidence',
-        or None if no detections found.
+        List of dicts, each with 'frame_idx', 'frame', 'detections',
+        'count', 'avg_confidence'. Sorted by confidence descending.
     """
     if not sampled_frames or not countvid_engine:
-        return None
+        return []
 
-    best_result = None
-    best_confidence = 0.0
+    all_results = []
 
     for frame_idx, frame in sampled_frames:
         try:
@@ -112,21 +124,20 @@ def _run_grounding_scout(
             )
 
             if count_val > 0 and raw_detections:
-                # Calculate average confidence for this frame
                 avg_conf = sum(
                     det.get("score", 0.5) if isinstance(det, dict) else 0.5
                     for det in raw_detections
                 ) / len(raw_detections)
 
-                if avg_conf > best_confidence:
-                    best_confidence = avg_conf
-                    best_result = {
+                all_results.append(
+                    {
                         "frame_idx": frame_idx,
                         "frame": frame,
                         "detections": raw_detections,
                         "count": count_val,
-                        "best_confidence": avg_conf,
+                        "avg_confidence": avg_conf,
                     }
+                )
 
         except Exception as exc:
             logger.warning(
@@ -134,7 +145,9 @@ def _run_grounding_scout(
             )
             continue
 
-    return best_result
+    # Sort by confidence descending, take top-N
+    all_results.sort(key=lambda r: r["avg_confidence"], reverse=True)
+    return all_results[:max_results]
 
 
 # =============================================================================
@@ -161,7 +174,6 @@ def _run_vlm_analyst(
         List of genesis intent dicts: [{'label': str, 'confidence': float, ...}].
     """
     if slm_engine is None:
-        # Fallback: use user_prompt directly as intent
         logger.warning("[IntentGenesis] No SLM available, using raw prompt as intent")
         return [{"label": user_prompt, "confidence": 0.5, "source": "fallback"}]
 
@@ -173,7 +185,6 @@ def _run_vlm_analyst(
         )
         return result
     except AttributeError:
-        # generate_initial_intents not yet implemented — graceful fallback
         logger.warning(
             "[IntentGenesis] SLM.generate_initial_intents not available, "
             "using raw prompt fallback"
@@ -182,6 +193,66 @@ def _run_vlm_analyst(
     except Exception as exc:
         logger.error("[IntentGenesis] VLM Analyst failed: %s", exc)
         return [{"label": user_prompt, "confidence": 0.3, "source": "error_fallback"}]
+
+
+def _run_vlm_analyst_multi(
+    scout_results: List[Dict[str, Any]],
+    user_prompt: str,
+    slm_engine: Any,
+    max_analysis_frames: int = 5,
+) -> List[Dict[str, Any]]:
+    """
+    V3.5: Run VLM analysis on multiple scout frames and merge/deduplicate
+    discovered SKU labels into a single global manifest.
+
+    This prevents "First-Frame Bias" by examining frames from throughout
+    the entire video duration.
+
+    Args:
+        scout_results: List of scout result dicts from _run_grounding_scout_all.
+        user_prompt: Raw user intent.
+        slm_engine: SLMEngine instance wrapping VLM.
+        max_analysis_frames: Max frames to analyze (controls VLM compute cost).
+
+    Returns:
+        Deduplicated list of genesis intent dicts.
+    """
+    if not scout_results:
+        return [{"label": user_prompt, "confidence": 0.3, "source": "no_scout"}]
+
+    all_intents = []
+    seen_labels = set()
+
+    for result in scout_results[:max_analysis_frames]:
+        frame_intents = _run_vlm_analyst(
+            frame=result["frame"],
+            detections=result["detections"],
+            user_prompt=user_prompt,
+            slm_engine=slm_engine,
+        )
+
+        for intent in frame_intents:
+            normalized = intent.get("label", "").strip().lower()
+            if not normalized:
+                continue
+            if normalized not in seen_labels:
+                seen_labels.add(normalized)
+                all_intents.append(intent)
+                logger.info(
+                    "[IntentGenesis] NEW SKU discovered at frame %d: '%s'",
+                    result["frame_idx"],
+                    intent.get("label", "?"),
+                )
+
+    if not all_intents:
+        return [{"label": user_prompt, "confidence": 0.3, "source": "vlm_empty"}]
+
+    logger.info(
+        "[IntentGenesis] Multi-frame VLM found %d unique SKUs: %s",
+        len(all_intents),
+        [i.get("label", "?") for i in all_intents],
+    )
+    return all_intents
 
 
 # =============================================================================
@@ -256,17 +327,18 @@ def _crop_detections(
 
 def intent_genesis_node(state: RecursiveFlowState) -> Dict[str, Any]:
     """
-    Step 0: Intent Genesis — Pre-emptive Semantic Scanning.
+    Step 0: Intent Genesis — V3.5 Global Pre-Scan.
 
     Runs ONCE at the start of the recursive flow to produce:
-    1. genesis_intents: SKU-specific intent list (replaces hardcoded keywords).
+    1. genesis_intents: SKU-specific intent list from ENTIRE video.
     2. reference_crops: Visual anchors for V-JEPA latent matching.
     3. active_intent: Populated immediately for parallel processing.
 
-    If video frames are not available (single-frame mode), falls back to
-    using the user prompt directly as the intent.
+    V3.5: Uses `perception.video_frames` (pre-scanned keyframes from the
+    full video) to discover ALL brands/variants, not just what appears
+    in the first frame.
     """
-    logger.info("[intent_genesis_node] === STEP 0: Intent Genesis ===")
+    logger.info("[intent_genesis_node] === STEP 0: Intent Genesis (V3.5 Global) ===")
 
     ctx = state["ctx"]
     perception = state["perception"]
@@ -286,63 +358,71 @@ def intent_genesis_node(state: RecursiveFlowState) -> Dict[str, Any]:
         )
         return {}
 
-    # --- Phase 1: Check if we have video frames or just a single image ---
-    # In single-frame mode, we use the current image directly
+    # --- Phase 1: Determine frame source ---
+    # V3.5: Prefer video_frames (full pre-scan) over single image
     frames = []
-    if perception.image is not None:
+    if perception.video_frames:
+        frames = perception.video_frames
+        logger.info(
+            "[intent_genesis_node] V3.5 GLOBAL mode: %d pre-scanned keyframes",
+            len(frames),
+        )
+    elif perception.image is not None:
         frames = [(0, perception.image)]
-        logger.info("[intent_genesis_node] Single-frame mode: using current image")
+        logger.info("[intent_genesis_node] Single-frame fallback mode")
     else:
         logger.warning("[intent_genesis_node] No frames available for genesis")
-        # Fallback: populate active_intent from user prompt
         fallback_intents = [
             {"label": user_prompt, "confidence": 0.5, "source": "no_frame"}
         ]
-        updated = perception.model_copy(
-            update={
+        return {
+            "perception": {
                 "genesis_intents": fallback_intents,
                 "active_intent": [user_prompt],
-            }
-        )
-        return {"perception": updated}
+            },
+            "decision": {"is_genesis_complete": True},
+        }
 
-    # --- Phase 2: Scout with GroundingDINO ---
+    # --- Phase 2: Scout with GroundingDINO across ALL frames ---
     from .recursive_flow import get_countvid_engine, get_slm_engine
 
     countvid = get_countvid_engine()
-    scout_result = _run_grounding_scout(frames, user_prompt, countvid)
+    scout_results = _run_grounding_scout_all(frames, user_prompt, countvid)
 
-    if scout_result is None:
+    if not scout_results:
         logger.warning(
-            "[intent_genesis_node] Scout found nothing, using prompt as intent"
+            "[intent_genesis_node] Scout found nothing in any frame, "
+            "using prompt as intent"
         )
         fallback_intents = [
             {"label": user_prompt, "confidence": 0.3, "source": "scout_empty"}
         ]
-        updated = perception.model_copy(
-            update={
+        return {
+            "perception": {
                 "genesis_intents": fallback_intents,
                 "active_intent": [user_prompt],
-            }
-        )
-        return {"perception": updated}
+            },
+            "decision": {"is_genesis_complete": True},
+        }
 
-    best_frame = scout_result["frame"]
-    raw_detections = scout_result["detections"]
-
+    total_detections = sum(r["count"] for r in scout_results)
     logger.info(
-        "[intent_genesis_node] Scout found %d objects at frame %d (conf=%.2f)",
-        scout_result["count"],
-        scout_result["frame_idx"],
-        scout_result["best_confidence"],
+        "[intent_genesis_node] Scout found objects in %d/%d frames (%d total detections)",
+        len(scout_results),
+        len(frames),
+        total_detections,
     )
 
-    # --- Phase 3: Analyze with VLM ---
+    # --- Phase 3: Multi-frame VLM Analysis (V3.5) ---
     slm = get_slm_engine()
-    genesis_intents = _run_vlm_analyst(best_frame, raw_detections, user_prompt, slm)
+    genesis_intents = _run_vlm_analyst_multi(
+        scout_results, user_prompt, slm, max_analysis_frames=5
+    )
 
-    # --- Phase 4: Extract Reference Crops ---
-    reference_crops = _crop_detections(best_frame, raw_detections)
+    # --- Phase 4: Extract Reference Crops from best frame ---
+    best_frame = scout_results[0]["frame"]
+    best_detections = scout_results[0]["detections"]
+    reference_crops = _crop_detections(best_frame, best_detections)
 
     # --- Phase 5: Populate active_intent from genesis results ---
     active_labels = []
@@ -351,7 +431,7 @@ def intent_genesis_node(state: RecursiveFlowState) -> Dict[str, Any]:
         if label and label not in active_labels:
             active_labels.append(label)
 
-    # Ensure main_intent items are included as well
+    # Ensure main_intent items are included (but avoid generic duplicates)
     for item in ctx.main_intent:
         if item not in active_labels:
             active_labels.append(item)

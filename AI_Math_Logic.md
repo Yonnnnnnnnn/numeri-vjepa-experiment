@@ -177,6 +177,20 @@ $$\forall \, C_i \in \text{Clusters} : \text{IoU}(C_i, D) < \epsilon \implies \t
 
 Di mana $\text{Genesis}_{PRO}$ adalah himpunan label target dari Step 0, dan $\text{Accounted}$ adalah label yang sudah memiliki match visual. Ini memberikan **Object Permanence** — sistem "mengingat" objek yang tidak terlihat.
 
+### 5.3. Global Pre-Scan Functor (V3.5)
+
+Intent Genesis sebelumnya terbatas pada frame pertama saja, menyebabkan **First-Frame Bias** — hanya merek yang muncul di awal video yang terdaftar. V3.5 mengatasi ini dengan mendefinisikan **Pre-Scan Functor**:
+
+$$\mathcal{F}_{scan}: V_{full} \to \text{SKU Manifest}$$
+
+Di mana $V_{full} = \{f_{t_0}, f_{t_1}, ..., f_{t_k}\}$ adalah himpunan keyframes yang diambil dari **seluruh** durasi video ($\Delta t \approx 2\text{s}$). Functor ini beroperasi dalam dua tahap:
+
+1. **Multi-Frame Scout**: $\text{Scout}_{DINO}: V_{full} \to \{D_1, D_2, ..., D_m\}$ — GroundingDINO memindai semua keyframes dan menghasilkan deteksi per-frame.
+2. **Multi-Frame Analyst**: $\text{Analyst}_{VLM}: \{D_1, ..., D_m\} \to \text{SKU}_{unique}$ — VLM mengidentifikasi merek spesifik dari setiap frame, lalu hasilnya di-deduplikasi:
+   $$\text{SKU}_{unique} = \bigcup_{i=1}^{m} \text{VLM}(f_{t_i}, D_i) \quad (\text{modulo normalisasi label})$$
+
+Constraint kritis: VLM dilarang menggunakan label generik ($\notin \{\text{"can", "bottle", "box", "item"}\}$), memaksa identifikasi merek spesifik.
+
 ## 6. Functional Persistence & Nuclear Fallback
 
 Dalam sistem yang kompleks, morphism $act$ seringkali bergantung pada library eksternal (External Functors $F_{trans}$). Ketika $F_{trans}$ mengalami perubahan tanda tangan fungsional (Version Incompatibility), morphism tersebut terancam gagal ($act \to \perp$).

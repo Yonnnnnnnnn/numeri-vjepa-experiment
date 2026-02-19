@@ -155,6 +155,40 @@ def main():
     logger.info(f"User Prompt: '{user_prompt}'")
     logger.info(f"Seed Intent: {target_intent}")
 
+    # ── Phase 0: Global Pre-Scan ──────────────────────────────────
+    # Read entire video quickly, sample 1 frame / ~2 sec for Genesis.
+    # This gives Step 0 a "helicopter view" of ALL content in the video.
+    logger.info("Phase 0: Pre-scanning video for Global Intent Genesis...")
+    prescan_frames = []
+    total_frames = int(
+        cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0
+    )  # pylint: disable=no-member
+    prescan_interval = max(1, int(fps * 2))  # 1 frame every ~2 seconds
+    temp_idx = 0
+    while True:
+        ret, f = cap.read()
+        if not ret:
+            break
+        if temp_idx % prescan_interval == 0:
+            f_rgb = cv2.cvtColor(f, cv2.COLOR_BGR2RGB)  # pylint: disable=no-member
+            prescan_frames.append((temp_idx, f_rgb))
+        temp_idx += 1
+
+    # Reset capture to frame 0 for the main processing loop
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # pylint: disable=no-member
+
+    logger.info(
+        "Pre-scan complete: %d keyframes sampled from %d total frames (interval=%d)",
+        len(prescan_frames),
+        total_frames,
+        prescan_interval,
+    )
+
+    # Inject pre-scanned frames into initial state for Intent Genesis
+    initial_state["perception"] = initial_state["perception"].model_copy(
+        update={"video_frames": prescan_frames}
+    )
+
     frame_idx = 0
     while True:
         ret, frame = cap.read()

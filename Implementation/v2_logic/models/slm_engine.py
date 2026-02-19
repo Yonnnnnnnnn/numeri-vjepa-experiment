@@ -353,24 +353,29 @@ class SLMEngine:
 
         vlm_prompt = (
             f"The user's EXPLICIT instruction is: '{prompt}'.\n"
-            f"I detected {n_detected} candidate objects.\n\n"
+            f"I detected {n_detected} candidate objects in this frame.\n\n"
             "CRITICAL INSTRUCTIONS:\n"
-            "1. MANDATORY: You MUST identify EVERY unique type of object requested in the prompt (PRO objects).\n"
-            "2. Even if an object is small or partially occluded, you MUST provide an INTENT line for it if it matches the prompt.\n"
-            "3. Identify SPECIFIC product names (SKUs) based on visual features.\n"
-            "4. Identify UNRELATED objects (human hands, table, background) as 'CONTRA'.\n\n"
+            "1. You MUST identify the SPECIFIC brand/product name of EVERY distinct object.\n"
+            "2. DO NOT use generic labels like 'can', 'bottle', 'box', 'cup', 'item'.\n"
+            "   Read the product label text visible on each object.\n"
+            "3. If multiple brands/variants exist, you MUST list EACH one separately.\n"
+            "4. Even if objects look similar, check the label text for differences.\n"
+            "5. Identify UNRELATED objects (human hands, table, background) as 'CONTRA'.\n\n"
             "Reply in this EXACT format (one per line):\n"
-            "INTENT: [specific SKU label]\n"
+            "INTENT: [specific brand/product name]\n"
             "CONTRA: [distractor label]\n\n"
-            "Example prompt: 'count soda and chips'\n"
-            "INTENT: Coca Cola 330ml Can\n"
-            "INTENT: Pringles Sour Cream Canister\n"
+            "Example — warehouse with canned goods:\n"
+            "INTENT: Ayam Brand Baked Beans\n"
+            "INTENT: Green Giant Whole Kernel Corn\n"
+            "INTENT: Ayam Brand Cream Style Corn\n"
+            "INTENT: Longa Canned Sardine\n"
+            "CONTRA: wooden pallet\n"
             "CONTRA: human hand\n"
         )
 
         try:
             response = self.vlm.predict(
-                frame, prompt_text=vlm_prompt, max_new_tokens=64
+                frame, prompt_text=vlm_prompt, max_new_tokens=256
             )
             logger.info("[SLMEngine] Genesis response: %s", response)
 

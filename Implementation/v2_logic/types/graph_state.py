@@ -215,6 +215,15 @@ class PerceptionState(BaseModel):
         description="Aggregate fusion confidence (0-1). Below 0.6 triggers SLM audit.",
     )
 
+    # --- V3.5: Global Pre-Scan ---
+    video_frames: Optional[List[Any]] = Field(
+        default=None,
+        description=(
+            "Pre-scanned keyframes from the full video for Genesis. "
+            "List of (frame_idx, np.ndarray) tuples. Set once during pre-scan."
+        ),
+    )
+
     # --- V3.3: Intent Genesis & Contra Intent Immunity ---
     genesis_intents: List[Dict[str, Any]] = Field(
         default_factory=list,
