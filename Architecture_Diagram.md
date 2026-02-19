@@ -41,7 +41,10 @@ graph TD
     targeted_slm_node("targeted_slm_node<br>(Reasoning Hook)")
 
     %% Define Sovereignty Flow (14-Step Recursive)
-    START["START"] -- "Step 0: Genesis" --> intent_genesis_node
+    START["START"] -- "Step 0: check_init" --> init_gate{Is Initialized?}
+    init_gate -- "No" --> intent_genesis_node
+    init_gate -- "Yes" --> vjepa_brain_node
+
     intent_genesis_node -- "Step 1: Anchor" --> vjepa_brain_node
     vjepa_brain_node -- "Step 2-3" --> vljepa_director_node
     vljepa_director_node -- "Step 4-7: Orbit" --> v2e_sensor_node

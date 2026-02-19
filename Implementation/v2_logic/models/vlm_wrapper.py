@@ -121,7 +121,16 @@ class VLMInferenceModel:
         ).to(self.device)
 
         # Prepare generation config
-        gen_config = {"max_new_tokens": 128}
+        # FIX 2: Anti-Stuttering Parameters
+        # - repetition_penalty: Prevents VLM from endlessly repeating the same label
+        # - temperature: Adds slight randomness to escape repetition traps
+        # - do_sample: Required for temperature to take effect
+        gen_config = {
+            "max_new_tokens": 128,
+            "repetition_penalty": 1.15,
+            "temperature": 0.7,
+            "do_sample": True,
+        }
         gen_config.update(kwargs)
 
         # Generate

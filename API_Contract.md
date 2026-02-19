@@ -85,4 +85,4 @@ The LangGraph state is governed by the following Pydantic schemas in `graph_stat
 
 - **`GlobalContext`**: `session_id`, `main_intent`, `user_prompt` (V3.3), `unit_volume_prior`, `density_prior`.
 - **`PerceptionState`**: `genesis_intents` (V3.3), `contra_intents` (V3.3), `negative_masks` (V3.3), `rho`, `golden_alpha`, `total_observed_volume`, `n_volumetric_range`, `fusion_confidence`, `shield_scores`.
-- **`DecisionState`**: `status` (loop/exit), `anomaly_type`, `loop_count`.
+- **`DecisionState`**: `status` (loop/exit), `anomaly_type`, `loop_count`, `is_genesis_complete` (V3.3.4).

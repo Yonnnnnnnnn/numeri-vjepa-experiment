@@ -23,11 +23,15 @@ Logic flow for the real-time vision pipeline.
 
 ```mermaid
 flowchart TD
-    %% Phase 0: Anchor
-    Start([Start Loop]) -- "Step 1" --> vjepa_brain_node[vjepa_brain_node: Temporal Context]
-    vjepa_brain_node -- "Step 2-3" --> vljepa_director_node[vljepa_director_node: Intent & Calibration]
+    %% Phase 0: Semantic Setup
+    Start([Start Loop]) --> check_init{Is Initialized?}
+    check_init -- "No" --> intent_genesis_node[intent_genesis_node: Step 0 Scout]
+    check_init -- "Yes" --> vjepa_brain_node
+
+    intent_genesis_node -- "Success" --> vjepa_brain_node[vjepa_brain_node: Temporal Context]
 
     %% Phase 1: Orbit
+    vjepa_brain_node -- "Step 1" --> vljepa_director_node[vljepa_director_node: Intent & Calibration]
     vljepa_director_node -- "Step 4" --> countgd_executor_node[countgd_executor_node: N_visible]
     vljepa_director_node -- "Step 5" --> v2e_sensor_node[v2e_sensor_node: Spike Residue]
     vljepa_director_node -- "Step 6" --> sam2_depth_node[sam2_depth_node: 3D Geometry]

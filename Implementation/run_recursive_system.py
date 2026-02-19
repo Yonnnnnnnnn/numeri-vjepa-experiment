@@ -167,11 +167,15 @@ def main():
 
         logger.info(f"--- Processing Frame {frame_idx} ---")
 
+        # FIX 1: Convert BGR (OpenCV default) to RGB (VLM/PIL expected format)
+        # Without this, Red ↔ Blue channels are swapped, causing VLM color hallucinations
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # pylint: disable=no-member
+
         # Prepare state for current frame
         perception_update = initial_state["perception"].model_copy(
             update={
                 "current_frame_idx": frame_idx,
-                "image": frame,
+                "image": frame_rgb,
                 "last_frame": (
                     initial_state["perception"].image
                     if initial_state["perception"].image is not None

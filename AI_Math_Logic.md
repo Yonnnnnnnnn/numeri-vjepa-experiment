@@ -163,6 +163,20 @@ Dalam Category Theory, kesadaran fungsional sistem tercapai ketika $Int$ mencapa
 $$Int_{n+1} = f_{loop}(Int_n)$$
 Sistem berhenti melakukan "refleksi" ketika representasi internalnya ($Int$) sudah sepenuhnya isomorfik dengan realitas $Lat$ dan divalidasi oleh bukti fisik di $Exe$.
 
+### 5.1. Analyst Override Morphism (V3.4)
+
+Ketika Scout (objek $Exe$) memberikan $N_{vis}$ yang berhalusinasi, dan SLM (objek $Int$) memberikan $N_{slm}$ yang berbeda, sistem menerapkan **Analyst Override**:
+$$N_{vis}' = \begin{cases} N_{slm} & \text{if } N_{slm} \neq N_{vis} \text{ and anomaly is volumetric} \\ N_{vis} & \text{otherwise} \end{cases}$$
+
+Ini mendefinisikan **Trust Morphism** $\tau : Exe \to Int$ di mana output Analyst ($Int$) diutamakan di atas Scout ($Exe$) saat terjadi anomali volumetrik.
+
+### 5.2. Spatial Memory / Residual Intent Mapping (V3.4)
+
+Untuk objek yang tersembunyi (occluded), Math Kernel menerapkan **Residual Intent Mapping**:
+$$\forall \, C_i \in \text{Clusters} : \text{IoU}(C_i, D) < \epsilon \implies \text{label}(C_i) = \text{first}(\text{Genesis}_{PRO} \setminus \text{Accounted})$$
+
+Di mana $\text{Genesis}_{PRO}$ adalah himpunan label target dari Step 0, dan $\text{Accounted}$ adalah label yang sudah memiliki match visual. Ini memberikan **Object Permanence** — sistem "mengingat" objek yang tidak terlihat.
+
 ## 6. Functional Persistence & Nuclear Fallback
 
 Dalam sistem yang kompleks, morphism $act$ seringkali bergantung pada library eksternal (External Functors $F_{trans}$). Ketika $F_{trans}$ mengalami perubahan tanda tangan fungsional (Version Incompatibility), morphism tersebut terancam gagal ($act \to \perp$).

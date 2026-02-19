@@ -483,24 +483,53 @@ def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
                 updates["focus_roi"] = focus_roi
                 logger.info("[director] POINTBEAM: Set focus ROI to %s", focus_roi)
 
-        # --- VOLUMETRIC AUTO-CALIBRATION ---
-        # If we're in a volumetric anomaly loop and SLM confirms the visual count,
-        # we should recalibrate the unit volume estimate.
+        # --- FIX 3: SLM ANALYST OVERRIDE (Trust the Analyst) ---
+        # Previously, SLM count was only used when it AGREED with Scout.
+        # Now, when SLM provides a specific count, we trust it over Scout's
+        # hallucinated visual count, breaking the logical deadlock.
         if decision.anomaly_type == "volumetric":
-            # Check if SLM is confirming the visual count
             import re
 
-            # Pattern: "3 objects" or "three objects" or "I see 3"
-            count_match = re.search(r"(\d+)\s+object", hypothesis)
+            # Broader pattern to catch: "3 objects", "three cups", "I see 3", etc.
+            count_match = re.search(
+                r"(\d+)\s+(?:object|item|cup|ball|bottle)", hypothesis
+            )
+            if not count_match:
+                # Fallback: any standalone number in a counting context
+                count_match = re.search(
+                    r"(?:are|see|count|found|total)\D*(\d+)", hypothesis
+                )
+
             if count_match:
                 try:
-                    slm_confirmed_count = int(count_match.group(1))
-                    if (
-                        slm_confirmed_count == perception.n_visible
-                        and perception.n_visible > 0
-                    ):
-                        # SLM agrees with visual count -> recalibrate unit volume
-                        # Formula: new_unit_volume = total_observed_volume / n_visible
+                    slm_count = int(count_match.group(1))
+
+                    if slm_count > 0 and slm_count != perception.n_visible:
+                        # --- ANALYST OVERRIDE ---
+                        # SLM disagrees with Scout → trust the Analyst
+                        logger.warning(
+                            "[director] ANALYST OVERRIDE: Scout=%d vs SLM=%d. "
+                            "Trusting SLM count.",
+                            perception.n_visible,
+                            slm_count,
+                        )
+                        updates["n_visible"] = slm_count
+
+                        # Also recalibrate unit volume with the corrected count
+                        total_vol = perception.total_observed_volume
+                        if total_vol > 0:
+                            new_unit_volume = total_vol / slm_count
+                            updates["estimated_unit_volume"] = new_unit_volume
+                            logger.info(
+                                "[director] VOLUMETRIC CALIBRATION: "
+                                "Recalibrating unit_volume = %.6f m^3 "
+                                "(based on SLM count=%d)",
+                                new_unit_volume,
+                                slm_count,
+                            )
+
+                    elif slm_count == perception.n_visible and perception.n_visible > 0:
+                        # SLM agrees with visual count → recalibrate unit volume
                         total_vol = perception.total_observed_volume
                         if total_vol > 0:
                             new_unit_volume = total_vol / perception.n_visible
@@ -905,6 +934,15 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
     n_vol = 0.0
     slm = get_slm_engine()  # To fetch priors if not cached
 
+    # --- FIX 4: Spatial Memory — Track which genesis intents are "accounted for" ---
+    # Collect PRO genesis labels (non-contra) to track coverage
+    genesis_pro_labels = [
+        gi.get("label", "").lower()
+        for gi in (perception.genesis_intents or [])
+        if not gi.get("is_contra", False)
+    ]
+    accounted_labels = set()  # Labels that have at least one visual detection
+
     for cluster in filtered_clusters:
         c_vol = cluster.get("volume_m3", 0.0)
 
@@ -919,6 +957,27 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
                 best_iou = iou
                 best_label = det.get("label", "item")
 
+        # --- FIX 4 (cont.): Residual Intent Mapping ---
+        # If this cluster has NO visual detection match (best_iou ≈ 0),
+        # try to assign it to an unaccounted genesis intent (occluded object).
+        if best_iou < 0.05 and best_label == "item":
+            # Find unaccounted genesis labels
+            unaccounted = [
+                gl for gl in genesis_pro_labels if gl not in accounted_labels
+            ]
+            if unaccounted:
+                best_label = unaccounted[0]
+                logger.info(
+                    "[v3_math_node] SPATIAL MEMORY: Unmatched cluster → "
+                    "assigned to unaccounted genesis intent '%s' (occluded?)",
+                    best_label,
+                )
+        else:
+            # Track that this label is visually accounted for
+            for gl in genesis_pro_labels:
+                if gl in best_label.lower() or best_label.lower() in gl:
+                    accounted_labels.add(gl)
+
         # Get specific unit volume for this label
         # In a production run, we'd cache these in PerceptionState
         u_v = slm.estimate_object_volume(best_label) if slm else target_unit_v
@@ -928,11 +987,12 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
         n_vol += cluster_n
 
         logger.info(
-            "[v3_math_node] Cluster (%s): V=%.6f m^3 -> n=%.2f (using v_unit=%.6f)",
+            "[v3_math_node] Cluster (%s): V=%.6f m^3 -> n=%.2f (using v_unit=%.6f, iou=%.2f)",
             best_label,
             c_vol,
             cluster_n,
             u_v,
+            best_iou,
         )
 
     logger.info(
