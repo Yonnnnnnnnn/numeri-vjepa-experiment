@@ -78,6 +78,7 @@ class VLMInferenceModel:
         self,
         rgb_frame,
         prompt_text: str = "Count all the visible inventory items in this image. Provide a number.",
+        **kwargs,
     ) -> str:
         """
         Run VLM inference on an RGB frame.
@@ -85,6 +86,7 @@ class VLMInferenceModel:
         Args:
             rgb_frame: numpy array (H, W, C) in RGB format, values 0-255
             prompt_text: The counting prompt
+            **kwargs: Additional arguments for model.generate (e.g., max_new_tokens)
 
         Returns:
             Generated text response from the VLM
@@ -118,11 +120,15 @@ class VLMInferenceModel:
             return_tensors="pt",
         ).to(self.device)
 
+        # Prepare generation config
+        gen_config = {"max_new_tokens": 128}
+        gen_config.update(kwargs)
+
         # Generate
         with torch.no_grad():
             generated_ids = self.model.generate(
                 **inputs,
-                max_new_tokens=128,
+                **gen_config,
             )
 
         # Decode (remove input tokens)

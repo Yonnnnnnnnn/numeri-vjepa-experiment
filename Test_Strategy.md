@@ -19,4 +19,10 @@ This document outlines the strategy for verifying the Antigravity V3.1 "Sovereig
 
 - **Singleton Enforcement**: Verify that heavy engines (V-JEPA, SAM2) are cached as singletons to prevent VRAM overflow.
 - **Edge Case Sanity**: Test `SanityGuard` against division-by-zero or empty point clouds.
+
 - **Graceful Degradation**: Ensure the graph reaches `exit` even if secondary sensors (e.g., v2e) return empty data.
+
+## 4. VLM & SLM Component Verification (V3.3.3)
+
+- **VLM Interface Integrity**: Verify that `VLMInferenceModel` correctly handles dynamic keyword arguments (`max_new_tokens`) via `tests/test_vlm_interface.py`.
+- **Semantic Pivot Logic**: Validate the Generic Anchor Strategy (Specific label -> Basic noun) using `Implementation/tests/test_semantic_pivot_fast.py` to ensure physical volume priors are requested for known categories.
