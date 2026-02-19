@@ -715,9 +715,10 @@ class MathUtils:
         Returns:
             Estimated count (float).
         """
-        if v_unit <= 1e-6:
-            # Safeguard: prevent division by zero or negative/tiny unit volumes
-            # If unit volume is unknown, we cannot estimate count volumetrically.
+        if v_unit < 1e-9:
+            # Safeguard: prevent division by zero or negative/tiny unit volumes.
+            # Threshold: 1e-9 m³ (1 mm³). SLM safety floor is 1e-6 m³ (1 cm³).
+            # V3.3.2 Hotfix: was `<= 1e-6` which blocked the safety floor value.
             return 0.0
 
         return (v_stack * rho) / v_unit

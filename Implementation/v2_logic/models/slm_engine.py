@@ -166,6 +166,67 @@ class SLMEngine:
             return sentences[0].strip()
         return "Unknown anomaly."
 
+    def _extract_generic_anchor(self, label: str) -> str:
+        """
+        Semantic Pivot: Extracts a generic noun from a specific label.
+        Example: "Blue Plastic Cup" -> "cup"
+        """
+        # Daftar anchor words yang umum diketahui VLM memiliki volume standar
+        # Diurutkan dari yang spesifik ke umum (Generic Anchor Strategy)
+        anchors = [
+            # Specific containers matched first
+            "mug",
+            "tumbler",
+            "jar",
+            "jug",
+            "cup",
+            "bottle",
+            "can",
+            # Ambiguous materials/shapes processed later
+            "glass",
+            "ball",
+            "sphere",
+            # Boxes & Packaging
+            "carton",
+            "box",
+            "container",
+            "pouch",
+            "sachet",
+            "bag",
+            # Tools
+            "marker",
+            "pencil",
+            "pen",
+            # Tech (Smartphone before phone)
+            "smartphone",
+            "laptop",
+            "phone",
+            # Furniture
+            "chair",
+            "table",
+            # People
+            "woman",
+            "man",
+            "person",
+            "human",
+        ]
+
+        label_lower = label.lower()
+
+        # 1. Exact match check (jika label sudah generik)
+        if label_lower in anchors:
+            return label_lower
+
+        # 2. Substring match (prioritize longer matches if overlap, or order in list)
+        for anchor in anchors:
+            # Menggunakan regex boundary (\b) agar tidak match parsial (misal 'can' di 'candy')
+            # tapi simple substring check seringkali cukup untuk MVP
+            if anchor in label_lower:
+                return anchor
+
+        # 3. Fallback: Return original label
+        return label
+
     def estimate_object_volume(
         self, label: str, image: Optional[np.ndarray] = None
     ) -> float:
@@ -181,11 +242,22 @@ class SLMEngine:
         """
         self._ensure_model_loaded()
 
+        # --- SEMANTIC PIVOT ---
+        # Gunakan label generik untuk pertanyaan fisika ke VLM agar tidak bingung
+        query_label = self._extract_generic_anchor(label)
+
+        if query_label != label:
+            logger.info(
+                "[SLMEngine] Semantic Pivot: '%s' -> '%s' for volume estimation",
+                label,
+                query_label,
+            )
+
         prompt = (
-            f"Estimate the average physical volume of a '{label}' in cubic meters (m^3). "
-            "Consider standard real-world dimensions. "
-            "Reply with a SINGLE numeric value in scientific notation or decimal. "
-            "Example: 0.0005. Do NOT include units or explanation."
+            f"Estimate the average physical volume of a single '{query_label}' in cubic meters (m^3). "
+            "Consider standard real-world dimensions for this object. "
+            "Provide ONLY the numeric value in scientific notation (e.g., 5.0e-4) or simple decimal (e.g., 0.0005). "
+            "Absolutely NO units, NO explanation, NO symbols other than numbers and decimal/scientific notation."
         )
 
         # Use a blank image if none provided (pure knowledge retrieval)
@@ -194,15 +266,16 @@ class SLMEngine:
 
         try:
             logger.info("[SLMEngine] Requesting volume prior for '%s'", label)
-            response = self.vlm.predict(image, prompt_text=prompt)
+            # Use very low max_new_tokens to prevent rambling/zeros
+            response = self.vlm.predict(image, prompt_text=prompt, max_new_tokens=24)
             logger.info("[SLMEngine] Volume Response: %s", response)
 
             # Parse number
             import re
 
-            # Match scientific notation or float: 1.2e-3, 0.005, 5e-4
-            # Improved regex to be more robust
-            match = re.search(r"[-+]?\d*\.?\d+([eE][-+]?\d+)?", response)
+            # CLEANUP: Remove any non-numeric noise before regex
+            clean_resp = "".join(c for c in response if c in "0123456789.eE-+")
+            match = re.search(r"[-+]?\d*\.?\d+([eE][-+]?\d+)?", clean_resp)
 
             # Context-aware fallback values (in m^3)
             fallbacks = {
@@ -218,9 +291,20 @@ class SLMEngine:
                 # Rule 6.1/6.10: Safety Floor (1cm^3) to prevent division by zero or extreme counts
                 if val < 1e-6:
                     logger.warning(
-                        "[SLMEngine] Volume too low (%.2e), applying safety floor", val
+                        "[SLMEngine] Volume too low (%.2e), checking context fallback",
+                        val,
                     )
-                    return 1e-6
+                    # V3.3.2 Hotfix: Use context-aware fallback BEFORE safety floor
+                    for k, v in fallbacks.items():
+                        if k in label.lower():
+                            logger.info(
+                                "[SLMEngine] Context fallback for '%s': %.6f m^3",
+                                label,
+                                v,
+                            )
+                            return v
+                    # Generic fallback (1 liter) — still better than 1e-6
+                    return default_fallback
 
                 # Rule 6.9: Sanity bounds (filters out hallucinations like 1000m^3 for a bottle)
                 if val > 1.0:  # Nothing we count is bigger than 1 cubic meter
@@ -285,7 +369,9 @@ class SLMEngine:
         )
 
         try:
-            response = self.vlm.predict(frame, prompt_text=vlm_prompt)
+            response = self.vlm.predict(
+                frame, prompt_text=vlm_prompt, max_new_tokens=64
+            )
             logger.info("[SLMEngine] Genesis response: %s", response)
 
             intents = []

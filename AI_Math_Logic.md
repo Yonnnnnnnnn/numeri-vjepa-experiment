@@ -141,10 +141,11 @@ Hal ini memastikan metadata anomali dari $Exe$ dipetakan kembali secara akurat k
 
 ### 4.6. Sanity Functor (Safe Bounds Validation)
 
-Morphism $eval$ menyertakan **SanityGuard** ($\sigma$) untuk mencegah propagasi nilai fisik yang tidak masuk akal (Error Isolation). Perbaikan V3.3.1 menambahkan proteksi pada pembagi ($V_{\mu}$):
+Morphism $eval$ menyertakan **SanityGuard** ($\sigma$) untuk mencegah propagasi nilai fisik yang tidak masuk akal (Error Isolation). Perbaikan V3.3.2 menambahkan proteksi pada pembagi ($V_{\mu}$):
 
-- **Numerical Guard (Volume)**: $\sigma(V_{\mu}) \to [1.0 \times 10^{-6}, 1.0]$.
-  - **Safety Floor ($10^{-6} m^3$)**: Mencegah _division-by-zero_ atau hasil hitungan yang meledak secara atomik.
+- **Numerical Guard (Volume)**: $\sigma(V_{\mu}) \to [1.0 \times 10^{-9}, 1.0]$.
+  - **Guard Threshold ($10^{-9} m^3$ = 1 mm³)**: Mencegah _division-by-zero_. V3.3.2 Hotfix: diturunkan dari $10^{-6}$ untuk menghindari deadlock dengan SLM Safety Floor.
+  - **Context Fallback**: SLM menggunakan tabel lookup per-SKU (cup: 250cm³, bottle: 500cm³, dll.) sebelum jatuh ke safety floor.
   - **Clamping ($1.0 m^3$)**: Membatasi halusinasi VLM untuk objek inventory standar.
 - **Numerical Guard (Count)**: $\sigma(N_{vol}) \to [0, 1000]$. Nilai $NaN$ atau $\infty$ dipotong ke batas aman.
 - **Topological Guard**: Memeriksa manifold safety pada point cloud sebelum morfisme AlphaHull dijalankan untuk menghindari kegagalan kernel geometris.
