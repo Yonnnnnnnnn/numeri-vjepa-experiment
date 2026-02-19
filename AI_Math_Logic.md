@@ -92,17 +92,22 @@ $$x = (u - c_x) \times z / f_x$$
 $$y = (v - c_y) \times z / f_y$$
 Dimana $(c_x, c_y)$ adalah _principal point_ dan $(f_x, f_y)$ adalah _focal length_.
 
-### 4.2. Lattice Counting & Riemann Sums (V-Core)
+### 4.2. Per-Cluster Volumetric Weighing (V3.3 Mixed-Object Logic)
 
-Volume total $V_{total}$ dihitung dengan menjumlahkan estimasi volume dari setiap cluster volumetrik yang terdeteksi melalui **Fuzzy Semantic Reconciliation**:
-$$V_{total} = \sum_{c \in Clusters} MathUtils.estimate\_volume\_heuristic(DepthMap, c_{mask})$$
-Dimana $c_{mask}$ adalah masker gabungan untuk cluster yang lolos filter **Fuzzy Label Matching** (IoU > 0.1) terhadap intent target.
+Untuk mendukung tumpukan objek heterogen (misal: bola CAMPUR gelas), sistem beralih dari estimasi tumpukan global ke rekonsiliasi per-cluster. Volume total $V_{total}$ sekarang didefinisikan sebagai jumlah dari kontribusi volumetrik fraksional setiap cluster $c$:
+
+$$ N*{volumetric} = \sum*{c \in Clusters} \frac{V*c \times \rho}{\sigma(V*{\mu, label(c)})} $$
+
+Dimana:
+
+- $V_c$: Volume individu cluster $c$ hasil proyeksi 3D.
+- $label(c)$: Label visual terbaik hasil **IOU-Mapping** terhadap deteksi `CountVid`.
+- $V_{\mu, label(c)}$: Prior volume fisik spesifik untuk label tersebut dari SLM Knowledge Base.
 
 ### 4.3. Physical Density Sensing ($\rho$)
 
-Morphism $eval$ kini memperhitungkan densitas tumpukan $\rho$ melalui analisis spekularitas visual ($S$):
+Morphism $eval$ tetap memperhitungkan densitas tumpukan $\rho$ melalui analisis spekularitas visual ($S$) untuk mengoreksi volume cluster:
 $$ \rho = MLP(DINOv2_Features(Int), S) $$
-$$N*{volumetric} = \text{round}\left(\frac{V*{total} \times \rho}{V\_{\mu}}\right)$$
 
 ### 4.4. Golden Alpha Calibration (The Isomorphism Anchor)
 

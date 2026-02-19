@@ -289,13 +289,11 @@ def v2e_sensor_node(state: RecursiveFlowState) -> Dict[str, Any]:
             mask = (xs >= 0) & (xs < w) & (ys >= 0) & (ys < h)
             np.add.at(spike_map, (ys[mask], xs[mask]), np.abs(ps[mask]))
 
-        updated_perception = perception.model_copy(
-            update={
-                "v2e_spike_map": spike_map,
-                "spike_energy": float(np.sum(spike_map)),
-            }
-        )
-        return {"perception": updated_perception}
+        return {
+            "perception": PerceptionState(
+                v2e_spike_map=spike_map, spike_energy=float(np.sum(spike_map))
+            )
+        }
 
     return {}
 
@@ -544,8 +542,7 @@ def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
         updates["active_intent"] = list(ctx.main_intent)
 
     if updates:
-        updated_perception = perception.model_copy(update=updates)
-        return {"perception": updated_perception}
+        return {"perception": PerceptionState(**updates)}
 
     return {}
 
@@ -628,13 +625,12 @@ def countvid_executor_node(state: RecursiveFlowState) -> Dict[str, Any]:
             elif isinstance(det, dict):
                 formatted_detections.append(det)  # Already formatted
 
-        updated_perception = perception.model_copy(
-            update={
-                "n_visible": count_val,
-                "raw_detections": formatted_detections,
-            }
-        )
-        return {"perception": updated_perception}
+        return {
+            "perception": PerceptionState(
+                n_visible=count_val,
+                raw_detections=formatted_detections,
+            )
+        }
 
     return {}
 
@@ -755,8 +751,7 @@ def sam2_depth_node(state: RecursiveFlowState) -> Dict[str, Any]:
     # Store clusters for later V3 Math processing
     updates["point_cloud_summary"] = {"clusters": clusters}
 
-    updated_perception = perception.model_copy(update=updates)
-    return {"perception": updated_perception}
+    return {"perception": PerceptionState(**updates)}
 
 
 def density_sensing_node(state: RecursiveFlowState) -> Dict[str, Any]:
@@ -778,8 +773,7 @@ def density_sensing_node(state: RecursiveFlowState) -> Dict[str, Any]:
         features = np.array([[specularity]])
         rho = mlp.predict(features)[0]
 
-        updated_perception = perception.model_copy(update={"rho": float(rho)})
-        return {"perception": updated_perception}
+        return {"perception": PerceptionState(rho=float(rho))}
 
     return {}
 
@@ -902,18 +896,45 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
         except Exception as e:
             logger.warning("[v3_math_node] Calibration failed: %s", e)
 
-    # 3. Step 8-9: Final Volumetric Count (CORE 3DC LOGIC)
-    # Formula: N_vol = (V_stack * rho) / v_unit
-    n_vol = MathUtils.calculate_volumetric_count(
-        v_stack=v_stack, rho=perception.rho, v_unit=target_unit_v
-    )
+    # 3. Step 8-9: Final Volumetric Count (V3.3 Mixed-Object Logic)
+    # Formula: N_vol = sum(V_cluster / V_unit_for_label)
+    n_vol = 0.0
+    slm = get_slm_engine()  # To fetch priors if not cached
+
+    for cluster in filtered_clusters:
+        c_vol = cluster.get("volume_m3", 0.0)
+
+        # Determine the best label for this cluster
+        best_label = "item"
+        best_iou = 0.0
+        for det in raw_detections:
+            iou = MathUtils.calculate_bbox_overlap(
+                cluster.get("bbox", {}), det.get("bbox", {})
+            )
+            if iou > best_iou:
+                best_iou = iou
+                best_label = det.get("label", "item")
+
+        # Get specific unit volume for this label
+        # In a production run, we'd cache these in PerceptionState
+        u_v = slm.estimate_object_volume(best_label) if slm else target_unit_v
+
+        # Calculate fractional count
+        cluster_n = (c_vol * perception.rho) / u_v if u_v > 1e-9 else 0.0
+        n_vol += cluster_n
+
+        logger.info(
+            "[v3_math_node] Cluster (%s): V=%.6f m^3 -> n=%.2f (using v_unit=%.6f)",
+            best_label,
+            c_vol,
+            cluster_n,
+            u_v,
+        )
 
     logger.info(
-        "[v3_math_node] 3DC Result: %.2f units (From V_stack: %.6f m^3, rho: %.2f, V_unit: %.6f m^3)",
+        "[v3_math_node] 3DC RECONCILIATION: Total n_vol = %.2f across %d filtered clusters",
         n_vol,
-        v_stack,
-        perception.rho,
-        target_unit_v,
+        len(filtered_clusters),
     )
 
     # Phase 6: Sanity Guard Check
@@ -931,8 +952,7 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
     updates["n_volumetric_range"] = (int(n_vol), int(np.ceil(n_vol)))
     updates["total_observed_volume"] = v_stack  # Persist V_stack
 
-    updated_perception = perception.model_copy(update=updates)
-    return {"perception": updated_perception}
+    return {"perception": PerceptionState(**updates)}
 
 
 def fusion_engine_node(state: RecursiveFlowState) -> Dict[str, Any]:
@@ -1030,8 +1050,7 @@ def fusion_engine_node(state: RecursiveFlowState) -> Dict[str, Any]:
         # For now, let's keep n_visible as CountGD's output,
         # but OutputAccumulator should use tracked objects count.
 
-    updated_perception = perception.model_copy(update=updates)
-    return {"perception": updated_perception}
+    return {"perception": PerceptionState(**updates)}
 
 
 def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
@@ -1082,7 +1101,9 @@ def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
             gate_decision.rule_applied,
         )
 
-        return {"decision": new_decision}
+        return {
+            "decision": DecisionState(**new_decision.model_dump(exclude_unset=True))
+        }
 
     return {}
 
@@ -1117,14 +1138,13 @@ def targeted_slm_node(state: RecursiveFlowState) -> Dict[str, Any]:
             image=image, anomaly_type=decision.anomaly_type, context=context
         )
 
-        new_decision = decision.model_copy(
-            update={
-                "slm_triggered": True,
-                "slm_reasoning": result.reasoning_text,
-                "slm_hypothesis": result.hypothesis,
-            }
-        )
-        return {"decision": new_decision}
+        return {
+            "decision": DecisionState(
+                slm_triggered=True,
+                slm_reasoning=result.reasoning_text,
+                slm_hypothesis=result.hypothesis,
+            )
+        }
 
     return {}
 
@@ -1163,13 +1183,12 @@ def interpolation_node(state: RecursiveFlowState) -> Dict[str, Any]:
     # For now, we assume static camera or essentially 'pass-through'
     # to prepare for the next loop.
 
-    new_decision = decision.model_copy(
-        update={
-            "loop_count": decision.loop_count + 1,
-            "status": "looping",
-        }
-    )
-    return {"decision": new_decision}
+    return {
+        "decision": DecisionState(
+            loop_count=decision.loop_count + 1,
+            status="looping",
+        )
+    }
 
 
 # =============================================================================

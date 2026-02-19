@@ -50,6 +50,7 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 ## 2. Sovereignty Implementation
 
 - **Recursive Intent**: The system treats $N_{vol}$ as the "Physical Truth" and $N_{vis}$ as a "Hypothesis". Discrepancies trigger a re-observation loop.
+- **Per-Cluster Weighing (V3.3.3)**: Instead of a global stack volume division, the system map each 3D cluster to its visual label and divides by that specific SKU's prior volume. This allows accurate counting in heterogeneous scenes (e.g., balls mixed with cups).
 - **Sovereignty Protocol**: Consensus is reached only when the `FusionConfidence` exceeds the configured threshold across all shields.
 
 ## 3. Physical Safety & Performance
@@ -58,10 +59,11 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 
 - To mitigate VRAM fragmentation, heavy models (JEPA, SAM2, DINOv2) are initialized once via a lazy-loading Singleton pattern in `recursive_flow.py`.
 
-### 3.2. Volumetric Guardrails (SanityGuard)
+### 3.2. Volumetric Guardrails & State Integrity
 
-- **SanityGuard**: Secara proaktif memvalidasi batas volumetrik dan keamanan manifold (point cloud integrity). V3.3.1 menyertakan **Strict Numeric Parser** (Scientific Notation) dan **Safety Floors** untuk nilai V_unit guna menghindari instabilitas hasil perhitungan saat probabilitas VLM berfluktuasi dekat nol.
-- Numerical stability triggers on division-by-zero or non-manifold mesh generation in the AlphaHull kernel.
+- **SanityGuard**: Secara proaktif memvalidasi batas volumetrik dan keamanan manifold (point cloud integrity). V3.3.1 menyertakan **Strict Numeric Parser** (Scientific Notation) dan **Safety Floors** untuk nilai V_unit.
+- **Parallel State Integrity (Fresh DTO Pattern)**: To prevent "Lost Update" bugs during parallel sensor execution (CountVid, SAM2, V2E), LangGraph nodes return fresh `PerceptionState` DTOs containing ONLY their specific updates. This ensures the LangGraph reducer correctly merges all sensor evidence without overwriting sibling data.
+- **Numerical Stability**: V3.3.3 hotfix ensures dynamic VLM parameters (e.g., `max_new_tokens`) are correctly propagated through the `VLMInferenceModel` interface to prevent kernel crashes during high-load reasoning.
 
 ### 3.3. Coordinate Scaling
 
