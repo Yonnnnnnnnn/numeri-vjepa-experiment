@@ -427,50 +427,54 @@ def intent_genesis_node(state: RecursiveFlowState) -> Dict[str, Any]:
     best_detections = scout_results[0]["detections"]
     reference_crops = _crop_detections(best_frame, best_detections)
 
-    # V3.6: Extract Latent Anchors (Visual Fingerprints)
+    # V3.7: Extract Latent Anchors from MULTIPLE top frames (Accumulative Fingerprinting)
     latent_anchors = {}
     try:
         vjepa = get_vjepa_engine()
-        # Prepare frame tensor (B, C, H, W) normalized [0,1]
-        frame_tensor = (
-            torch.from_numpy(best_frame).permute(2, 0, 1).float().unsqueeze(0) / 255.0
-        )
-        frame_tensor = frame_tensor.to(vjepa.device)
+        # Analyze top N frames for latent anchors (usually those with highest diversity)
+        for result in scout_results[:3]:
+            frame = result["frame"]
+            frame_detections = result["detections"]
 
-        # Encode frame to get 3D latent map
-        vjepa_latent_map = vjepa.encode(frame_tensor)
+            # Prepare frame tensor (B, C, H, W) normalized [0,1]
+            frame_tensor = (
+                torch.from_numpy(frame).permute(2, 0, 1).float().unsqueeze(0) / 255.0
+            )
+            frame_tensor = frame_tensor.to(vjepa.device)
+            vjepa_latent_map = vjepa.encode(frame_tensor)
 
-        # Extract latent for each detection
-        for i, det in enumerate(best_detections):
-            label = det.get("label", "object").lower()
-            det_words = set(label.replace(",", " ").split())
+            for det in frame_detections:
+                label = det.get("label", "object").lower()
+                det_words = set(label.replace(",", " ").split())
 
-            latent_vec = vjepa.extract_object_latent(det["bbox"], vjepa_latent_map)
+                # Match detection label with specific Genesis labels
+                matched_sku = None
+                for intent in genesis_intents:
+                    sku_label = intent["label"].lower()
+                    sku_words = set(sku_label.replace(",", " ").split())
 
-            # Match detection label with specific Genesis labels
-            # We use the most specific matching brand name from genesis_intents
-            matched_sku = None
-            for intent in genesis_intents:
-                sku_label = intent["label"].lower()
-                sku_words = set(sku_label.replace(",", " ").split())
+                    if (
+                        det_words & sku_words
+                        or label in sku_label
+                        or sku_label in label
+                    ):
+                        matched_sku = intent["label"]
+                        if len(sku_words) > 1:
+                            break  # Specific match found
 
-                # Check for word overlap (e.g., "can" in "Ayam Brand Can")
-                if det_words & sku_words or label in sku_label or sku_label in label:
-                    matched_sku = intent["label"]
-                    # If we found a very specific match, stop
-                    if len(sku_words) > 1:
-                        break
-
-            if matched_sku:
-                if matched_sku not in latent_anchors:
+                if matched_sku and matched_sku not in latent_anchors:
+                    latent_vec = vjepa.extract_object_latent(
+                        det["bbox"], vjepa_latent_map
+                    )
                     latent_anchors[matched_sku] = latent_vec.detach().cpu().numpy()
                     logger.info(
-                        "[intent_genesis_node] Stored Latent Anchor for SKU: %s",
+                        "[intent_genesis_node] Stored V3.7 Latent Anchor for SKU: %s",
                         matched_sku,
                     )
-
     except Exception as e:
-        logger.error("[intent_genesis_node] Failed to extract Latent Anchors: %s", e)
+        logger.error(
+            "[intent_genesis_node] Failed to extract V3.7 Latent Anchors: %s", e
+        )
 
     # --- Phase 5: Populate active_intent from genesis results ---
     active_labels = []

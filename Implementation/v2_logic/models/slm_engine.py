@@ -485,13 +485,23 @@ class SLMEngine:
                     )
                     item["is_contra"] = False
 
-                # Safety Override for Hands
-                if (
-                    not item["is_contra"]
-                    and "hand" in label_lower
-                    and "hand" not in user_keywords
-                ):
-                    item["is_contra"] = True
+                # --- V3.7 EXTRACTION ENHANCEMENT ---
+                # Force specificity: if label is just 'can' but prompt has 'Amoy', skip generic entry
+                # unless no other specific brands are found.
+                if label_lower in [
+                    "can",
+                    "cans",
+                    "bottle",
+                    "bottles",
+                    "item",
+                    "objects",
+                ]:
+                    if any(kw in label_lower for kw in user_keywords if len(kw) > 4):
+                        # If it's generic but part of a keyword, keep it
+                        pass
+                    elif len(user_keywords) > 0:
+                        # If user gave specific brands but VLM returned 'can', mark as low confidence
+                        item["confidence"] *= 0.5
 
                 validated_intents.append(item)
 
