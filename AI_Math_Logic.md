@@ -203,6 +203,15 @@ Sistem juga menerapkan **Semantic Filter** $\sigma$ untuk memastikan kedaulatan 
 $$\text{Manifest}_{clean} = \sigma(\text{Manifest}_{raw}) = \{s \in \text{Manifest}_{raw} \mid \text{is\_noun}(s) \wedge \text{is\_not\_instruction}(s)\}$$
 Ini menghilangkan "pollution" dari prompt (seperti "identify", "possible") sehingga Step 0 hanya menghasilkan entitas fisik murni.
 
+### 5.5. Multi-Frame Accumulation & Target Injection (V3.7)
+
+V3.7 menuntaskan kegagalan deteksi brand (Amoy, Malee, dll.) melalui dua mekanisme penguatan:
+
+1.  **Accumulative Visual Fingerprinting**: Alih-alih satu frame, sistem mengekstrak Latent Anchors ($\mathcal{L}$) dari top $N=3$ frames dengan diversitas deteksi tertinggi. Ini memastikan cakupan visual 100% terhadap seluruh isi gudang yang mungkin tersebar di durasi video.
+2.  **Prompt-Aware Target Injection**: Daftar brand yang diberikan user di prompt diperlakukan sebagai **Priority Constraints**. Secara matematis, sistem mendefinisikan fungsi pembobotan kepercayaan $W$:
+    $$C_{final}(s) = \begin{cases} C_{raw}(s) \times 1.0 & \text{if } s \in \text{UserKeywords} \\ C_{raw}(s) \times 0.5 & \text{if } s \text{ is generic AND } \text{UserKeywords} \neq \emptyset \end{cases}$$
+    Ini menekan halusinasi label generik ("cans") dan mengutamakan merek spesifik ("Amoy Can").
+
 ## 6. Functional Persistence & Nuclear Fallback
 
 Dalam sistem yang kompleks, morphism $act$ seringkali bergantung pada library eksternal (External Functors $F_{trans}$). Ketika $F_{trans}$ mengalami perubahan tanda tangan fungsional (Version Incompatibility), morphism tersebut terancam gagal ($act \to \perp$).
