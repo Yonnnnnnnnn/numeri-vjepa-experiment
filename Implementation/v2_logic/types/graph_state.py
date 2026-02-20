@@ -224,6 +224,15 @@ class PerceptionState(BaseModel):
         ),
     )
 
+    # --- V3.6: Discovery Intelligence ---
+    latent_anchors: Dict[str, Any] = Field(
+        default_factory=dict,
+        description=(
+            "Latent 'fingerprints' for each SKU. Map: label -> np.ndarray. "
+            "Extracted from reference crops during Genesis."
+        ),
+    )
+
     # --- V3.3: Intent Genesis & Contra Intent Immunity ---
     genesis_intents: List[Dict[str, Any]] = Field(
         default_factory=list,

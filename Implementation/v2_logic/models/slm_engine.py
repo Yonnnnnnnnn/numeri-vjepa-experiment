@@ -419,11 +419,51 @@ class SLMEngine:
                 "many",
                 "please",
                 "video",
+                "identify",
+                "possible",
+                "ignore",
+                "brands",
+                "brand",
+                "all",
+                "in",
+                "warehouse",
+                "video",
+                "their",
+                "given",
+                "the",
+                "image",
+                "shows",
+                "about",
+                "from",
+                "range",
+                "objects",
+                "discrepancies",
+                "clearly",
+                "foreground",
+                "background",
+                "collection",
+                "arranged",
+                "organized",
+                "manner",
+                "surface",
+                "items",
+                "they",
+                "them",
+                "which",
+                "could",
+                "explain",
+                "why",
+                "visible",
+                "hidden",
+                "behind",
+                "obscured",
+                "hidden",
             }
             user_keywords = [
                 k.lower().strip(",").strip().rstrip("s")
                 for k in prompt.lower().split()
-                if len(k) > 2 and k not in stop_words
+                if len(k) > 3
+                and k not in stop_words  # Increased min length to 3 to skip "can/all"
             ]
 
             found_keywords = set()
@@ -457,7 +497,8 @@ class SLMEngine:
 
             # Check for MISSING PRO keywords (Mandatory Object Verification)
             for kw in user_keywords:
-                if kw not in found_keywords:
+                # Be conservative about force-adding prompt words
+                if kw not in found_keywords and len(kw) > 4:
                     logger.warning(
                         "[SLMEngine] MISSING PRO: keyword '%s' from prompt not found in VLM intents. Force adding generic intent.",
                         kw,
@@ -470,6 +511,30 @@ class SLMEngine:
                             "is_contra": False,
                         }
                     )
+
+            # --- Specificity-based Deduplication (V3.6) ---
+            # If we have "Ayam Brand" and "Ayam Brand Baked Beans", keep the longer one.
+            if len(validated_intents) > 1:
+                final_deduped = []
+                # Sort by length descending to process specific labels first
+                sorted_intents = sorted(
+                    validated_intents, key=lambda x: len(x["label"]), reverse=True
+                )
+                for i, current in enumerate(sorted_intents):
+                    is_redundant = False
+                    for j, other in enumerate(sorted_intents):
+                        if i == j:
+                            continue
+                        # If current is a substring of other and they have same PRO/CONTRA status
+                        if (
+                            current["label"].lower() in other["label"].lower()
+                            and current["is_contra"] == other["is_contra"]
+                        ):
+                            is_redundant = True
+                            break
+                    if not is_redundant:
+                        final_deduped.append(current)
+                validated_intents = final_deduped
 
             if not validated_intents:
                 # VLM did not follow format — fallback to prompt
