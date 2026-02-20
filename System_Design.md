@@ -35,7 +35,7 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 ### 1.2. Cognitive Layer (Otak)
 
 - **V-JEPA**: Spatio-temporal world model providing latent memory.
-- **Intent Genesis (Step 0)**: A "Scout & Analyst" module that uses GroundingDINO and VLM to generating specific intents and reference crops before the main loop logic begins. **V3.5 Global Pre-Scan**: The orchestrator now reads the entire video and samples ~1 frame every 2 seconds. These keyframes are fed into Intent Genesis, enabling multi-frame Scout (GroundingDINO across all keyframes) and multi-frame VLM Analyst (brand identification with deduplication). The VLM prompt explicitly prohibits generic labels like 'can' or 'bottle', forcing brand-specific SKU identification.
+- **Intent Genesis (Step 0)**: A "Scout & Analyst" module that uses GroundingDINO and VLM to generating specific intents and reference crops before the main loop logic begins. **V3.5 Global Pre-Scan**: The orchestrator now reads the entire video and samples frames for multi-frame analysis. **V3.6 Discovery Intelligence**: Genesis now extracts **Latent Anchors** — high-fidelity V-JEPA latent vectors — for each discovered brand. It also implements a **Semantic Filter** that prohibit metadata (e.g., 'Identify', 'Possible') from entering the intent manifest, ensuring purely objective labels.
 - **Density Engine**: MLP that fuses DINOv2 features with visual specularity to predict packing density ($\rho$).
 - **Geometric Kernel**: `GoldenAlphaCalibrator` (Binary Search) for finding the optimal $\alpha$ where $V_{concave} \approx V_{unit}$.
 

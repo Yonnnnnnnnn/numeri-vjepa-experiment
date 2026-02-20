@@ -191,6 +191,18 @@ Di mana $V_{full} = \{f_{t_0}, f_{t_1}, ..., f_{t_k}\}$ adalah himpunan keyframe
 
 Constraint kritis: VLM dilarang menggunakan label generik ($\notin \{\text{"can", "bottle", "box", "item"}\}$), memaksa identifikasi merek spesifik.
 
+### 5.4. Latent Identity Morphism (V3.6)
+
+V3.6 meningkatkan Discovery Intelligence dengan menambahkan **Visual Fingerprinting** ke dalam manifest. Setiap SKU sekarang dipetakan ke koordinat unik dalam manifol V-JEPA:
+
+$$\Phi_{latent}: \text{SKU} \to \mathcal{L} \quad (\mathcal{L} \in \mathbb{R}^{D})$$
+
+Di mana $\mathcal{L}$ adalah **Latent Anchor** (Anchor V-JEPA) yang diekstrak dari crop referensi terbaik selama pre-scan. Pengenalan objek sekarang tidak hanya bergantung pada kecocokan label ($S_1 \approx S_2$), tetapi juga pada kedekatan latent ($d(\mathcal{L}_1, \mathcal{L}_2) < \delta$).
+
+Sistem juga menerapkan **Semantic Filter** $\sigma$ untuk memastikan kedaulatan label:
+$$\text{Manifest}_{clean} = \sigma(\text{Manifest}_{raw}) = \{s \in \text{Manifest}_{raw} \mid \text{is\_noun}(s) \wedge \text{is\_not\_instruction}(s)\}$$
+Ini menghilangkan "pollution" dari prompt (seperti "identify", "possible") sehingga Step 0 hanya menghasilkan entitas fisik murni.
+
 ## 6. Functional Persistence & Nuclear Fallback
 
 Dalam sistem yang kompleks, morphism $act$ seringkali bergantung pada library eksternal (External Functors $F_{trans}$). Ketika $F_{trans}$ mengalami perubahan tanda tangan fungsional (Version Incompatibility), morphism tersebut terancam gagal ($act \to \perp$).
