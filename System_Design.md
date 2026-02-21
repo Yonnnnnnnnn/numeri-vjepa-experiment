@@ -35,7 +35,7 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 ### 1.2. Cognitive Layer (Otak)
 
 - **V-JEPA**: Spatio-temporal world model providing latent memory.
-- **Intent Genesis (Step 0)**: A "Scout & Analyst" module that uses GroundingDINO and VLM to generating specific intents and reference crops before the main loop logic begins. **V3.5 Global Pre-Scan**: The orchestrator now reads the entire video and samples frames for multi-frame analysis. **V3.6 Discovery Intelligence**: Genesis now extracts **Latent Anchors** — high-fidelity V-JEPA latent vectors — for each discovered brand. It also implements a **Semantic Filter** that prohibit metadata. **V3.7 Multi-Frame Discovery Overhaul**: Implements **Accumulative Visual Fingerprinting** (Scout top 3 frames) and **Prompt-Aware Target Injection** (Biasing VLM labels based on user-provided brand keywords) to resolve identification blindness.
+- **Intent Genesis (Step 0)**: A "Scout & Analyst" module that uses GroundingDINO and VLM to generating specific intents and reference crops before the main loop logic begins. **V3.5 Global Pre-Scan**: The orchestrator now reads the entire video and samples frames for multi-frame analysis. **V3.6 Discovery Intelligence**: Genesis now extracts **Latent Anchors** — high-fidelity V-JEPA latent vectors — for each discovered brand. It also implements a **Semantic Filter** that prohibit metadata. **V3.7 Multi-Frame Discovery Overhaul**: Implements **Accumulative Visual Fingerprinting** (Scout top 3 frames) and **Prompt-Aware Target Injection** (Biasing VLM labels based on user-provided brand keywords) to resolve identification blindness. **V3.8 Defensive Refinement**: Fixes the **V-JEPA Tensor Mismatch** by standardizing all inputs to (224, 224) via explicit `cv2.resize`. It also hardens the **Latent Anchor Extraction** to handle variant GroundingDINO output formats (list vs. dict) through dynamic coordinate normalization.
 - **Density Engine**: MLP that fuses DINOv2 features with visual specularity to predict packing density ($\rho$).
 - **Geometric Kernel**: `GoldenAlphaCalibrator` (Binary Search) for finding the optimal $\alpha$ where $V_{concave} \approx V_{unit}$.
 
@@ -76,7 +76,7 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 
 ### 3.3. Coordinate Scaling
 
-Pemetaan spasial disinkronkan antara loop logika (224x224) dan visualizer (resolusi asli video) melalui transformasi koordinat linier untuk memastikan representasi anomali yang akurat.
+Pemetaan spasial disinkronkan antara loop logika (224x224) dan visualizer (resolusi asli video) melalui transformasi koordinat linier untuk memastikan representasi anomali yang akurat. Dalam V3.8, ekstraksi anchor menggunakan **Defensive Coordinate Normalization** untuk memetakan kotak deteksi mentah $[x_1, y_1, x_2, y_2]$ ke format intent $[x_{norm}, y_{norm}, w_{norm}, h_{norm}]$ secara asinkron terhadap resolusi input.
 
 ### 3.4. Persistent Memory Persistence (Process Sharing)
 

@@ -212,6 +212,12 @@ V3.7 menuntaskan kegagalan deteksi brand (Amoy, Malee, dll.) melalui dua mekanis
     $$C_{final}(s) = \begin{cases} C_{raw}(s) \times 1.0 & \text{if } s \in \text{UserKeywords} \\ C_{raw}(s) \times 0.5 & \text{if } s \text{ is generic AND } \text{UserKeywords} \neq \emptyset \end{cases}$$
     Ini menekan halusinasi label generik ("cans") dan mengutamakan merek spesifik ("Amoy Can").
 
+3.  **V3.8 Defensive Morphism (Tensor & Box Alignment)**: Untuk menjamin stabilitas fungsional $enc$, kita mendefinisikan operator normalisasi $\mathcal{N}$ pada input:
+    - **Spatial Normalization**: $\mathcal{N}_{img}(I) = \text{resize}(I, 224, 224)$. Menghilangkan kegagalan stack tensor pada V-JEPA context.
+    - **Coordinate Normalization**: Untuk deteksi mentah $\mathbf{b} \in \mathbb{R}^4$ (format list/GroundingDINO), kita terapkan transformasi $\mathcal{T}: \mathbb{R}^4 \to \text{IntentBBox}$:
+      $$\mathcal{T}([x_1, y_1, x_2, y_2]) = \left\{ x: \frac{x_1}{W}, y: \frac{y_1}{H}, w: \frac{x_2-x_1}{W}, h: \frac{y_2-y_1}{H} \right\}$$
+      Hal ini memastikan morphism $act$ bersifat in-varian terhadap resolusi frame asal.
+
 ## 6. Functional Persistence & Nuclear Fallback
 
 Dalam sistem yang kompleks, morphism $act$ seringkali bergantung pada library eksternal (External Functors $F_{trans}$). Ketika $F_{trans}$ mengalami perubahan tanda tangan fungsional (Version Incompatibility), morphism tersebut terancam gagal ($act \to \perp$).

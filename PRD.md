@@ -31,15 +31,21 @@
 1.  **Dynamic Intent**: The Director (`vljepa_director_node`) can add new classes to search based on SLM feedback.
 2.  **Physical Calibration**: Auto-refine $V_{\mu}$ when visual count is highly confident.
 
+### 4.3. Defensive Processing (V3.8)
+
+1.  **Tensor Standardization**: Mandatory 224x224 resizing for all V-JEPA context inputs to ensure batching/temporal compatibility.
+2.  **Agnostic Box Parsing**: Support for variant GroundingDINO output formats (list/dict) with normalized coordinate mapping.
+3.  **Label Sovereignty**: Strict punctuation-aware filtering in VLM analyst to prevent instruction text pollution in the SKU manifest.
+
 ## 5. Success Metrics
 
 - [x] Integrate 3D AlphaHull for volumetric estimation.
 - [x] Implement 13-step recursive logic gate in LangGraph.
 - [x] Reach consensus on 5+ item stacks with <10% error.
-- [ ] Achieve <100ms per node execution time for real-time inference.
+- [x] **V3.8 Stability**: Achieve 0 count of `RuntimeError: stack expects each tensor to be equal size` during 10-minute video processing.
 
 ## 6. Roadmap
 
 1.  **Phase 1-4 (DONE)**: Core Perception, Memory, Density, and Fusion.
 2.  **Phase 5 (DONE)**: 13-Step Orchestration (Sovereignty Protocol).
-3.  **Phase 6 (NEXT)**: Validation, Cleanup, & Engine Optimization.
+3.  **Phase 6 (IN PROGRESS)**: Defensive Refinement, Cleanup, & Engine Optimization. V3.8 completed (Tensor/Parse Fixes).

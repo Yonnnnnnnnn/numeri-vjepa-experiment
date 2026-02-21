@@ -25,4 +25,8 @@ This document outlines the strategy for verifying the Antigravity V3.1 "Sovereig
 ## 4. VLM & SLM Component Verification (V3.3.3)
 
 - **VLM Interface Integrity**: Verify that `VLMInferenceModel` correctly handles dynamic keyword arguments (`max_new_tokens`) via `tests/test_vlm_interface.py`.
-- **Semantic Pivot Logic**: Validate the Generic Anchor Strategy (Specific label -> Basic noun) using `Implementation/tests/test_semantic_pivot_fast.py` to ensure physical volume priors are requested for known categories.
+- **Semantic Pivot Logic**: Validate the Generic Anchor Strategy (Specific label -> Basic noun) using `Implementation/tests/test_semantic_pivot_fast.py`.
+- **(V3.8) Defensive Input Processing**:
+  - Verify tensor batching stability by feeding variant resolution frames into `VJEPAEngine.encode()`.
+  - Validate coordinate parsing logic for GroundingDINO list-format boxes.
+  - Smoke test the Semantic Filter against instruction-heavy prompts to ensure zero "Label Pollution".
