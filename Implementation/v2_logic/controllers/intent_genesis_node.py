@@ -436,14 +436,38 @@ def intent_genesis_node(state: RecursiveFlowState) -> Dict[str, Any]:
             frame = result["frame"]
             frame_detections = result["detections"]
 
-            # Prepare frame tensor (B, C, H, W) normalized [0,1]
+            # Prepare frame tensor [1, 3, 224, 224] for V-JEPA (V3.7 Standard)
+            import cv2
+
+            frame_resized = cv2.resize(frame, (224, 224))
             frame_tensor = (
-                torch.from_numpy(frame).permute(2, 0, 1).float().unsqueeze(0) / 255.0
+                torch.from_numpy(frame_resized).permute(2, 0, 1).float().unsqueeze(0)
+                / 255.0
             )
             frame_tensor = frame_tensor.to(vjepa.device)
             vjepa_latent_map = vjepa.encode(frame_tensor)
 
-            for det in frame_detections:
+            for det_item in frame_detections:
+                # Handle GroundingDINO list format [x1, y1, x2, y2]
+                if isinstance(det_item, list) and len(det_item) >= 4:
+                    det_bbox = {
+                        "x1": det_item[0],
+                        "y1": det_item[1],
+                        "x2": det_item[2],
+                        "y2": det_item[3],
+                    }
+                    # Convert to normalized bbox for extraction [0, 1]
+                    h, w = frame.shape[:2]
+                    norm_bbox = {
+                        "x": det_bbox["x1"] / w,
+                        "y": det_bbox["y1"] / h,
+                        "w": (det_bbox["x2"] - det_bbox["x1"]) / w,
+                        "h": (det_bbox["y2"] - det_bbox["y1"]) / h,
+                    }
+                    det = {"label": user_prompt, "bbox": norm_bbox}
+                else:
+                    det = det_item
+
                 label = det.get("label", "object").lower()
                 det_words = set(label.replace(",", " ").split())
 

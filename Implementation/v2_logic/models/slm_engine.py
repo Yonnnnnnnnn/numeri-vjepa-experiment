@@ -458,17 +458,40 @@ class SLMEngine:
                 "behind",
                 "obscured",
                 "hidden",
+                "task",
+                "your",
+                "instruction",
+                "look",
+                "labels",
+                "closely",
+                "similar",
+                "mentioned",
+                "must",
+                "prioritize",
+                "also",
+                "identify",
+                "know",
+                "fact",
+                "present",
+                "distinct",
+                "variant",
+                "variants",
+                "type",
+                "types",
+                "each",
+                "another",
+                "mention",
             }
             user_keywords = [
-                k.lower().strip(",").strip().rstrip("s")
+                k.lower().strip(".,:;!?'\"()[]").rstrip("s")
                 for k in prompt.lower().split()
-                if len(k) > 3
-                and k not in stop_words  # Increased min length to 3 to skip "can/all"
+                if len(k) >= 4
+                and k.lower().strip(".,:;!?'\"()[]").rstrip("s") not in stop_words
             ]
 
             found_keywords = set()
             for item in intents:
-                label_lower = item["label"].lower()
+                label_lower = item["label"].lower().strip(".,:;!?'\"()[]").rstrip("s")
 
                 # Semantic Guard: PRO Verification
                 is_pro = False
@@ -508,7 +531,8 @@ class SLMEngine:
             # Check for MISSING PRO keywords (Mandatory Object Verification)
             for kw in user_keywords:
                 # Be conservative about force-adding prompt words
-                if kw not in found_keywords and len(kw) > 4:
+                # Threshold lowered to 4 for short brands like 'Amoy'
+                if kw not in found_keywords and len(kw) >= 4:
                     logger.warning(
                         "[SLMEngine] MISSING PRO: keyword '%s' from prompt not found in VLM intents. Force adding generic intent.",
                         kw,
