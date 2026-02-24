@@ -54,3 +54,32 @@ $$
 $$
 
 This ensures that even if $IoU(c, x)$ is high, a physical impossibility ($VolumeConsistent \to 0$) will force the LNN to reject $x$ in favor of a physically plausible SKU.
+
+## 3. Density Calibration & Heuristic Prior
+
+To resolve the **"Model Not Fitted" Deadlock** in the `DensityPredictor`, we implement a heuristic "cold start" prior.
+
+### Heuristic 3.1: Complexity-Density Proxy
+
+We assume a correlation between semantic feature variance $\sigma^2(\mathbf{X})$ and physical density $\rho$:
+
+$$
+\rho_{heuristic} = \rho_{min} + \left( \frac{\sigma^2(\mathbf{X}) - \min(\sigma^2)}{\max(\sigma^2) - \min(\sigma^2)} \right) \cdot (\rho_{max} - \rho_{min})
+$$
+
+Where:
+
+- $\rho_{min} = 0.1$ (Aerogel/Air)
+- $\rho_{max} = 20.0$ (Tungsten/Heavy Metal)
+
+This ensures the system initiates with a non-zero, physically bounded density before empirical training hits.
+
+## 4. Volumetric Per-Cluster Tally (V3.8.1 Fix)
+
+The relationship between total count ($n_{vol}$) and individual clusters $c$ is defined as:
+
+$$
+n_{vol} = \sum_{c \in \text{Clusters}} \frac{c_{vol} \cdot \rho}{u_v}
+$$
+
+**Critical Correction**: `c_vol` must be extracted per-cluster from the depth manifold metadata to prevent the **Global Volume Leak** error where $n_{vol}$ was incorrectly used as a divisor.

@@ -180,11 +180,19 @@ class SegmentationEngine:
                 )
                 try:
                     hf_model_id = "facebook/sam2.1-hiera-tiny"  # Default to tiny
-                    self.model = build_sam2_hf(hf_model_id, device=self.device)
+                    try:
+                        self.model = build_sam2_hf(
+                            hf_model_id, device=self.device, local_files_only=True
+                        )
+                        print(
+                            f"[SegmentationEngine] Loaded from Local HF Cache: {hf_model_id}"
+                        )
+                    except Exception:
+                        print(
+                            f"[SegmentationEngine] Cache miss for {hf_model_id}. Fetching online..."
+                        )
+                        self.model = build_sam2_hf(hf_model_id, device=self.device)
                     model_loaded = True
-                    print(
-                        f"[SegmentationEngine] Loaded from HuggingFace: {hf_model_id}"
-                    )
                 except Exception as hf_err:
                     print(f"[SegmentationEngine] HuggingFace load failed: {hf_err}")
                     print("[SegmentationEngine] SAM2 not available.")

@@ -111,7 +111,8 @@ def get_density_predictor():
             from ..models.density_predictor import DensityPredictor
 
             _density_predictor = DensityPredictor()
-            logger.info("[Engines] DensityPredictor initialized")
+            _density_predictor.calibrate_heuristic()
+            logger.info("[Engines] DensityPredictor initialized and calibrated")
         except Exception as e:
             logger.warning("[Engines] Failed to load DensityPredictor: %s", e)
     return _density_predictor
@@ -946,6 +947,7 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
     accounted_labels = set()  # Labels that have at least one visual detection
 
     for cluster in filtered_clusters:
+        c_vol = cluster.get("volume_m3", 0.0)
         # --- V3.8 Neuro-Symbolic Reconciliation (LNN) ---
         lnn_kb = get_lnn_kb()
         candidates = []

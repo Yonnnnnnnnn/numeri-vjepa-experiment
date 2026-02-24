@@ -21,6 +21,9 @@ This document outlines the strategy for verifying the Antigravity V3.1 "Sovereig
 - **Edge Case Sanity**: Test `SanityGuard` against division-by-zero or empty point clouds.
 
 - **Graceful Degradation**: Ensure the graph reaches `exit` even if secondary sensors (e.g., v2e) return empty data.
+- **Per-Cluster Volume Validation (V3.8.1)**: Verify that `c_vol` (per-cluster meter cubes) is correctly extracted from the depth manifold across multiple isolated stacks. Failure condition: $n_{vol}$ exceeding physically plausible range due to global volume sum divide.
+- **Offline Protocol Verification**: Disable internet access and verify system initializes sub-10s using local HuggingFace cache. Verify `local_files_only` fallback logic.
+- **Density Cold-Start Validation**: Check that `DensityPredictor` returns $\rho \in [0.1, 20.0]$ upon first use before any `fit()` calls from external data.
 
 ## 4. VLM & SLM Component Verification (V3.3.3)
 

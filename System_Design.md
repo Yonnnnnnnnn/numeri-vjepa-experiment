@@ -36,7 +36,7 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 
 - **V-JEPA**: Spatio-temporal world model providing latent memory.
 - **Intent Genesis (Step 0)**: A "Scout & Analyst" module that uses GroundingDINO and VLM to generating specific intents and reference crops before the main loop logic begins. **V3.5 Global Pre-Scan**: The orchestrator now reads the entire video and samples frames for multi-frame analysis. **V3.6 Discovery Intelligence**: Genesis now extracts **Latent Anchors** — high-fidelity V-JEPA latent vectors — for each discovered brand. It also implements a **Semantic Filter** that prohibit metadata. **V3.7 Multi-Frame Discovery Overhaul**: Implements **Accumulative Visual Fingerprinting** (Scout top 3 frames) and **Prompt-Aware Target Injection** (Biasing VLM labels based on user-provided brand keywords) to resolve identification blindness. **V3.8 Defensive Refinement**: Fixes the **V-JEPA Tensor Mismatch** by standardizing all inputs to (224, 224) via explicit `cv2.resize`. It also hardens the **Latent Anchor Extraction** to handle variant GroundingDINO output formats (list vs. dict) through dynamic coordinate normalization.
-- **Density Engine**: MLP that fuses DINOv2 features with visual specularity to predict packing density ($\rho$).
+- **Density Engine**: MLP that fuses DINOv2 features with visual specularity to predict packing density ($\rho$). In V3.8.1, it implements a **Heuristic Cold Start** (Prior: Feature Variance $\to$ Density) to enable valid volumetric math before full model fitting.
 - **Geometric Kernel**: `GoldenAlphaCalibrator` (Binary Search) for finding the optimal $\alpha$ where $V_{concave} \approx V_{unit}$.
 
 ### 1.3. Logical Orchestrator (Pikiran)
@@ -61,6 +61,7 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 ### 3.1. Engine Singletons & Model Caching
 
 - To mitigate VRAM fragmentation, heavy models (JEPA, SAM2, DINOv2) are initialized once via a lazy-loading Singleton pattern in `recursive_flow.py`.
+- **Offline Efficiency Pattern (V3.8.1)**: Implementation utilizes `local_files_only=True` for VLM (Qwen2-VL) and SAM2 loaders. This skips expensive connectivity checks to HuggingFace, ensuring sub-10s startup in cached environments.
 
 ### 3.2. Volumetric Guardrails & State Integrity
 

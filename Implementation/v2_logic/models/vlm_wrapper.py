@@ -61,15 +61,30 @@ class VLMInferenceModel:
         )
 
         print(f" - Loading Model: {model_id} (4-bit)")
-        self.model = Qwen2VLForConditionalGeneration.from_pretrained(
-            model_id,
-            quantization_config=bnb_config,
-            torch_dtype=torch.float16,
-            device_map="auto",
-        )
+        try:
+            self.model = Qwen2VLForConditionalGeneration.from_pretrained(
+                model_id,
+                quantization_config=bnb_config,
+                torch_dtype=torch.float16,
+                device_map="auto",
+                local_files_only=True,
+            )
+        except Exception:
+            print(f" - [VLM] Local model not found or check failed. Trying online...")
+            self.model = Qwen2VLForConditionalGeneration.from_pretrained(
+                model_id,
+                quantization_config=bnb_config,
+                torch_dtype=torch.float16,
+                device_map="auto",
+            )
 
         print(" - Loading Processor...")
-        self.processor = Qwen2VLProcessor.from_pretrained(model_id)
+        try:
+            self.processor = Qwen2VLProcessor.from_pretrained(
+                model_id, local_files_only=True
+            )
+        except Exception:
+            self.processor = Qwen2VLProcessor.from_pretrained(model_id)
 
         self.device = self.model.device
         print(f"VLM loaded on: {self.device}")
