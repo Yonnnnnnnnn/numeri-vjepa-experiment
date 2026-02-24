@@ -60,6 +60,8 @@ from ..types.graph_state import (
     RecursiveFlowState,
 )
 
+from ..models.lnn_knowledge_base import get_lnn_kb
+
 logger = logging.getLogger(__name__)
 
 # =============================================================================
@@ -944,29 +946,69 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
     accounted_labels = set()  # Labels that have at least one visual detection
 
     for cluster in filtered_clusters:
-        c_vol = cluster.get("volume_m3", 0.0)
-
-        # Determine the best label for this cluster
-        best_label = "item"
-        best_iou = 0.0
+        # --- V3.8 Neuro-Symbolic Reconciliation (LNN) ---
+        lnn_kb = get_lnn_kb()
+        candidates = []
         for det in raw_detections:
             iou = MathUtils.calculate_bbox_overlap(
                 cluster.get("bbox", {}), det.get("bbox", {})
             )
-            if iou > best_iou:
-                best_iou = iou
-                best_label = det.get("label", "item")
+            if iou > 0.05:
+                candidates.append({"label": det.get("label", "item"), "iou": iou})
+
+        best_identity_score = -1.0
+        best_label = "item"
+        best_iou = 0.0
+        target_u_v = target_unit_v
+
+        # Arbitrate between candidates using LNN Identity Rules
+        for cand in candidates:
+            cand_label = cand["label"]
+            cand_iou = cand["iou"]
+
+            # Fetch unit volume for this candidate
+            u_v = slm.estimate_object_volume(cand_label) if slm else target_unit_v
+
+            # 1. Volume Consistency Logic
+            # Heuristic: Is the cluster volume plausible for this unit?
+            # A cluster of 100 kaleng is plausible. A cluster of 190,000 stock cubes is NOT.
+            n_est = c_vol / u_v if u_v > 0 else 1e9
+
+            # vol_ratio score [0-1]
+            vol_ratio = 1.0
+            if (
+                n_est > 2000
+            ):  # Physically impossible for a single cluster to hold > 2k items usually
+                vol_ratio = 0.1
+            elif n_est < 0.3:  # Unit is way bigger than the cluster observed
+                vol_ratio = 0.2
+
+            # 2. Latent Match (Proxy using IoU for now, but ready for V-JEPA)
+            latent_match_score = cand_iou
+
+            # Ask LNN Model for the truth value of: Identity(cluster, sku)
+            identity_score = lnn_kb.reconcile_identity(
+                str(id(cluster)), cand_label, latent_match_score, vol_ratio
+            )
+
+            if identity_score > best_identity_score:
+                best_identity_score = identity_score
+                best_label = cand_label
+                best_iou = cand_iou
+                target_u_v = u_v
 
         # --- FIX 4 (cont.): Residual Intent Mapping ---
-        # If this cluster has NO visual detection match (best_iou ≈ 0),
-        # try to assign it to an unaccounted genesis intent (occluded object).
-        if best_iou < 0.05 and best_label == "item":
+        # If this cluster has NO visual detection match or LNN rejected identity
+        if best_identity_score < 0.3 and best_label == "item":
             # Find unaccounted genesis labels
             unaccounted = [
                 gl for gl in genesis_pro_labels if gl not in accounted_labels
             ]
             if unaccounted:
                 best_label = unaccounted[0]
+                target_u_v = (
+                    slm.estimate_object_volume(best_label) if slm else target_unit_v
+                )
                 logger.info(
                     "[v3_math_node] SPATIAL MEMORY: Unmatched cluster → "
                     "assigned to unaccounted genesis intent '%s' (occluded?)",
@@ -978,20 +1020,17 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
                 if gl in best_label.lower() or best_label.lower() in gl:
                     accounted_labels.add(gl)
 
-        # Get specific unit volume for this label
-        # In a production run, we'd cache these in PerceptionState
-        u_v = slm.estimate_object_volume(best_label) if slm else target_unit_v
-
-        # Calculate fractional count
+        # Calculate fractional count with LNN-validated unit volume
+        u_v = target_u_v
         cluster_n = (c_vol * perception.rho) / u_v if u_v > 1e-9 else 0.0
         n_vol += cluster_n
 
         logger.info(
-            "[v3_math_node] Cluster (%s): V=%.6f m^3 -> n=%.2f (using v_unit=%.6f, iou=%.2f)",
+            "[v3_math_node] LNN Identity: %s (score=%.2f) -> V=%.6f m^3 -> n=%.2f (iou=%.2f)",
             best_label,
+            best_identity_score,
             c_vol,
             cluster_n,
-            u_v,
             best_iou,
         )
 

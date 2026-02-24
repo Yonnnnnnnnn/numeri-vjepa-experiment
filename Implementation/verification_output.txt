@@ -1,0 +1,221 @@
+INFO:root:********************** Model 2026-02-24 09:32:22.797679 **********************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:\u2191 BOUNDS UPDATED TIGHTENED:12.0 FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:24.0
+INFO:root:\u2193 BOUNDS UPDATED TIGHTENED:8.0 FOR:'is_candidate' FROM:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:1 PARENT:0 
+INFO:root:\u2193 BOUNDS UPDATED TIGHTENED:9.0 FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:3 PARENT:0 
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:29.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 BOUNDS UPDATED TIGHTENED:5.0 FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:15.0
+INFO:root:\u2193 CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:3 PARENT:0 
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:9.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:2
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 BOUNDS UPDATED TIGHTENED:3.0 FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:10.0
+INFO:root:\u2193 CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:3 PARENT:0 
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:5.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:3
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 BOUNDS UPDATED TIGHTENED:1.0 FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:4.0
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:3.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:4
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 99.0 BOUNDS UPDATES IN 5 REASONING STEPS 
+INFO:root:******************************************************************************
+d:\Antigravity\Test VJEPA EVENTBASED LLM\Implementation\v2_logic\models\lnn_knowledge_base.py:167: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:837.)
+  return float(bounds.mean())
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2193 BOUNDS UPDATED TIGHTENED:1.0 FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:3 PARENT:0 
+INFO:root:\u2193 CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:3 PARENT:0 
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:3.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 BOUNDS UPDATED TIGHTENED:1.0 FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:2.0
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:----------------------
+INFO:root:REASONING STEP:2
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 5.0 BOUNDS UPDATES IN 3 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 BOUNDS UPDATED TIGHTENED:1.0 FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:1.0
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:2.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:2.0
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:----------------------
+INFO:root:REASONING STEP:2
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 5.0 BOUNDS UPDATES IN 3 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2191 BOUNDS UPDATED TIGHTENED:0.10000002384185791 FOR:'(latent_match(0, 1) \u2227 volume_consistent(0, 1))' FORMULA:5 
+INFO:root:\u2191 CONTRADICTION FOR:'(latent_match(0, 1) \u2227 volume_consistent(0, 1))' FORMULA:5 
+INFO:root:UPWARD INFERENCE RESULT:0.10000002384185791
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2191 CONTRADICTION FOR:'(latent_match(0, 1) \u2227 volume_consistent(0, 1))' FORMULA:5 
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.10000002384185791 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2191 BOUNDS UPDATED TIGHTENED:1.0 FOR:'(latent_match(0, 1) \u2227 volume_consistent(0, 1))' FORMULA:5 
+INFO:root:\u2191 CONTRADICTION FOR:'(latent_match(0, 1) \u2227 volume_consistent(0, 1))' FORMULA:5 
+INFO:root:UPWARD INFERENCE RESULT:1.0
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2191 CONTRADICTION FOR:'(latent_match(0, 1) \u2227 volume_consistent(0, 1))' FORMULA:5 
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2191 BOUNDS UPDATED TIGHTENED:0.699999988079071 FOR:'(latent_match(0, 1) \u2227 volume_consistent(0, 1))' FORMULA:5 
+INFO:root:\u2191 CONTRADICTION FOR:'(latent_match(0, 1) \u2227 volume_consistent(0, 1))' FORMULA:5 
+INFO:root:UPWARD INFERENCE RESULT:0.699999988079071
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2191 CONTRADICTION FOR:'(latent_match(0, 1) \u2227 volume_consistent(0, 1))' FORMULA:5 
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.699999988079071 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2191 BOUNDS UPDATED TIGHTENED:1.0 FOR:'(latent_match(0, 1) \u2227 volume_consistent(0, 1))' FORMULA:5 
+INFO:root:\u2191 CONTRADICTION FOR:'(latent_match(0, 1) \u2227 volume_consistent(0, 1))' FORMULA:5 
+INFO:root:UPWARD INFERENCE RESULT:1.0
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:\u2191 CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:\u2191 CONTRADICTION FOR:'(is_candidate(0) \u2227 is_product_category(0) \u2227 ¬is_conversational(0))' FORMULA:0 
+INFO:root:\u2191 CONTRADICTION FOR:'(latent_match(0, 1) \u2227 volume_consistent(0, 1))' FORMULA:5 
+INFO:root:\u2193 CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+
+==================================================
+--- TESTING LNN INTENT FILTER (V3.8) ---
+==================================================
+[FAILED] Text: 'Ayam Brand Baked Beans   ' | Score: 0.5000 | Should be valid: True
+[PASSED] Text: 'know                     ' | Score: 0.5000 | Should be valid: False
+[PASSED] Text: 'fact                     ' | Score: 0.5000 | Should be valid: False
+[PASSED] Text: 'task                     ' | Score: 0.5000 | Should be valid: False
+[FAILED] Text: 'Amoy Corn                ' | Score: 0.5000 | Should be valid: True
+[PASSED] Text: 'please identify labels   ' | Score: 0.5000 | Should be valid: False
+
+==================================================
+--- TESTING LNN IDENTITY RECONCILIATION ---
+==================================================
+[PASSED] Identity(cluster_1, Ayam Brand Beans) | Sim: 0.9, VolR: 1.0 | Score: 0.9500 | Match + Consistent
+[PASSED] Identity(cluster_1, Stock Cube) | Sim: 0.9, VolR: 0.1 | Score: 0.5000 | Match but Impossible Volume
+[FAILED] Identity(cluster_2, Amoy Corn) | Sim: 0.3, VolR: 1.0 | Score: 0.6500 | Consistent but No Visual Match
+[PASSED] Identity(cluster_3, Ayam Brand Beans) | Sim: 0.8, VolR: 0.2 | Score: 0.5000 | High Match but Cluster too small for object
+
+==================================================
+Traceback (most recent call last):
+  File "D:\Antigravity\Test VJEPA EVENTBASED LLM\Implementation\scripts\v3_8_lnn_verification.py", line 91, in <module>
+    print("RESULT: SOME TESTS FAILED \u274c")
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u274c' in position 26: character maps to <undefined>

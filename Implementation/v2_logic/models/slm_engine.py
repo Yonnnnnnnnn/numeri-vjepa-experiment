@@ -34,6 +34,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 import numpy as np
+from .lnn_knowledge_base import get_lnn_kb
 
 logger = logging.getLogger(__name__)
 
@@ -408,90 +409,35 @@ class SLMEngine:
             # --- Safety Validation (Defense in Depth) ---
             validated_intents = []
 
-            # Refined keyword extraction
-            stop_words = {
-                "count",
-                "the",
-                "and",
-                "with",
-                "there",
-                "are",
-                "many",
-                "please",
-                "video",
-                "identify",
-                "possible",
-                "ignore",
-                "brands",
-                "brand",
-                "all",
-                "in",
-                "warehouse",
-                "video",
-                "their",
-                "given",
-                "the",
-                "image",
-                "shows",
-                "about",
-                "from",
-                "range",
-                "objects",
-                "discrepancies",
-                "clearly",
-                "foreground",
-                "background",
-                "collection",
-                "arranged",
-                "organized",
-                "manner",
-                "surface",
-                "items",
-                "they",
-                "them",
-                "which",
-                "could",
-                "explain",
-                "why",
-                "visible",
-                "hidden",
-                "behind",
-                "obscured",
-                "hidden",
-                "task",
-                "your",
-                "instruction",
-                "look",
-                "labels",
-                "closely",
-                "similar",
-                "mentioned",
-                "must",
-                "prioritize",
-                "also",
-                "identify",
-                "know",
-                "fact",
-                "present",
-                "distinct",
-                "variant",
-                "variants",
-                "type",
-                "types",
-                "each",
-                "another",
-                "mention",
-            }
-            user_keywords = [
-                k.lower().strip(".,:;!?'\"()[]").rstrip("s")
-                for k in prompt.lower().split()
-                if len(k) >= 4
-                and k.lower().strip(".,:;!?'\"()[]").rstrip("s") not in stop_words
-            ]
+            # --- V3.8 Neuro-Symbolic Intent Filtering (LNN) ---
+            lnn_kb = get_lnn_kb()
+
+            # Step A: Filter user_keywords via LNN to remove "know", "fact", etc.
+            filtered_user_keywords = []
+            for k in prompt.lower().split():
+                clean_k = k.strip(".,:;!?'\"()[]").rstrip("s")
+                if len(clean_k) < 3:
+                    continue
+                # Ask LNN: is this a valid product keyword?
+                if lnn_kb.validate_intent(clean_k) > 0.6:
+                    filtered_user_keywords.append(clean_k)
+
+            user_keywords = filtered_user_keywords
+            logger.info("[SLMEngine] LNN-Filtered Keywords: %s", user_keywords)
 
             found_keywords = set()
             for item in intents:
                 label_lower = item["label"].lower().strip(".,:;!?'\"()[]").rstrip("s")
+
+                # Step B: Validate the intent itself via LNN
+                lnn_score = lnn_kb.validate_intent(item["label"])
+                if lnn_score < 0.4:
+                    logger.warning(
+                        "[SLMEngine] LNN REJECT: '%s' identified as navigational/noise (score=%.2f)",
+                        item["label"],
+                        lnn_score,
+                    )
+                    continue
 
                 # Semantic Guard: PRO Verification
                 is_pro = False

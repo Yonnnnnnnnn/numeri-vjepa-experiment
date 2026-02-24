@@ -22,12 +22,15 @@ Non-Terminals   :
   │  <_run_vlm_analyst>          → VLM classification (single frame)          │
   │  <_run_vlm_analyst_multi>    → Multi-frame VLM + dedup (V3.5)             │
   │  <_crop_detections>          → Extract reference crop images              │
+  │  <_extract_latent_anchors>   → V3.7 Accumulative Fingerprinting           │
   └───────────────────────────────────────────────────────────────────────────┘
 
   ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
   │  <RecursiveFlowState>  ← from types.graph_state (State Container)         │
   │  <SLMEngine>           ← from models.slm_engine (VLM Analyst)             │
   │  <CountVidEngine>      ← from models.count_vid_engine (GroundingDINO)     │
+  │  <cv2>                 ← from opencv-python (Image processing)            │
+  │  <torch>               ← from torch (Deep learning framework)             │
   └───────────────────────────────────────────────────────────────────────────┘
 
 Terminals       : str, dict, list, numpy.ndarray, int, float
@@ -51,6 +54,8 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+import torch
+import cv2
 
 from ..types.graph_state import RecursiveFlowState
 
@@ -320,6 +325,100 @@ def _crop_detections(
     return crops
 
 
+def _extract_latent_anchors(
+    scout_results: List[Dict[str, Any]],
+    genesis_intents: List[Dict[str, Any]],
+    user_prompt: str,
+    vjepa_engine: Any,
+) -> Dict[str, np.ndarray]:
+    """
+    V3.7: Extract Latent Anchors from MULTIPLE top frames (Accumulative Fingerprinting).
+
+    Matches scouted detections against VLM-discovered SKU labels to create
+    high-dimensional visual anchors for latent matching.
+
+    Args:
+        scout_results: Results from GroundingDINO scout.
+        genesis_intents: Discovered SKU labels from VLM.
+        user_prompt: Fallback label.
+        vjepa_engine: VJEPAEngine instance.
+
+    Returns:
+        Mapping of SKU labels to latent vectors (numpy).
+    """
+    latent_anchors = {}
+    if not vjepa_engine:
+        return {}
+
+    try:
+        # Analyze top N frames for latent anchors (usually those with highest diversity)
+        for result in scout_results[:3]:
+            frame = result["frame"]
+            frame_detections = result["detections"]
+
+            # Prepare frame tensor [1, 3, 224, 224] for V-JEPA (V3.7 Standard)
+            # Use specific dtypes to help static analysis
+            frame_resized = cv2.resize(frame, (224, 224))
+            frame_tensor = (
+                torch.from_numpy(frame_resized).permute(2, 0, 1).float().unsqueeze(0)
+                / 255.0
+            ).to(vjepa_engine.device)
+
+            vjepa_latent_map = vjepa_engine.encode(frame_tensor)
+
+            for det_item in frame_detections:
+                # Handle GroundingDINO list format [x1, y1, x2, y2]
+                if isinstance(det_item, list) and len(det_item) >= 4:
+                    det_bbox = {
+                        "x1": det_item[0],
+                        "y1": det_item[1],
+                        "x2": det_item[2],
+                        "y2": det_item[3],
+                    }
+                    h, w = frame.shape[:2]
+                    norm_bbox = {
+                        "x": det_bbox["x1"] / w,
+                        "y": det_bbox["y1"] / h,
+                        "w": (det_bbox["x2"] - det_bbox["x1"]) / w,
+                        "h": (det_bbox["y2"] - det_bbox["y1"]) / h,
+                    }
+                    det = {"label": user_prompt, "bbox": norm_bbox}
+                else:
+                    det = det_item
+
+                label = det.get("label", "object").lower()
+                det_words = set(label.replace(",", " ").split())
+
+                # Match detection label with specific Genesis labels
+                matched_sku = None
+                for intent in genesis_intents:
+                    sku_label = intent["label"].lower()
+                    sku_words = set(sku_label.replace(",", " ").split())
+
+                    if (
+                        det_words & sku_words
+                        or label in sku_label
+                        or sku_label in label
+                    ):
+                        matched_sku = intent["label"]
+                        if len(sku_words) > 1:
+                            break  # Specific match found
+
+                if matched_sku and matched_sku not in latent_anchors:
+                    latent_vec = vjepa_engine.extract_object_latent(
+                        det["bbox"], vjepa_latent_map
+                    )
+                    latent_anchors[matched_sku] = latent_vec.detach().cpu().numpy()
+                    logger.info(
+                        "[IntentGenesis] Stored V3.7 Latent Anchor for SKU: '%s'",
+                        matched_sku,
+                    )
+    except Exception as exc:
+        logger.error("[IntentGenesis] Failed to extract V3.7 Latent Anchors: %s", exc)
+
+    return latent_anchors
+
+
 # =============================================================================
 # MAIN NODE FUNCTION
 # =============================================================================
@@ -428,77 +527,12 @@ def intent_genesis_node(state: RecursiveFlowState) -> Dict[str, Any]:
     reference_crops = _crop_detections(best_frame, best_detections)
 
     # V3.7: Extract Latent Anchors from MULTIPLE top frames (Accumulative Fingerprinting)
-    latent_anchors = {}
-    try:
-        vjepa = get_vjepa_engine()
-        # Analyze top N frames for latent anchors (usually those with highest diversity)
-        for result in scout_results[:3]:
-            frame = result["frame"]
-            frame_detections = result["detections"]
+    from .recursive_flow import get_vjepa_engine
 
-            # Prepare frame tensor [1, 3, 224, 224] for V-JEPA (V3.7 Standard)
-            import cv2
-
-            frame_resized = cv2.resize(frame, (224, 224))
-            frame_tensor = (
-                torch.from_numpy(frame_resized).permute(2, 0, 1).float().unsqueeze(0)
-                / 255.0
-            )
-            frame_tensor = frame_tensor.to(vjepa.device)
-            vjepa_latent_map = vjepa.encode(frame_tensor)
-
-            for det_item in frame_detections:
-                # Handle GroundingDINO list format [x1, y1, x2, y2]
-                if isinstance(det_item, list) and len(det_item) >= 4:
-                    det_bbox = {
-                        "x1": det_item[0],
-                        "y1": det_item[1],
-                        "x2": det_item[2],
-                        "y2": det_item[3],
-                    }
-                    # Convert to normalized bbox for extraction [0, 1]
-                    h, w = frame.shape[:2]
-                    norm_bbox = {
-                        "x": det_bbox["x1"] / w,
-                        "y": det_bbox["y1"] / h,
-                        "w": (det_bbox["x2"] - det_bbox["x1"]) / w,
-                        "h": (det_bbox["y2"] - det_bbox["y1"]) / h,
-                    }
-                    det = {"label": user_prompt, "bbox": norm_bbox}
-                else:
-                    det = det_item
-
-                label = det.get("label", "object").lower()
-                det_words = set(label.replace(",", " ").split())
-
-                # Match detection label with specific Genesis labels
-                matched_sku = None
-                for intent in genesis_intents:
-                    sku_label = intent["label"].lower()
-                    sku_words = set(sku_label.replace(",", " ").split())
-
-                    if (
-                        det_words & sku_words
-                        or label in sku_label
-                        or sku_label in label
-                    ):
-                        matched_sku = intent["label"]
-                        if len(sku_words) > 1:
-                            break  # Specific match found
-
-                if matched_sku and matched_sku not in latent_anchors:
-                    latent_vec = vjepa.extract_object_latent(
-                        det["bbox"], vjepa_latent_map
-                    )
-                    latent_anchors[matched_sku] = latent_vec.detach().cpu().numpy()
-                    logger.info(
-                        "[intent_genesis_node] Stored V3.7 Latent Anchor for SKU: %s",
-                        matched_sku,
-                    )
-    except Exception as e:
-        logger.error(
-            "[intent_genesis_node] Failed to extract V3.7 Latent Anchors: %s", e
-        )
+    vjepa = get_vjepa_engine()
+    latent_anchors = _extract_latent_anchors(
+        scout_results, genesis_intents, user_prompt, vjepa
+    )
 
     # --- Phase 5: Populate active_intent from genesis results ---
     active_labels = []
