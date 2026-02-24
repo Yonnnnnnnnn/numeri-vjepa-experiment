@@ -61,7 +61,7 @@ To resolve the **"Model Not Fitted" Deadlock** in the `DensityPredictor`, we imp
 
 ### Heuristic 3.1: Complexity-Density Proxy
 
-We assume a correlation between semantic feature variance $\sigma^2(\mathbf{X})$ and physical density $\rho$:
+We assume a correlation between semantic feature variance $\sigma^2(\mathbf{X})$ and physical density $\rho$, where $\mathbf{X}$ is the 768-dimensional DINOv2 latent vector:
 
 $$
 \rho_{heuristic} = \rho_{min} + \left( \frac{\sigma^2(\mathbf{X}) - \min(\sigma^2)}{\max(\sigma^2) - \min(\sigma^2)} \right) \cdot (\rho_{max} - \rho_{min})

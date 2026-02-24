@@ -801,12 +801,12 @@ def density_sensing_node(state: RecursiveFlowState) -> Dict[str, Any]:
     mlp = get_density_predictor()
 
     if perception.image is not None and dinov2 and mlp:
-        # 1. Extract texture features
-        specularity = dinov2.analyze_specularity(perception.image)
+        # 1. Extract semantic texture features (768-dim)
+        features_tensor = dinov2.extract_features(perception.image)
+        features = features_tensor.reshape(1, -1).numpy()
 
         # 2. Predict rho using MLP
-        # For simplicity, we use binary features or a heuristic if data is thin
-        features = np.array([[specularity]])
+        # The MLP expects (N, 768) features as trained in calibrate_heuristic()
         rho = mlp.predict(features)[0]
 
         return {"perception": {"rho": float(rho)}}
