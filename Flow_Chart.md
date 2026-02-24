@@ -26,20 +26,24 @@ flowchart TD
     %% Phase 0: Semantic Setup
     Start([Start Loop]) --> check_init{Is Initialized?}
     check_init -- "No" --> intent_genesis_node[intent_genesis_node: Step 0 Scout]
+    intent_genesis_node --> lnn_intent_filter[LNN: Intent Filter]
+    lnn_intent_filter -- "Validated SKU" --> vjepa_brain_node
+
     check_init -- "Yes" --> vjepa_brain_node
 
-    intent_genesis_node -- "Success" --> vjepa_brain_node[vjepa_brain_node: Temporal Context]
+    vjepa_brain_node[vjepa_brain_node: Temporal Context] -- "Step 1" --> vljepa_director_node[vljepa_director_node: Intent & Calibration]
 
     %% Phase 1: Orbit
-    vjepa_brain_node -- "Step 1" --> vljepa_director_node[vljepa_director_node: Intent & Calibration]
     vljepa_director_node -- "Step 4" --> countgd_executor_node[countgd_executor_node: N_visible]
     vljepa_director_node -- "Step 5" --> v2e_sensor_node[v2e_sensor_node: Spike Residue]
     vljepa_director_node -- "Step 6" --> sam2_depth_node[sam2_depth_node: 3D Geometry]
     vljepa_director_node -- "Step 7" --> density_sensing_node[density_sensing_node: Rho Prediction]
 
     %% Phase 2: Audit
-    sam2_depth_node & density_sensing_node -- "Step 8" --> v3_math_node[v3_math_node: N_volumetric]
-    v3_math_node & countgd_executor_node & v2e_sensor_node -- "Step 9" --> fusion_engine_node[fusion_engine_node: Multi-Shield Fusion]
+    sam2_depth_node & density_sensing_node -- "Step 8" --> v3_math_node[v3_math_node: Volumetric Pooling]
+    v3_math_node --> lnn_identity_arbitrator[LNN: Identity Arbitrator]
+    lnn_identity_arbitrator -- "N_volumetric" --> fusion_engine_node[fusion_engine_node: Multi-Shield Fusion]
+    countgd_executor_node & v2e_sensor_node --> fusion_engine_node
 
     %% Phase 3: Reconciliation
     fusion_engine_node -- "Step 10" --> logic_gate_node{Logic Gate Evaluator}

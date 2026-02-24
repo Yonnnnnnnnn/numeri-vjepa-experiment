@@ -119,7 +119,8 @@ def setup_repo():
         "sam2-main/sam2-main": "https://github.com/facebookresearch/sam2.git",
         "v2e-master/v2e-master": "https://github.com/YosuaNa/v2e.git", # Fork with Python 3.12 fixes
         "CountVid-main/CountVid-main": "https://github.com/niki-amini-naieni/CountVid.git",
-        "alphashape-master/alphashape-master": "https://github.com/bellockk/alphashape.git"
+        "alphashape-master/alphashape-master": "https://github.com/bellockk/alphashape.git",
+        "LNN-master/LNN-master": "https://github.com/IBM/LNN.git" # IBM Logical Neural Networks
     }
 
     for folder, url in needed_techs.items():
@@ -173,7 +174,7 @@ if setup_repo():
     !pip install -e Techs/v2e-master/v2e-master -q
     !pip install -e Techs/sam2-main/sam2-main -q
     !pip install timm einops submitit sentencepiece protobuf scikit-learn bitsandbytes accelerate qwen-vl-utils numpy==1.26.4 -q
-    !pip install huggingface_hub[hf_xet] addict yapf langgraph pydantic pydantic-settings scipy trimesh alphashape numpy==1.26.4 -q
+    !pip install huggingface_hub[hf_xet] addict yapf langgraph pydantic pydantic-settings scipy trimesh alphashape networkx matplotlib numpy==1.26.4 -q
 
     import numpy as np
     import torch
@@ -266,7 +267,7 @@ PROJECT_DIR = "/content/numeri-vjepa-experiment"
 ```
 
 > [!NOTE]
-> Per **2026-02-16**: Perbaikan "Visualizer vs Logic" dan **Recursive Intent Protocol V3.3** (Intent Genesis, Golden Alpha, & Contra Intent Immunity) sekarang sudah fully integrated. Sistem menggunakan Step 0 (Scout & Analyst) untuk mengidentifikasi objek secara spesifik sebelum loop rekursif dimulai.
+> Per **2026-02-24**: **Recursive Intent Protocol V3.3** dan **Neuro-Symbolic Reconciliation V3.8 (LNN Integration)** sekarang sudah sepenuhnya terintegrasi. Sistem sudah dilengkapi perlindungan logika deduktif menggunakan threshold LNN untuk memastikan resolusi identitas SKU (berdasarkan Latent Match & Volume Consistency) akurat secara fisik.
 
 ### 4.2 Download CountVid Checkpoints
 

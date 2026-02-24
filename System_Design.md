@@ -43,6 +43,7 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 
 - **LangGraph (Sovereignty Chain)**: Implements the 14-step recursive logic (starting from Step 0).
 - **Multi-Shield Fusion**: Triangulates Spatial (Spikes), Volumetric (Math), and Latent (JEPA) evidence.
+- **Neuro-Symbolic Arbitrator (LNN) (V3.8)**: Implements an IBM Logical Neural Network layer that acts as a gatekeeper for VLM outputs and Math Kernel assignments. It enforces physical and semantic axioms (e.g., `ValidIntent`, `Identity`) using differentiable real-valued logic to resolve hallucinations and volumetric deadlocks.
 - **Immunity System (Step 12.1/12.2)**: A subsystem within the Director and Fusion Engine that classifies distractors as "Contra Intents". Enhanced by a **Semantic Guard** in V3.3.1 that prevents misclassification of user-requested SKUs (e.g., 'balls') into contra categories and suppresses noise like 'human hands'.
 - **Logic Gate**: High-speed deterministic guard for anomaly classification.
 - **SLM Reasoner**: Large language logic for intent refinement and discovery.
