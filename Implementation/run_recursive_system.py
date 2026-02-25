@@ -134,7 +134,7 @@ def main():
     session_id = f"session_{int(time.time())}"
     user_prompt = args.prompt.strip() if args.prompt else ""
 
-    # V3.3: Derive initial intent from prompt; Step 0 will refine it
+    # V3.9: Derive initial intent from prompt; Step 0 will refine it
     if user_prompt:
         # Extract the last word as a seed intent (e.g. "count red cups" → "cups")
         seed_words = user_prompt.lower().split()
@@ -151,6 +151,7 @@ def main():
         user_prompt=user_prompt,
     )
 
+    logger.info("Running Recursive Intent System - Logic Version: V3.9")
     logger.info(f"Session started: {session_id}")
     logger.info(f"User Prompt: '{user_prompt}'")
     logger.info(f"Seed Intent: {target_intent}")

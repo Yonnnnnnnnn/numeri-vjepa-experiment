@@ -87,3 +87,35 @@ n_{vol} = \sum_{c \in \text{Clusters}} \frac{c_{vol} \cdot \rho}{u_v}
 $$
 
 **Critical Correction**: `c_vol` must be extracted per-cluster from the depth manifold metadata to prevent the **Global Volume Leak** error where $n_{vol}$ was incorrectly used as a divisor.
+
+## 5. Centrality Bias — PointBeam Focus (V4.0)
+
+To resolve **Peripheral Noise Pollution** during Intent Genesis, we apply a Foveated Confidence Boosting function that prioritizes objects near the frame center.
+
+### Rule 5.1: Centrality Score
+
+For a bounding box with center $(b_x, b_y)$ relative to the frame center $(0.5, 0.5)$:
+
+$$
+d = \sqrt{(b_x - 0.5)^2 + (b_y - 0.5)^2}
+$$
+
+$$
+S_{centrality} = \max\left(0,\; 1 - \frac{d}{r_{decay}}\right)
+$$
+
+Where $r_{decay} = 0.35$ is the radius at which centrality decays to zero.
+
+### Rule 5.2: Confidence Boosting
+
+The base confidence $C_{base}$ from the VLM is boosted by the centrality score:
+
+$$
+C_{boosted} = \min\left(1.0,\; C_{base} \cdot (1 + 0.3 \cdot S_{centrality})\right)
+$$
+
+This ensures:
+
+- Objects at the **exact center** receive up to a **30% confidence boost**.
+- Objects at the **periphery** ($d > r_{decay}$) receive **no boost**.
+- The **VLM prompt** explicitly instructs prioritization of centered/framed objects.

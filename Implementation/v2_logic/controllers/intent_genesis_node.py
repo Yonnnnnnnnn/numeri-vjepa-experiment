@@ -1,14 +1,12 @@
 """
-Intent Genesis Node (Step 0) — V3.5 Global Pre-Scan
+Intent Genesis Node (Step 0) — V3.9 VLM-First + V4.0 PointBeam Focus
 
 Pre-emptive semantic scanning that runs ONCE before the main recursive loop.
-Uses GroundingDINO (Scout) to locate objects across ALL pre-scanned video
-keyframes, then VLM Qwen (Analyst) to produce SKU-specific intent labels
-and reference crop images.
+Uses VLM Qwen (Scout+Analyst) to directly discover objects and produce
+SKU-specific intent labels with bounding boxes and reference crops.
 
-V3.5: Genesis now receives `perception.video_frames` — keyframes sampled from
-the ENTIRE video duration (~1 frame/2sec). This ensures the system discovers
-ALL brands/variants that appear anywhere in the video, not just the first frame.
+V3.9: VLM-first Genesis — GroundingDINO removed from initial scouting.
+V4.0: PointBeam Focus — Centrality Bias prioritizes objects near frame center.
 
 CFG Structure:
 ═══════════════════════════════════════════════════════════════════════════════
@@ -16,38 +14,39 @@ Start Symbol    : IntentGenesisModule (this file)
 
 Non-Terminals   :
   ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
-  │  <intent_genesis_node>       → Main LangGraph node function               │
-  │  <_sample_frames>            → Sparse video sampling helper               │
-  │  <_run_grounding_scout_all>  → GroundingDINO on ALL sampled frames        │
-  │  <_run_vlm_analyst>          → VLM classification (single frame)          │
-  │  <_run_vlm_analyst_multi>    → Multi-frame VLM + dedup (V3.5)             │
-  │  <_crop_detections>          → Extract reference crop images              │
-  │  <_extract_latent_anchors>   → V3.7 Accumulative Fingerprinting           │
+  │  <intent_genesis_node>           → Main LangGraph node function           │
+  │  <_sample_frames>                → Sparse video sampling helper           │
+  │  <_calculate_centrality_score>   → V4.0 Foveated Confidence Boosting     │
+  │  <_run_vlm_scout_and_analyst>    → V3.9 VLM grounded discovery           │
+  │  <_crop_detections>              → Extract reference crop images          │
+  │  <_extract_latent_anchors>       → V3.7 Accumulative Fingerprinting      │
   └───────────────────────────────────────────────────────────────────────────┘
 
   ┌─ EXTERNAL ────────────────────────────────────────────────────────────────┐
-  │  <RecursiveFlowState>  ← from types.graph_state (State Container)         │
-  │  <SLMEngine>           ← from models.slm_engine (VLM Analyst)             │
-  │  <CountVidEngine>      ← from models.count_vid_engine (GroundingDINO)     │
-  │  <cv2>                 ← from opencv-python (Image processing)            │
-  │  <torch>               ← from torch (Deep learning framework)             │
+  │  <RecursiveFlowState>  ← from types.graph_state (State Container)        │
+  │  <SLMEngine>           ← from models.slm_engine (VLM Analyst)            │
+  │  <cv2>                 ← from opencv-python (Image processing)           │
+  │  <torch>               ← from torch (Deep learning framework)            │
   └───────────────────────────────────────────────────────────────────────────┘
 
 Terminals       : str, dict, list, numpy.ndarray, int, float
 
 Production Rules:
-  IntentGenesisModule  → imports + <intent_genesis_node>
-  intent_genesis_node  → _sample_frames + _run_grounding_scout_all
-                       + _run_vlm_analyst_multi + _crop_detections
-                       → genesis_intents + reference_crops
+  IntentGenesisModule  → imports + <_calculate_centrality_score>
+                       + <_run_vlm_scout_and_analyst> + <intent_genesis_node>
+  intent_genesis_node  → _sample_frames + _run_vlm_scout_and_analyst
+                       + _extract_latent_anchors + _crop_detections
+                       → genesis_intents + reference_crops + latent_anchors
 ═══════════════════════════════════════════════════════════════════════════════
 
 Pattern: Template Method
 - Defines the skeleton of intent generation (sample → scout → analyze → crop).
-- Subcomponents (GroundingDINO, VLM) are pluggable strategies.
+- VLM acts as both scout and analyst (V3.9 overhaul).
 
 V3.3: This node replaces hardcoded discovery_keywords with dynamic intent generation.
 V3.5: Global Pre-Scan — multi-frame Genesis across entire video duration.
+V3.9: VLM-first Genesis — GroundingDINO removed; VLM handles grounding directly.
+V4.0: PointBeam Focus — Centrality Bias boosts confidence for centered objects.
 """
 
 import logging
@@ -90,7 +89,44 @@ def _sample_frames(
 
 
 # =============================================================================
-# VLM GROUNDED SCOUT (V3.9)
+# CENTRALITY BIAS (V4.0 PointBeam Focus)
+# =============================================================================
+
+
+def _calculate_centrality_score(
+    bbox: Dict[str, float],
+    center: Tuple[float, float] = (0.5, 0.5),
+    decay_radius: float = 0.35,
+) -> float:
+    """
+    Calculate a centrality score for a bounding box based on its distance
+    from the frame center. Implements Foveated Confidence Boosting.
+
+    Formula:
+        centrality = max(0, 1 - (d / decay_radius))
+        where d = euclidean_distance(bbox_center, frame_center)
+
+    Args:
+        bbox: Dict with keys 'x', 'y', 'w', 'h' (normalized 0-1).
+        center: Frame center coordinates (default: (0.5, 0.5)).
+        decay_radius: Distance at which centrality decays to 0.
+
+    Returns:
+        Centrality score [0.0 - 1.0]. 1.0 = perfectly centered.
+    """
+    if not bbox or not isinstance(bbox, dict):
+        return 0.5  # Neutral score for objects without bbox
+
+    bbox_cx = bbox.get("x", 0.0) + bbox.get("w", 0.0) / 2.0
+    bbox_cy = bbox.get("y", 0.0) + bbox.get("h", 0.0) / 2.0
+
+    distance = ((bbox_cx - center[0]) ** 2 + (bbox_cy - center[1]) ** 2) ** 0.5
+    score = max(0.0, 1.0 - (distance / decay_radius))
+    return round(score, 3)
+
+
+# =============================================================================
+# VLM GROUNDED SCOUT (V3.9 + V4.0 PointBeam)
 # =============================================================================
 
 
@@ -137,13 +173,26 @@ def _run_vlm_scout_and_analyst(
                 intent["frame"] = frame
                 intent["frame_idx"] = idx
 
+                # V4.0 PointBeam: Calculate centrality score
+                bbox = intent.get("bbox")
+                centrality = _calculate_centrality_score(bbox) if bbox else 0.5
+                intent["centrality_score"] = centrality
+
+                # Boost confidence for centered objects (Golden Center)
+                base_conf = intent.get("confidence", 0.5)
+                boosted_conf = min(1.0, base_conf * (1.0 + 0.3 * centrality))
+                intent["confidence"] = round(boosted_conf, 3)
+
                 if label not in seen_labels:
                     seen_labels.add(label)
                     all_intents.append(intent)
                     logger.info(
-                        "[IntentGenesis] VLM GROUNDED discovery: '%s' at frame %d",
+                        "[IntentGenesis] VLM GROUNDED discovery: '%s' at frame %d "
+                        "(centrality=%.2f, confidence=%.2f)",
                         label,
                         idx,
+                        centrality,
+                        boosted_conf,
                     )
 
         except Exception as exc:

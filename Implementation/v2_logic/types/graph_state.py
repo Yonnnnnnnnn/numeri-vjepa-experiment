@@ -34,7 +34,7 @@ Production Rules:
 Pattern: Data Transfer Object (DTO)
 - Encapsulates state data for transfer between LangGraph nodes.
 - Provides validation and serialization via Pydantic.
-- V3.3: Added Intent Genesis & Contra Intent Immunity fields.
+- V3.9: Added Intent Genesis & Contra Intent Immunity fields.
 """
 
 import operator
@@ -45,7 +45,7 @@ from pydantic import BaseModel, Field
 
 def merge_perception(old: "PerceptionState", new: Any) -> "PerceptionState":
     """Reducer to merge perception state updates."""
-    # V3.3.4: Support Partial Dictionary Updates to prevent stale data
+    # V3.9: Support Partial Dictionary Updates to prevent stale data
     if isinstance(new, dict):
         return old.model_copy(update=new)
 
@@ -82,7 +82,7 @@ class GlobalContext(BaseModel):
     main_intent: List[str] = Field(
         default_factory=list, description="List of target object labels to count"
     )
-    # V3.3: Raw user prompt for Intent Genesis (Step 0)
+    # V3.9: Raw user prompt for Intent Genesis (Step 0)
     user_prompt: str = Field(
         default="",
         description="Raw user prompt (e.g., 'count soda') for Intent Genesis",

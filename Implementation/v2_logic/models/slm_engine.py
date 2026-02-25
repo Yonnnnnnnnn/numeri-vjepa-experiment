@@ -350,10 +350,15 @@ class SLMEngine:
         vlm_prompt = (
             f"The user's EXPLICIT instruction is: '{prompt}'.\n\n"
             "CRITICAL INSTRUCTIONS:\n"
-            "1. You MUST identify the SPECIFIC brand/product name of EVERY distinct object type.\n"
-            "2. For EACH identified brand, you MUST provide a bounding box (grounding).\n"
-            "3. DO NOT use generic labels; read the actual label text.\n"
-            "4. Identify UNRELATED objects (human hands, background) as 'CONTRA'.\n\n"
+            "1. FOCUS on the MAIN SUBJECT of this image — the objects that are\n"
+            "   prominently centered or clearly framed by the camera.\n"
+            "2. You MUST identify the SPECIFIC brand/product name of EVERY distinct\n"
+            "   object type visible. Read the actual label text on each product.\n"
+            "3. For EACH identified brand, you MUST provide a bounding box (grounding).\n"
+            "4. DO NOT use generic labels like 'can' or 'bottle' — be brand-specific.\n"
+            "5. Objects that are clearly background, peripheral, or unrelated\n"
+            "   (human hands, shelving, walls) should be marked as 'CONTRA'.\n"
+            "6. Prioritize objects near the CENTER of the frame first.\n\n"
             "Reply in this EXACT format (one per line):\n"
             "INTENT: [product name] BBOX: [x1, y1, x2, y2]\n"
             "CONTRA: [distractor] BBOX: [x1, y1, x2, y2]\n\n"
@@ -429,7 +434,8 @@ class SLMEngine:
                 if len(clean_k) < 3:
                     continue
                 # Ask LNN: is this a valid product keyword?
-                if lnn_kb.validate_intent(clean_k) > 0.6:
+                # V3.9: Lowered threshold from 0.6 to 0.4 to allow unknown brand names
+                if lnn_kb.validate_intent(clean_k) >= 0.4:
                     filtered_user_keywords.append(clean_k)
 
             user_keywords = filtered_user_keywords
