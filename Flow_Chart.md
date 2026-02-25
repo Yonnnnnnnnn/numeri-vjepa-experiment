@@ -25,7 +25,7 @@ Logic flow for the real-time vision pipeline.
 flowchart TD
     %% Phase 0: Semantic Setup
     Start([Start Loop]) --> check_init{Is Initialized?}
-    check_init -- "No" --> intent_genesis_node[intent_genesis_node: Step 0 Scout]
+    check_init -- "No" --> intent_genesis_node[intent_genesis_node: Step 0 VLM-first Scout]
     intent_genesis_node --> lnn_intent_filter[LNN: Intent Filter]
     lnn_intent_filter -- "Validated SKU" --> vjepa_brain_node
 

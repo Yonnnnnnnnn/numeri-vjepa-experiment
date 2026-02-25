@@ -331,78 +331,88 @@ class SLMEngine:
         self,
         prompt: str,
         frame: np.ndarray,
-        detections: List[Any],
+        detections: Optional[List[Any]] = None,
     ) -> List[Dict[str, Any]]:
         """
-        V3.3 Step 0 Analyst: Generate specific SKU names from user prompt + detections.
-
-        Uses VLM to analyze GroundingDINO detections and produce specific labels
-        (e.g., 'Coca Cola 330ml Bottle' instead of generic 'bottle').
+        V3.9 Step 0 Analyst: Generate specific SKU names and GROUNDING coordinates.
+        Uses VLM to directly discover objects and their bboxes from the frame.
 
         Args:
             prompt: Raw user prompt (e.g., 'count soda').
-            frame: The best frame selected by GroundingDINO scout.
-            detections: Raw detections from GroundingDINO.
+            frame: Video keyframe for analysis.
+            detections: (Deprecated) Legacy detections from GroundingDINO.
 
         Returns:
-            List of genesis intent dicts:
-            [{'label': str, 'confidence': float, 'source': 'vlm'}]
+            List of genesis intent dicts with 'bbox' and 'label'.
         """
         self._ensure_model_loaded()
 
-        n_detected = len(detections) if detections else 0
-
         vlm_prompt = (
-            f"The user's EXPLICIT instruction is: '{prompt}'.\n"
-            f"I detected {n_detected} candidate objects in this frame.\n\n"
+            f"The user's EXPLICIT instruction is: '{prompt}'.\n\n"
             "CRITICAL INSTRUCTIONS:\n"
-            "1. You MUST identify the SPECIFIC brand/product name of EVERY distinct object.\n"
-            "2. DO NOT use generic labels like 'can', 'bottle', 'box', 'cup', 'item'.\n"
-            "   Read the product label text visible on each object.\n"
-            "3. If multiple brands/variants exist, you MUST list EACH one separately.\n"
-            "4. Even if objects look similar, check the label text for differences.\n"
-            "5. Identify UNRELATED objects (human hands, table, background) as 'CONTRA'.\n\n"
+            "1. You MUST identify the SPECIFIC brand/product name of EVERY distinct object type.\n"
+            "2. For EACH identified brand, you MUST provide a bounding box (grounding).\n"
+            "3. DO NOT use generic labels; read the actual label text.\n"
+            "4. Identify UNRELATED objects (human hands, background) as 'CONTRA'.\n\n"
             "Reply in this EXACT format (one per line):\n"
-            "INTENT: [specific brand/product name]\n"
-            "CONTRA: [distractor label]\n\n"
-            "Example — warehouse with canned goods:\n"
-            "INTENT: Ayam Brand Baked Beans\n"
-            "INTENT: Green Giant Whole Kernel Corn\n"
-            "INTENT: Ayam Brand Cream Style Corn\n"
-            "INTENT: Longa Canned Sardine\n"
-            "CONTRA: wooden pallet\n"
-            "CONTRA: human hand\n"
+            "INTENT: [product name] BBOX: [x1, y1, x2, y2]\n"
+            "CONTRA: [distractor] BBOX: [x1, y1, x2, y2]\n\n"
+            "COORDINATES: Use normalized values [0-1000] for bounding boxes.\n"
+            "Example:\n"
+            "INTENT: Ayam Brand Baked Beans BBOX: [100, 200, 300, 400]\n"
+            "CONTRA: human hand BBOX: [500, 600, 700, 800]\n"
         )
 
         try:
             response = self.vlm.predict(
-                frame, prompt_text=vlm_prompt, max_new_tokens=256
+                frame, prompt_text=vlm_prompt, max_new_tokens=512
             )
-            logger.info("[SLMEngine] Genesis response: %s", response)
+            logger.info("[SLMEngine] Genesis grounded response: %s", response)
 
             intents = []
+            import re
+
             for line in response.strip().split("\n"):
                 line = line.strip()
-                if line.upper().startswith("INTENT:"):
+                # Parse Label and BBox
+                # Format: INTENT/CONTRA: Label BBOX: [x1, y1, x2, y2]
+                match = re.search(
+                    r"(INTENT|CONTRA):\s*(.*?)\s*BBOX:\s*\[?(\d+),\s*(\d+),\s*(\d+),\s*(\d+)\]?",
+                    line,
+                    re.IGNORECASE,
+                )
+
+                if match:
+                    type_str = match.group(1).upper()
+                    label = match.group(2).strip()
+                    coords = [int(match.group(i)) for i in range(3, 7)]
+
+                    if label:
+                        intents.append(
+                            {
+                                "label": label,
+                                "confidence": 0.9,
+                                "source": "vlm_grounded",
+                                "is_contra": (type_str == "CONTRA"),
+                                "bbox": {
+                                    "x": coords[0] / 1000.0,
+                                    "y": coords[1] / 1000.0,
+                                    "w": (coords[2] - coords[0]) / 1000.0,
+                                    "h": (coords[3] - coords[1]) / 1000.0,
+                                },
+                            }
+                        )
+                elif line.upper().startswith("INTENT:"):
+                    # Fallback for lines without BBOX
                     label = line[len("INTENT:") :].strip()
                     if label:
                         intents.append(
                             {
                                 "label": label,
-                                "confidence": 0.8,
-                                "source": "vlm",
+                                "confidence": 0.5,
+                                "source": "vlm_no_bbox",
                                 "is_contra": False,
-                            }
-                        )
-                elif line.upper().startswith("CONTRA:"):
-                    label = line[len("CONTRA:") :].strip()
-                    if label:
-                        intents.append(
-                            {
-                                "label": label,
-                                "confidence": 0.7,
-                                "source": "vlm",
-                                "is_contra": True,
+                                "bbox": None,
                             }
                         )
 

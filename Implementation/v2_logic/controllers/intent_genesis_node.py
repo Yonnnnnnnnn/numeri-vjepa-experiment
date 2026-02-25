@@ -90,174 +90,69 @@ def _sample_frames(
 
 
 # =============================================================================
-# GROUNDING SCOUT (GroundingDINO)
+# VLM GROUNDED SCOUT (V3.9)
 # =============================================================================
 
 
-def _run_grounding_scout_all(
+def _run_vlm_scout_and_analyst(
     sampled_frames: List[Tuple[int, np.ndarray]],
     user_prompt: str,
-    countvid_engine: Any,
-    max_results: int = 10,
+    slm_engine: Any,
+    max_frames: int = 3,
 ) -> List[Dict[str, Any]]:
     """
-    V3.5: Run GroundingDINO on ALL sampled frames and return every frame
-    that has detections, sorted by confidence descending.
-
-    This replaces the old _run_grounding_scout which only returned the
-    single best-confidence frame, causing "First-Frame Bias".
+    V3.9: Use VLM directly to scout and analyze frames simultaneously.
+    This eliminates GroundingDINO's prompt overload issue.
 
     Args:
-        sampled_frames: List of (frame_idx, frame) from sparse sampling.
-        user_prompt: Raw user intent (e.g., "count soda").
-        countvid_engine: CountVidEngine instance (wraps GroundingDINO).
-        max_results: Maximum number of frames to return.
+        sampled_frames: Sampled video keyframes.
+        user_prompt: Raw user intent.
+        slm_engine: SLMEngine instance.
+        max_frames: Max frames to analyze.
 
     Returns:
-        List of dicts, each with 'frame_idx', 'frame', 'detections',
-        'count', 'avg_confidence'. Sorted by confidence descending.
+        Deduplicated list of genesis intent dicts with 'bbox' and 'frame'.
     """
-    if not sampled_frames or not countvid_engine:
+    if not sampled_frames or not slm_engine:
         return []
-
-    all_results = []
-
-    for frame_idx, frame in sampled_frames:
-        try:
-            count_val, raw_detections = countvid_engine.count(
-                frame, [user_prompt], target_size=(frame.shape[1], frame.shape[0])
-            )
-
-            if count_val > 0 and raw_detections:
-                avg_conf = sum(
-                    det.get("score", 0.5) if isinstance(det, dict) else 0.5
-                    for det in raw_detections
-                ) / len(raw_detections)
-
-                all_results.append(
-                    {
-                        "frame_idx": frame_idx,
-                        "frame": frame,
-                        "detections": raw_detections,
-                        "count": count_val,
-                        "avg_confidence": avg_conf,
-                    }
-                )
-
-        except Exception as exc:
-            logger.warning(
-                "[IntentGenesis] Scout failed on frame %d: %s", frame_idx, exc
-            )
-            continue
-
-    # Sort by confidence descending, take top-N
-    all_results.sort(key=lambda r: r["avg_confidence"], reverse=True)
-    return all_results[:max_results]
-
-
-# =============================================================================
-# VLM ANALYST (Qwen)
-# =============================================================================
-
-
-def _run_vlm_analyst(
-    frame: np.ndarray,
-    detections: List[Any],
-    user_prompt: str,
-    slm_engine: Any,
-) -> List[Dict[str, Any]]:
-    """
-    Use VLM to analyze detected objects and produce specific SKU names.
-
-    Args:
-        frame: The best frame from GroundingDINO scouting.
-        detections: Raw detections from GroundingDINO.
-        user_prompt: Raw user intent.
-        slm_engine: SLMEngine instance wrapping VLM.
-
-    Returns:
-        List of genesis intent dicts: [{'label': str, 'confidence': float, ...}].
-    """
-    if slm_engine is None:
-        logger.warning("[IntentGenesis] No SLM available, using raw prompt as intent")
-        return [{"label": user_prompt, "confidence": 0.5, "source": "fallback"}]
-
-    try:
-        result = slm_engine.generate_initial_intents(
-            prompt=user_prompt,
-            frame=frame,
-            detections=detections,
-        )
-        return result
-    except AttributeError:
-        logger.warning(
-            "[IntentGenesis] SLM.generate_initial_intents not available, "
-            "using raw prompt fallback"
-        )
-        return [{"label": user_prompt, "confidence": 0.5, "source": "fallback"}]
-    except Exception as exc:
-        logger.error("[IntentGenesis] VLM Analyst failed: %s", exc)
-        return [{"label": user_prompt, "confidence": 0.3, "source": "error_fallback"}]
-
-
-def _run_vlm_analyst_multi(
-    scout_results: List[Dict[str, Any]],
-    user_prompt: str,
-    slm_engine: Any,
-    max_analysis_frames: int = 5,
-) -> List[Dict[str, Any]]:
-    """
-    V3.5: Run VLM analysis on multiple scout frames and merge/deduplicate
-    discovered SKU labels into a single global manifest.
-
-    This prevents "First-Frame Bias" by examining frames from throughout
-    the entire video duration.
-
-    Args:
-        scout_results: List of scout result dicts from _run_grounding_scout_all.
-        user_prompt: Raw user intent.
-        slm_engine: SLMEngine instance wrapping VLM.
-        max_analysis_frames: Max frames to analyze (controls VLM compute cost).
-
-    Returns:
-        Deduplicated list of genesis intent dicts.
-    """
-    if not scout_results:
-        return [{"label": user_prompt, "confidence": 0.3, "source": "no_scout"}]
 
     all_intents = []
     seen_labels = set()
 
-    for result in scout_results[:max_analysis_frames]:
-        frame_intents = _run_vlm_analyst(
-            frame=result["frame"],
-            detections=result["detections"],
-            user_prompt=user_prompt,
-            slm_engine=slm_engine,
-        )
+    # Analyze top frames (usually start, middle, end or based on diversity)
+    for idx, frame in sampled_frames[:max_frames]:
+        try:
+            logger.info("[IntentGenesis] VLM analyzing frame %d for SKUs...", idx)
+            frame_intents = slm_engine.generate_initial_intents(
+                prompt=user_prompt,
+                frame=frame,
+            )
 
-        for intent in frame_intents:
-            normalized = intent.get("label", "").strip().lower()
-            if not normalized:
-                continue
-            if normalized not in seen_labels:
-                seen_labels.add(normalized)
-                all_intents.append(intent)
-                logger.info(
-                    "[IntentGenesis] NEW SKU discovered at frame %d: '%s'",
-                    result["frame_idx"],
-                    intent.get("label", "?"),
-                )
+            for intent in frame_intents:
+                label = intent.get("label", "").lower().strip()
+                if not label:
+                    continue
 
-    if not all_intents:
-        return [{"label": user_prompt, "confidence": 0.3, "source": "vlm_empty"}]
+                # Add frame reference for latent extraction
+                intent["frame"] = frame
+                intent["frame_idx"] = idx
 
-    logger.info(
-        "[IntentGenesis] Multi-frame VLM found %d unique SKUs: %s",
-        len(all_intents),
-        [i.get("label", "?") for i in all_intents],
-    )
+                if label not in seen_labels:
+                    seen_labels.add(label)
+                    all_intents.append(intent)
+                    logger.info(
+                        "[IntentGenesis] VLM GROUNDED discovery: '%s' at frame %d",
+                        label,
+                        idx,
+                    )
+
+        except Exception as exc:
+            logger.error("[IntentGenesis] VLM scout failed on frame %d: %s", idx, exc)
+
     return all_intents
+
+
+# VLM Analyst helpers removed in V3.9 as they are integrated into _run_vlm_scout_and_analyst
 
 
 # =============================================================================
@@ -326,95 +221,60 @@ def _crop_detections(
 
 
 def _extract_latent_anchors(
-    scout_results: List[Dict[str, Any]],
     genesis_intents: List[Dict[str, Any]],
-    user_prompt: str,
     vjepa_engine: Any,
 ) -> Dict[str, np.ndarray]:
     """
-    V3.7: Extract Latent Anchors from MULTIPLE top frames (Accumulative Fingerprinting).
-
-    Matches scouted detections against VLM-discovered SKU labels to create
-    high-dimensional visual anchors for latent matching.
+    V3.9: Extract Latent Anchors using direct VLM-grounded bounding boxes.
+    Uses DINOv2 fingerprints for multi-shield consistency.
 
     Args:
-        scout_results: Results from GroundingDINO scout.
-        genesis_intents: Discovered SKU labels from VLM.
-        user_prompt: Fallback label.
-        vjepa_engine: VJEPAEngine instance.
+        genesis_intents: List of discovered intents with 'bbox' and 'frame'.
+        vjepa_engine: VJEPAEngine instance to provide latent context.
 
     Returns:
-        Mapping of SKU labels to latent vectors (numpy).
+        Mapping: {label: latent_vector}
     """
     latent_anchors = {}
     if not vjepa_engine:
         return {}
 
     try:
-        # Analyze top N frames for latent anchors (usually those with highest diversity)
-        for result in scout_results[:3]:
-            frame = result["frame"]
-            frame_detections = result["detections"]
+        # Sort intents by frame to prevent redundant encoding
+        from collections import defaultdict
 
-            # Prepare frame tensor [1, 3, 224, 224] for V-JEPA (V3.7 Standard)
-            # Use specific dtypes to help static analysis
+        frame_groups = defaultdict(list)
+        for intent in genesis_intents:
+            if "frame" in intent and intent.get("bbox"):
+                frame_groups[id(intent["frame"])].append(intent)
+
+        for frame_id, intents in frame_groups.items():
+            frame = intents[0]["frame"]
+
+            # Standard 224x224 resize for V-JEPA
             frame_resized = cv2.resize(frame, (224, 224))
             frame_tensor = (
                 torch.from_numpy(frame_resized).permute(2, 0, 1).float().unsqueeze(0)
                 / 255.0
             ).to(vjepa_engine.device)
 
+            # Extract full-frame latent map
             vjepa_latent_map = vjepa_engine.encode(frame_tensor)
 
-            for det_item in frame_detections:
-                # Handle GroundingDINO list format [x1, y1, x2, y2]
-                if isinstance(det_item, list) and len(det_item) >= 4:
-                    det_bbox = {
-                        "x1": det_item[0],
-                        "y1": det_item[1],
-                        "x2": det_item[2],
-                        "y2": det_item[3],
-                    }
-                    h, w = frame.shape[:2]
-                    norm_bbox = {
-                        "x": det_bbox["x1"] / w,
-                        "y": det_bbox["y1"] / h,
-                        "w": (det_bbox["x2"] - det_bbox["x1"]) / w,
-                        "h": (det_bbox["y2"] - det_bbox["y1"]) / h,
-                    }
-                    det = {"label": user_prompt, "bbox": norm_bbox}
-                else:
-                    det = det_item
+            for intent in intents:
+                label = intent["label"]
+                bbox = intent["bbox"]
 
-                label = det.get("label", "object").lower()
-                det_words = set(label.replace(",", " ").split())
-
-                # Match detection label with specific Genesis labels
-                matched_sku = None
-                for intent in genesis_intents:
-                    sku_label = intent["label"].lower()
-                    sku_words = set(sku_label.replace(",", " ").split())
-
-                    if (
-                        det_words & sku_words
-                        or label in sku_label
-                        or sku_label in label
-                    ):
-                        matched_sku = intent["label"]
-                        if len(sku_words) > 1:
-                            break  # Specific match found
-
-                if matched_sku and matched_sku not in latent_anchors:
+                if label not in latent_anchors:
+                    # Extract 768-D fingerprint from V-JEPA context
                     latent_vec = vjepa_engine.extract_object_latent(
-                        det["bbox"], vjepa_latent_map
+                        bbox, vjepa_latent_map
                     )
-                    latent_anchors[matched_sku] = latent_vec.detach().cpu().numpy()
-                    logger.info(
-                        "[IntentGenesis] Stored V3.7 Latent Anchor for SKU: '%s'",
-                        matched_sku,
-                    )
+                    latent_anchors[label] = latent_vec.detach().cpu().numpy()
+                    logger.info("[IntentGenesis] Fingerprinted SKU: '%s'", label)
+
     except Exception as exc:
-        logger.error("[IntentGenesis] Failed to extract V3.7 Latent Anchors: %s", exc)
+        logger.error("[IntentGenesis] Fingerprinting failed: %s", exc)
 
     return latent_anchors
 
@@ -458,99 +318,57 @@ def intent_genesis_node(state: RecursiveFlowState) -> Dict[str, Any]:
         return {}
 
     # --- Phase 1: Determine frame source ---
-    # V3.5: Prefer video_frames (full pre-scan) over single image
-    frames = []
     if perception.video_frames:
         frames = perception.video_frames
-        logger.info(
-            "[intent_genesis_node] V3.5 GLOBAL mode: %d pre-scanned keyframes",
-            len(frames),
-        )
     elif perception.image is not None:
         frames = [(0, perception.image)]
-        logger.info("[intent_genesis_node] Single-frame fallback mode")
     else:
         logger.warning("[intent_genesis_node] No frames available for genesis")
-        fallback_intents = [
-            {"label": user_prompt, "confidence": 0.5, "source": "no_frame"}
-        ]
         return {
             "perception": {
-                "genesis_intents": fallback_intents,
-                "active_intent": [user_prompt],
+                "genesis_intents": [],
+                "active_intent": list(ctx.main_intent),
             },
             "decision": {"is_genesis_complete": True},
         }
 
-    # --- Phase 2: Scout with GroundingDINO across ALL frames ---
-    from .recursive_flow import get_countvid_engine, get_slm_engine
+    # --- Phase 2: VLM Grounded Discovery (DINOv2 x VLM Overhaul V3.9) ---
+    from .recursive_flow import get_slm_engine, get_vjepa_engine
 
-    countvid = get_countvid_engine()
-    scout_results = _run_grounding_scout_all(frames, user_prompt, countvid)
-
-    if not scout_results:
-        logger.warning(
-            "[intent_genesis_node] Scout found nothing in any frame, "
-            "using prompt as intent"
-        )
-        fallback_intents = [
-            {"label": user_prompt, "confidence": 0.3, "source": "scout_empty"}
-        ]
-        return {
-            "perception": {
-                "genesis_intents": fallback_intents,
-                "active_intent": [user_prompt],
-            },
-            "decision": {"is_genesis_complete": True},
-        }
-
-    total_detections = sum(r["count"] for r in scout_results)
-    logger.info(
-        "[intent_genesis_node] Scout found objects in %d/%d frames (%d total detections)",
-        len(scout_results),
-        len(frames),
-        total_detections,
-    )
-
-    # --- Phase 3: Multi-frame VLM Analysis (V3.5) ---
     slm = get_slm_engine()
-    genesis_intents = _run_vlm_analyst_multi(
-        scout_results, user_prompt, slm, max_analysis_frames=5
-    )
-
-    # --- Phase 4: Extract Reference Crops & Latent Anchors ---
-    from .recursive_flow import get_vjepa_engine
-    import torch
-
-    best_frame = scout_results[0]["frame"]
-    best_detections = scout_results[0]["detections"]
-    reference_crops = _crop_detections(best_frame, best_detections)
-
-    # V3.7: Extract Latent Anchors from MULTIPLE top frames (Accumulative Fingerprinting)
-    from .recursive_flow import get_vjepa_engine
-
     vjepa = get_vjepa_engine()
-    latent_anchors = _extract_latent_anchors(
-        scout_results, genesis_intents, user_prompt, vjepa
-    )
 
-    # --- Phase 5: Populate active_intent from genesis results ---
-    active_labels = []
-    for intent in genesis_intents:
-        label = intent.get("label", "")
-        if label and label not in active_labels:
-            active_labels.append(label)
+    # Step A: Perform Grounded Intent Discovery
+    genesis_intents = _run_vlm_scout_and_analyst(frames, user_prompt, slm)
 
-    # Ensure main_intent items are included (but avoid generic duplicates)
-    for item in ctx.main_intent:
-        if item not in active_labels:
-            active_labels.append(item)
+    # Step B: Perform Accumulative Visual Fingerprinting
+    latent_anchors = _extract_latent_anchors(genesis_intents, vjepa)
+
+    # Step C: Extract Reference Crops for Visualizer
+    reference_crops = []
+    if genesis_intents:
+        # Use bboxes from genesis intents to create crops from their parent frames
+        for intent in genesis_intents[:5]:
+            if intent.get("bbox") and "frame" in intent:
+                f = intent["frame"]
+                h, w = f.shape[:2]
+                b = intent["bbox"]
+                x1, y1 = int(b["x"] * w), int(b["y"] * h)
+                x2, y2 = int((b["x"] + b["w"]) * w), int((b["y"] + b["h"]) * h)
+                crop = f[max(0, y1) : min(h, y2), max(0, x1) : min(w, x2)].copy()
+                reference_crops.append(crop)
+
+    # --- Phase 3: Populate active_intent ---
+    active_labels = [i["label"] for i in genesis_intents if not i.get("is_contra")]
+
+    # Add main_intent from context if not already present
+    for m in ctx.main_intent:
+        if m not in active_labels:
+            active_labels.append(m)
 
     logger.info(
-        "[intent_genesis_node] Genesis complete: %d intents, %d crops, %d latent anchors → %s",
-        len(genesis_intents),
-        len(reference_crops),
-        len(latent_anchors),
+        "[intent_genesis_node] V3.9 Genesis Complete: %d SKUs → %s",
+        len(active_labels),
         active_labels,
     )
 

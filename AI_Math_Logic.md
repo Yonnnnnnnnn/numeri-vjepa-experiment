@@ -37,13 +37,17 @@ $$
 \end{cases}
 $$
 
-### Rule 2.2: Latent Match (V-JEPA)
+### Rule 2.2: Latent Match (DINOv2 Sovereignty)
 
 $$
-\text{LatentMatch}(c, x) = \cos(\mathbf{z}_c, \mathbf{z}_x)
+\text{LatentMatch}(c, x) = \max(\text{IoU}(c, x_{\text{det}}), \cos(\mathbf{z}_c, \mathbf{z}_x))
 $$
 
-Where $\mathbf{z}_c$ is the latent embedding of the current cluster crop and $\mathbf{z}_x$ is the reference anchor embedding from Intent Genesis.
+Where:
+
+- $\mathbf{z}_c$: Current cluster fingerprint (DINOv2).
+- $\mathbf{z}_x$: Genesis anchor fingerprint.
+- **Identity Sovereignty**: Visual similarity ($\cos$) overrides geometric bias (IoU) if a high-confidence anchor match exists ($>0.7$). This enables the system to identify objects even if GroundingDINO fails to generate a proposal label.
 
 ### In V3.8 Implementation:
 

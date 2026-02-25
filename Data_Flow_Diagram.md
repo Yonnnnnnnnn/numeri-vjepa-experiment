@@ -23,7 +23,7 @@ This diagram details the transformation of raw event data into actionable invent
 
 ```mermaid
 sequenceDiagram
-    participant G as Genesis (Step 0)
+    participant G as Genesis (Step 0: VLMxScout)
     participant S as Sensors (V2E/SAM2/Density)
     participant B as Brain (V-JEPA)
     participant D as Director (VL-JEPA)

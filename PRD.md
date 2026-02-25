@@ -36,6 +36,7 @@
 1.  **Tensor Standardization**: Mandatory 224x224 resizing for all V-JEPA context inputs to ensure batching/temporal compatibility.
 2.  **Agnostic Box Parsing**: Support for variant GroundingDINO output formats (list/dict) with normalized coordinate mapping.
 3.  **Label Sovereignty**: Strict punctuation-aware filtering in VLM analyst to prevent instruction text pollution in the SKU manifest.
+4.  **VLM-first Genesis (V3.9)**: Uses VLM (Qwen2.5-VL) for direct object discovery and grounding in Step 0, eliminating GroundingDINO's instruction overload issue.
 
 ## 5. Success Metrics
 

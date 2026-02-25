@@ -956,7 +956,51 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
                 cluster.get("bbox", {}), det.get("bbox", {})
             )
             if iou > 0.05:
-                candidates.append({"label": det.get("label", "item"), "iou": iou})
+                # Store source as grounding_dino for later arbitration
+                candidates.append(
+                    {
+                        "label": det.get("label", "item"),
+                        "iou": iou,
+                        "source": "grounding_dino",
+                    }
+                )
+
+        vjepa = get_vjepa_engine()
+        latent_anchors = perception.latent_anchors or {}
+
+        # 0. Extract current cluster fingerprint (DINOv2)
+        cluster_latent = None
+        if vjepa and cluster.get("bbox"):
+            try:
+                cluster_latent = vjepa.extract_object_latent(cluster.get("bbox"))
+                if hasattr(cluster_latent, "detach"):
+                    cluster_latent = cluster_latent.detach().cpu().numpy()
+            except Exception as exc:
+                logger.warning("[v3_math_node] Fingerprint extraction failed: %s", exc)
+
+        # 1. Hybrid Discovery: Supplement GroundingDINO with Latent Search
+        if cluster_latent is not None:
+            for anchor_label, anchor_vec in latent_anchors.items():
+                sim = np.dot(cluster_latent, anchor_vec) / (
+                    np.linalg.norm(cluster_latent) * np.linalg.norm(anchor_vec) + 1e-9
+                )
+                if sim > 0.7:  # High confidence threshold for discovery
+                    exists = any(
+                        c["label"].lower() == anchor_label.lower() for c in candidates
+                    )
+                    if not exists:
+                        candidates.append(
+                            {
+                                "label": anchor_label,
+                                "iou": float(sim),
+                                "source": "latent_search",
+                            }
+                        )
+                        logger.info(
+                            "[v3_math_node] Identity Discovery: Cluster matches anchor '%s' (sim=%.2f)",
+                            anchor_label,
+                            sim,
+                        )
 
         best_identity_score = -1.0
         best_label = "item"
@@ -972,21 +1016,36 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
             u_v = slm.estimate_object_volume(cand_label) if slm else target_unit_v
 
             # 1. Volume Consistency Logic
-            # Heuristic: Is the cluster volume plausible for this unit?
-            # A cluster of 100 kaleng is plausible. A cluster of 190,000 stock cubes is NOT.
             n_est = c_vol / u_v if u_v > 0 else 1e9
-
-            # vol_ratio score [0-1]
             vol_ratio = 1.0
-            if (
-                n_est > 2000
-            ):  # Physically impossible for a single cluster to hold > 2k items usually
+            if n_est > 2000:
                 vol_ratio = 0.1
-            elif n_est < 0.3:  # Unit is way bigger than the cluster observed
+            elif n_est < 0.3:
                 vol_ratio = 0.2
 
-            # 2. Latent Match (Proxy using IoU for now, but ready for V-JEPA)
+            # 2. Latent Match (DINOv2 Sovereignty)
             latent_match_score = cand_iou
+            # If this wasn't discovered via latent search, verify its label using latents anyway
+            if cluster_latent is not None and cand.get("source") != "latent_search":
+                best_sim = 0.0
+                for anchor_label, anchor_vec in latent_anchors.items():
+                    if (
+                        anchor_label.lower() in cand_label.lower()
+                        or cand_label.lower() in anchor_label.lower()
+                    ):
+                        sim = np.dot(cluster_latent, anchor_vec) / (
+                            np.linalg.norm(cluster_latent) * np.linalg.norm(anchor_vec)
+                            + 1e-9
+                        )
+                        best_sim = max(best_sim, float(sim))
+
+                if best_sim > 0:
+                    latent_match_score = best_sim
+                    logger.debug(
+                        "[v3_math_node] Latent re-verification for '%s': %.2f",
+                        cand_label,
+                        best_sim,
+                    )
 
             # Ask LNN Model for the truth value of: Identity(cluster, sku)
             identity_score = lnn_kb.reconcile_identity(
