@@ -156,10 +156,15 @@ def main():
     logger.info(f"User Prompt: '{user_prompt}'")
     logger.info(f"Seed Intent: {target_intent}")
 
-    # ── Phase 0: Global Pre-Scan ──────────────────────────────────
-    # Read entire video quickly, sample 1 frame / ~2 sec for Genesis.
-    # This gives Step 0 a "helicopter view" of ALL content in the video.
-    logger.info("Phase 0: Pre-scanning video for Global Intent Genesis...")
+    # ══════════════════════════════════════════════════════════════════
+    # Phase 0: Bio-Inspired Scouting (Replaces legacy Global Pre-Scan)
+    # ══════════════════════════════════════════════════════════════════
+    # Step 0.1 (Saccade)  : Sample keyframes + DINOv2 saliency → hotspot map
+    # Step 0.2 (Fixation) : PointBeam crops keyframes around hotspot ROI
+    # Step 0.3 (Fovea)    : VLM reads cropped images → Multi-SKU intents
+    # ══════════════════════════════════════════════════════════════════
+
+    logger.info("Phase 0: Bio-Inspired Scouting...")
     prescan_frames = []
     total_frames = int(
         cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0
@@ -179,15 +184,158 @@ def main():
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # pylint: disable=no-member
 
     logger.info(
-        "Pre-scan complete: %d keyframes sampled from %d total frames (interval=%d)",
+        "[Scouting] Peripheral scan complete: %d keyframes from %d total (interval=%d)",
         len(prescan_frames),
         total_frames,
         prescan_interval,
     )
 
-    # Inject pre-scanned frames into initial state for Intent Genesis
+    # ── Step 0.1: Saccade — DINOv2 Saliency Aggregation ──────────
+    # Aggregate saliency across sampled keyframes to find persistent
+    # hotspots (areas that are consistently visually interesting).
+    scouting_focus_roi = None
+    foveated_intents = None
+
+    try:
+        from v2_logic.models.dinov2_engine import DINOv2Engine
+
+        dinov2 = DINOv2Engine(device="cuda" if torch.cuda.is_available() else "cpu")
+
+        # Accumulate saliency maps across keyframes
+        aggregated_saliency = None
+        sample_h, sample_w = None, None
+        # Sample up to 8 evenly-spaced keyframes for saliency
+        saliency_sample_indices = np.linspace(
+            0, len(prescan_frames) - 1, min(8, len(prescan_frames)), dtype=int
+        )
+
+        for s_idx in saliency_sample_indices:
+            _, frame_rgb = prescan_frames[s_idx]
+            sample_h, sample_w = frame_rgb.shape[:2]
+            sal_map = dinov2.generate_saliency_map(
+                frame_rgb, original_size=(sample_h, sample_w)
+            )
+            if aggregated_saliency is None:
+                aggregated_saliency = sal_map
+            else:
+                aggregated_saliency += sal_map
+
+        # Normalize aggregated saliency
+        if aggregated_saliency is not None:
+            sal_max = aggregated_saliency.max()
+            if sal_max > 0:
+                aggregated_saliency /= sal_max
+
+            logger.info(
+                "[Scouting] Saccade: Aggregated saliency from %d keyframes. "
+                "Mean=%.3f, Max=%.3f",
+                len(saliency_sample_indices),
+                aggregated_saliency.mean(),
+                aggregated_saliency.max(),
+            )
+
+            # ── Step 0.2: Fixation — PointBeam ROI ────────────────
+            hotspot_rois = dinov2.find_hotspot_roi(
+                aggregated_saliency, top_k=1, min_hotspot_fraction=0.10
+            )
+            if hotspot_rois:
+                scouting_focus_roi = hotspot_rois[0]  # (x1, y1, x2, y2)
+                logger.info(
+                    "[Scouting] PointBeam Fixation: ROI locked to %s",
+                    scouting_focus_roi,
+                )
+
+        # Clean up DINOv2 to free VRAM for VLM
+        del dinov2
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            import gc
+
+            gc.collect()
+
+    except Exception as e:
+        logger.warning("[Scouting] DINOv2 saliency failed: %s. Using full frame.", e)
+
+    # ── Step 0.3: Fovea — VLM Focused Identification ─────────────
+    # Crop keyframes around PointBeam ROI and ask VLM for brand labels.
+    if scouting_focus_roi is not None:
+        try:
+            from v2_logic.models.vl_jepa_engine import VLJEPAEngine
+            import os as _os
+
+            hf_token = _os.getenv("HF_TOKEN")
+            vlm = VLJEPAEngine(
+                device="cuda" if torch.cuda.is_available() else "cpu",
+                token=hf_token,
+            )
+
+            # Crop up to 4 representative keyframes around PointBeam ROI
+            x1, y1, x2, y2 = scouting_focus_roi
+            foveated_sample_indices = np.linspace(
+                0, len(prescan_frames) - 1, min(4, len(prescan_frames)), dtype=int
+            )
+            all_discovered = []
+
+            for f_idx in foveated_sample_indices:
+                _, frame_rgb = prescan_frames[f_idx]
+                fh, fw = frame_rgb.shape[:2]
+                # Clamp ROI to frame bounds
+                cx1 = max(0, min(x1, fw - 1))
+                cy1 = max(0, min(y1, fh - 1))
+                cx2 = max(cx1 + 1, min(x2, fw))
+                cy2 = max(cy1 + 1, min(y2, fh))
+                cropped = frame_rgb[cy1:cy2, cx1:cx2]
+
+                discovered = vlm.identify_foveated_intents(
+                    cropped, user_prompt=user_prompt
+                )
+                all_discovered.extend(discovered)
+
+            # Deduplicate while preserving order
+            seen = set()
+            foveated_intents = []
+            for intent_label in all_discovered:
+                if intent_label not in seen:
+                    seen.add(intent_label)
+                    foveated_intents.append(intent_label)
+
+            logger.info(
+                "[Scouting] Foveated Genesis: %d unique intents discovered: %s",
+                len(foveated_intents),
+                foveated_intents,
+            )
+
+            # Clean up VLM to free VRAM
+            del vlm
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                import gc
+
+                gc.collect()
+
+        except Exception as e:
+            logger.warning("[Scouting] VLM foveated identification failed: %s", e)
+
+    # ── Apply Scouting Results to Initial State ───────────────────
+    scouting_updates = {"video_frames": prescan_frames}
+
+    if foveated_intents:
+        # Override seed intent with foveated discoveries
+        target_intent = foveated_intents
+        scouting_updates["active_intent"] = foveated_intents
+        logger.info(
+            "[Scouting] Overriding seed intent with foveated: %s", foveated_intents
+        )
+
+    if scouting_focus_roi is not None:
+        scouting_updates["focus_roi"] = scouting_focus_roi
+        logger.info(
+            "[Scouting] Injecting PointBeam ROI into initial state: %s",
+            scouting_focus_roi,
+        )
+
     initial_state["perception"] = initial_state["perception"].model_copy(
-        update={"video_frames": prescan_frames}
+        update=scouting_updates
     )
 
     frame_idx = 0

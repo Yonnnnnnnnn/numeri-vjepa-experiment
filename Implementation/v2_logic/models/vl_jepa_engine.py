@@ -1,7 +1,7 @@
 """
 VL-JEPA Engine (Director)
 
-Integrates PaliGemma weights into a JEPA-style intent identified.
+Integrates PaliGemma weights into a JEPA-style intent identifier.
 Note: Since the source Techs/VL-JEPA uses MLX (Apple Silicon only),
 this implementation uses PyTorch/Transformers for compatibility on Windows.
 
@@ -26,10 +26,14 @@ Terminals       : str, float, bool, "cuda", "cpu"
 
 Production Rules:
   VLJEPAEngine    → imports + <VLJEPAEngine>
-  <VLJEPAEngine>  → __init__ + identify_intent + extract_features
+  <VLJEPAEngine>  → __init__ + identify_intent + identify_foveated_intents
+                   + extract_visual_embeddings + _frame_to_pil
 ═══════════════════════════════════════════════════════════════════════════════
 """
 
+import re
+
+import numpy as np
 import torch
 import logging
 from PIL import Image
@@ -86,6 +90,18 @@ class VLJEPAEngine:
 
         logger.info("[VL-JEPA] Model loaded successfully")
 
+    def _frame_to_pil(self, frame) -> Image.Image:
+        """Convert frame (Tensor, ndarray, str, or PIL.Image) to PIL.Image."""
+        if isinstance(frame, torch.Tensor):
+            if frame.shape[0] == 3:  # C, H, W -> H, W, C
+                frame = frame.permute(1, 2, 0)
+            return Image.fromarray((frame.cpu().numpy() * 255).astype("uint8"))
+        if isinstance(frame, str):
+            return Image.open(frame)
+        if isinstance(frame, np.ndarray):
+            return Image.fromarray(frame)
+        return frame  # Already PIL
+
     def identify_intent(
         self,
         frame,
@@ -94,6 +110,7 @@ class VLJEPAEngine:
     ):
         """
         Identify the scanning context using vision-language reasoning.
+        This is the PERIPHERAL (wide-angle) identification mode.
 
         Args:
             frame: np.ndarray, PIL.Image or path (H, W, 3)
@@ -103,15 +120,7 @@ class VLJEPAEngine:
         Returns:
             str: The identified intent/SKU name.
         """
-        if isinstance(frame, torch.Tensor):
-            # Convert torch to PIL for processor
-            if frame.shape[0] == 3:  # C, H, W -> H, W, C
-                frame = frame.permute(1, 2, 0)
-            img = Image.fromarray((frame.cpu().numpy() * 255).astype("uint8"))
-        elif isinstance(frame, str):
-            img = Image.open(frame)
-        else:
-            img = Image.fromarray(frame)
+        img = self._frame_to_pil(frame)
 
         inputs = self.processor(text=prompt, images=img, return_tensors="pt").to(
             self.device
@@ -147,8 +156,108 @@ class VLJEPAEngine:
             else:
                 intent = default_intent
 
-        logger.info(f"[VL-JEPA] Identified Intent: {intent}")
+        logger.info("[VL-JEPA] Identified Intent: %s", intent)
         return intent
+
+    def identify_foveated_intents(
+        self,
+        cropped_frame,
+        user_prompt: str = "",
+        default_intents: list = None,
+    ) -> list:
+        """
+        FOVEATED (close-up) multi-SKU identification on a PointBeam-cropped image.
+
+        Unlike identify_intent which forces a single-word answer on a wide
+        frame (causing Intent Collapse), this method:
+        1. Accepts a PointBeam-cropped (zoomed) image for higher detail.
+        2. Uses a descriptive prompt that asks for MULTIPLE distinct labels.
+        3. Parses the VLM response into a list of individual SKU intents.
+
+        Args:
+            cropped_frame: np.ndarray or PIL.Image — PointBeam-cropped region.
+            user_prompt: Original user prompt for context (e.g. "count cans by brand").
+            default_intents: Fallback list if VLM returns nothing useful.
+
+        Returns:
+            List[str]: Distinct intent labels discovered in the foveated view.
+        """
+        if default_intents is None:
+            default_intents = ["items"]
+
+        img = self._frame_to_pil(cropped_frame)
+
+        # Build a context-aware foveated prompt
+        if user_prompt:
+            foveated_prompt = (
+                f"Context: {user_prompt}. "
+                "Look at this close-up image carefully. "
+                "List all distinct object types or brand labels you can see, "
+                "separated by commas. Be specific with brand names."
+            )
+        else:
+            foveated_prompt = (
+                "Look at this close-up image carefully. "
+                "List all distinct object types or brand labels you can see, "
+                "separated by commas. Be specific."
+            )
+
+        inputs = self.processor(
+            text=foveated_prompt, images=img, return_tensors="pt"
+        ).to(self.device)
+
+        with torch.no_grad():
+            generated_ids = self.model.generate(
+                **inputs,
+                max_new_tokens=100,  # Allow longer response for multi-SKU
+                temperature=0.3,  # Slightly creative for brand discovery
+                top_p=0.9,
+                do_sample=True,
+            )
+
+        output_text = self.processor.batch_decode(
+            generated_ids, skip_special_tokens=True
+        )[0]
+
+        # Extract the generated part (after the prompt)
+        raw_response = output_text[len(foveated_prompt) :].strip().lower()
+        logger.info("[VL-JEPA] Foveated raw response: '%s'", raw_response)
+
+        # Parse comma/newline/semicolon separated labels
+        # Also handle "and" as a separator
+        raw_response = raw_response.replace(" and ", ",")
+        raw_response = raw_response.replace(";", ",")
+        raw_response = raw_response.replace("\n", ",")
+
+        # Split and clean
+        candidates = [s.strip() for s in raw_response.split(",")]
+
+        # Filter out empty strings, numbering artifacts, and overly long items
+        intents = []
+        for candidate in candidates:
+            # Remove leading numbering like "1. " or "- "
+            cleaned = re.sub(r"^[\d\-\.\)\]]+\s*", "", candidate).strip()
+            if not cleaned:
+                continue
+            if len(cleaned) > 40:  # Skip overly verbose descriptions
+                continue
+            if cleaned not in intents:  # Deduplicate
+                intents.append(cleaned)
+
+        if not intents:
+            logger.warning(
+                "[VL-JEPA] Foveated identification returned no valid intents. "
+                "Using defaults: %s",
+                default_intents,
+            )
+            return list(default_intents)
+
+        logger.info(
+            "[VL-JEPA] Foveated Multi-SKU Discovery: %d intents found: %s",
+            len(intents),
+            intents,
+        )
+        return intents
 
     def extract_visual_embeddings(self, frame):
         """
@@ -159,10 +268,7 @@ class VLJEPAEngine:
         """
         # We can extract the 'vision_tower' hidden states which is equivalent
         # to the X-Encoder in the VL-JEPA paper.
-        if not isinstance(frame, (Image.Image, str)):
-            img = Image.fromarray(frame)
-        else:
-            img = frame
+        img = self._frame_to_pil(frame)
 
         inputs = self.processor(images=img, return_tensors="pt").to(self.device)
 
