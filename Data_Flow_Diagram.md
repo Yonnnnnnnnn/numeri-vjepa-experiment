@@ -32,8 +32,9 @@ sequenceDiagram
     participant LG as Gate (Logic Gate)
     participant R as Reasoner (SLM)
 
-    Note over G: Phase 0: Semantic Setup
-    G->>D: genesis_intents & reference_crops
+    Note over G: Phase 0: Bio-Inspired Scouting (Saccade & Fovea)
+    G->>G: Step 0.1-0.2: Saliency Map -> focus_roi (PointBeam)
+    G->>D: Step 0.3: foveated_intents (Multi-SKU) & focus_roi
 
     Note over B,D: Phase 1: Anchor
     B->>D: Latent Context & Memory

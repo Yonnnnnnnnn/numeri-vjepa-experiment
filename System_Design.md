@@ -30,12 +30,12 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 - **v2e**: Asynchronous event source for residue detection.
 - **SAM2**: Union Masking and Cluster Detection for occlusion management.
 - **Depth Anything V2**: Physical truth source for volumetric scaling (Cluster-based estimation).
-- **DINOv2**: Semantic feature source for ReID and Density Sensing.
+- **DINOv2**: Semantic feature source for ReID and Density Sensing. **V4.1 Saliency Engine**: Generates spatial heatmaps (16x16 grid) from patch token norms to identify high-interest hotspots for PointBeam Focus.
 
 ### 1.2. Cognitive Layer (Otak)
 
 - **V-JEPA**: Spatio-temporal world model providing latent memory.
-- **Intent Genesis (Step 0)**: A "Scout & Analyst" module that uses VLM (Qwen2.5-VL) to directly discover objects and their coordinates across video keyframes. **V3.9 VLM-first Discovery**: Replaces GroundingDINO scouting in Step 0 with VLM grounding to prevent "Instruction Overload" on complex prompts. **V3.7 Accumulative Fingerprinting**: Genesis extracts **Latent Anchors** using DINOv2 fingerprints from VLM-identified regions.
+- **Bio-Inspired Scouting (Step 0)**: A two-pass discovery module. **Pass 1 (Saccade)**: Uses DINOv2 Saliency to identify visual hotspots across video keyframes. **Pass 2 (Foveation)**: Clips regional keyframes into a **PointBeam ROI** and uses VLM (PaliGemma) for high-resolution, focused SKU identification. This resolves the **Intent Collapse** error where specific brand labels were lost in wide-angle peripheral views.
 - **Density Engine**: MLP that fuses DINOv2 features with visual specularity to predict packing density ($\rho$). In V3.8.1, it implements a **Heuristic Cold Start** (Prior: Feature Variance $\to$ Density) to enable valid volumetric math before full model fitting.
 - **Geometric Kernel**: `GoldenAlphaCalibrator` (Binary Search) for finding the optimal $\alpha$ where $V_{concave} \approx V_{unit}$.
 
@@ -46,6 +46,7 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 - **Neuro-Symbolic Arbitrator (LNN) (V3.8)**: Implements an IBM Logical Neural Network layer that acts as a gatekeeper for VLM outputs and Math Kernel assignments. It enforces physical and semantic axioms (e.g., `ValidIntent`, `Identity`) using differentiable real-valued logic to resolve hallucinations and volumetric deadlocks.
 - **Immunity System (Step 12.1/12.2)**: A subsystem within the Director and Fusion Engine that classifies distractors as "Contra Intents". Enhanced by a **Semantic Guard** in V3.3.1 that prevents misclassification of user-requested SKUs (e.g., 'balls') into contra categories and suppresses noise like 'human hands'.
 - **Logic Gate**: High-speed deterministic guard for anomaly classification.
+- **PointBeam Focus (V4.1)**: Dynamic ROI mechanism that shifts system attention to anomalous or high-saliency regions. In Step 0, it fixates on discovered clusters to enable Refined Intent Genesis. During loops, it fixates on "unexplained blobs" to trigger targeted re-counting.
 - **SLM Reasoner**: Large language logic for intent refinement and discovery.
 - **Analyst Override (V3.4)**: When the SLM's object count disagrees with the Scout's visual count during a `volumetric` anomaly loop, the system trusts the SLM (Analyst) and overrides `n_visible`. This breaks the logical deadlock where Scout hallucinates (e.g., 5) but SLM correctly identifies (e.g., 3).
 

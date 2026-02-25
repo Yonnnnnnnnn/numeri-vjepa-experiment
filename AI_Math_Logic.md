@@ -88,34 +88,50 @@ $$
 
 **Critical Correction**: `c_vol` must be extracted per-cluster from the depth manifold metadata to prevent the **Global Volume Leak** error where $n_{vol}$ was incorrectly used as a divisor.
 
-## 5. Centrality Bias — PointBeam Focus (V4.0)
+## 5. Centrality Bias & Dynamic PointBeam Focus (V4.1)
 
-To resolve **Peripheral Noise Pollution** during Intent Genesis, we apply a Foveated Confidence Boosting function that prioritizes objects near the frame center.
+To resolve **Peripheral Noise Pollution** and **Intent Collapse**, we implement a dynamic PointBeam Focus that prioritizes objects within a discovered Region of Interest (ROI).
 
-### Rule 5.1: Centrality Score
+### Rule 5.1: Dynamic ROI (PointBeam)
 
-For a bounding box with center $(b_x, b_y)$ relative to the frame center $(0.5, 0.5)$:
+The PointBeam ROI ($R_{focus}$) is no longer static. It is discovered during the Saccade phase (Step 0.1) by identifying the largest contiguous region of high saliency $S > \theta_{saliency}$.
 
-$$
-d = \sqrt{(b_x - 0.5)^2 + (b_y - 0.5)^2}
-$$
+### Rule 5.2: Foveated Confidence Boosting
 
-$$
-S_{centrality} = \max\left(0,\; 1 - \frac{d}{r_{decay}}\right)
-$$
-
-Where $r_{decay} = 0.35$ is the radius at which centrality decays to zero.
-
-### Rule 5.2: Confidence Boosting
-
-The base confidence $C_{base}$ from the VLM is boosted by the centrality score:
+For a detection $x$, the confidence $C(x)$ is boosted if its center $(b_x, b_y)$ falls within $R_{focus}$:
 
 $$
-C_{boosted} = \min\left(1.0,\; C_{base} \cdot (1 + 0.3 \cdot S_{centrality})\right)
+C_{boosted} = \text{clip}(C_{base} \cdot (1 + \alpha_{boost} \cdot \mathbb{I}(center(x) \in R_{focus})), 0, 1)
 $$
 
-This ensures:
+Where $\alpha_{boost} = 0.3$. This ensures that objects within the "fovea" (PointBeam) are prioritized for identity genesis.
 
-- Objects at the **exact center** receive up to a **30% confidence boost**.
-- Objects at the **periphery** ($d > r_{decay}$) receive **no boost**.
-- The **VLM prompt** explicitly instructs prioritization of centered/framed objects.
+## 6. Bio-Inspired Saliency: Saccade & Fixation (V4.1)
+
+To achieve **Refined Intent Discovery**, we implement a two-pass scouting mechanism inspired by human visual saccades.
+
+### 6.1: Spatial Saliency (Saccade Phase)
+
+Saliency $S_{p}$ for a patch $p$ is derived from the L2 norm of its DINOv2 ViT patch token $\mathbf{z}_p \in \mathbb{R}^{768}$:
+
+$$
+S_{p} = \|\mathbf{z}_p\|_2
+$$
+
+### 6.2: Temporal Saliency Aggregation
+
+To find persistent objects (Fixation), we aggregate saliency maps over $N$ sampled keyframes:
+
+$$
+S_{global} = \frac{1}{N} \sum_{i=1}^{N} S_{local, i}
+$$
+
+### 6.3: PointBeam Hotspot Extraction
+
+The final PointBeam ROI is the bounding box $B$ that maximizes the density of $S_{global}$:
+
+$$
+B_{focus} = \text{ConnectedComponents}(\text{Threshold}(S_{global}, \text{tile}_{70}))
+$$
+
+This $B_{focus}$ is then used for the **Foveated Interaction** phase, providing the VLM with high-resolution, cropped visual anchors for SKU identification.

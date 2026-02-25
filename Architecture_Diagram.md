@@ -28,7 +28,7 @@ The following diagram represents the system as a Category where **Objects** are 
 graph TD
     %% Define Objects (Nodes)
     %% Define Objects (Nodes)
-    intent_genesis_node("intent_genesis_node<br>(Step 0: Scout & Analyst)")
+    intent_genesis_node("intent_genesis_node<br>(Step 0: Bio-Inspired Scouting)")
     vjepa_brain_node("vjepa_brain_node<br>(Step 1: Anchor)")
     vljepa_director_node("vljepa_director_node<br>(Step 2-3: Intent & Calibration)")
     v2e_sensor_node("v2e_sensor_node<br>(Residue Guard)")

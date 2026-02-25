@@ -5,7 +5,8 @@ The end-user (Auditor) interacts with the system through a high-level natural la
 ```mermaid
 graph TD
     User([Auditor]) --> Prompt["'Audit the cups'"]
-    Prompt --> Director[vljepa_director_node: Set Intent]
+    Prompt --> Scout[Step 0: Bio-Inspired Scouting]
+    Scout -- "Multi-SKU & PointBeam" --> Director[vljepa_director_node: Set Intent]
     Director --> Vision[Orbit Phase: V-JEPA + Sensors]
     Vision --> Math[Audit Phase: V3 Volumetric math]
     Math --> Fusion[Fusion Phase: Multi-Shield Consensus]

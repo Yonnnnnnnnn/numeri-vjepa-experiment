@@ -29,16 +29,19 @@ This document defines the interfaces between the core modules of the Antigravity
 - **`analyze_specularity(image: np.ndarray) -> float`**
   - Input: Cropped object frame.
   - Output: Statistical variance coefficient (S).
-- **`predict(features: np.ndarray) -> float`**
-  - Input: DINOv2 latent vector + S.
-  - Output: Predicted density ($\rho$).
+- **`generate_saliency_map(image: np.ndarray) -> np.ndarray`**
+  - Input: RGB image.
+  - Output: (16x16) normalized saliency heatmap.
+- **`find_hotspot_roi(saliency_map) -> List[Tuple]`**
+  - Input: Aggregated saliency map.
+  - Output: List of (x1, y1, x2, y2) PointBeam ROIs.
 
 ### 1.1.5. Intent Genesis (`IntentGenesisModule`)
 
-- **`intent_genesis_node(state: RecursiveFlowState) -> Dict`**
-  - Input: Initial state with `user_prompt`.
-  - Output: `genesis_intents`, `reference_crops`, `active_intent`.
-  - Action: Runs GroundingDINO + VLM Analyst to seed the recursive loop.
+- **`Step 0: Bio-Inspired Scouting`**
+  - Process: Peripheral Saccade (DINOv2) -> PointBeam Fixation -> Foveated Genesis (VLM).
+  - Output: `active_intent` (Multi-SKU), `focus_roi` (PointBeam), `video_frames`.
+  - Action: Discovers specific brand labels and high-interest ROIs before starting the main loop.
 
 ### 1.2. Geometric Kernel (`AlphaHullWrapper` & `GoldenAlphaCalibrator`)
 
