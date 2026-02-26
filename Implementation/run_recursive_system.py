@@ -312,14 +312,10 @@ def main():
     # Crop keyframes around PointBeam ROI and ask VLM for brand labels.
     if scouting_focus_roi is not None:
         try:
-            from v2_logic.models.vl_jepa_engine import VLJEPAEngine
-            import os as _os
+            # V4.0: Unified VLM — Use SLMEngine (Qwen2.5-VL) for higher specificity
+            from v2_logic.models.slm_engine import SLMEngine
 
-            hf_token = _os.getenv("HF_TOKEN")
-            vlm = VLJEPAEngine(
-                device="cuda" if torch.cuda.is_available() else "cpu",
-                token=hf_token,
-            )
+            slm = SLMEngine()
 
             # Crop up to 4 representative keyframes around PointBeam ROI
             x1, y1, x2, y2 = scouting_focus_roi
@@ -338,27 +334,32 @@ def main():
                 cy2 = max(cy1 + 1, min(y2, fh))
                 cropped = frame_rgb[cy1:cy2, cx1:cx2]
 
-                discovered = vlm.identify_foveated_intents(
-                    cropped, user_prompt=user_prompt
+                # V4.0: Use Unified VLM discovery instead of legacy PaliGemma proxy
+                discovered_dicts = slm.generate_initial_intents(
+                    prompt=user_prompt, frame=cropped
                 )
-                all_discovered.extend(discovered)
+
+                for d in discovered_dicts:
+                    if not d.get("is_contra"):
+                        all_discovered.append(d["label"])
 
             # Deduplicate while preserving order
             seen = set()
             foveated_intents = []
             for intent_label in all_discovered:
-                if intent_label not in seen:
-                    seen.add(intent_label)
+                label_clean = intent_label.lower().strip()
+                if label_clean not in seen:
+                    seen.add(label_clean)
                     foveated_intents.append(intent_label)
 
             logger.info(
-                "[Scouting] Foveated Genesis: %d unique intents discovered: %s",
+                "[Scouting] Unified Foveated Genesis: %d unique intents discovered: %s",
                 len(foveated_intents),
                 foveated_intents,
             )
 
-            # Clean up VLM to free VRAM
-            del vlm
+            # Clean up SLM to free VRAM
+            del slm
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
                 import gc
@@ -366,7 +367,9 @@ def main():
                 gc.collect()
 
         except Exception as e:
-            logger.warning("[Scouting] VLM foveated identification failed: %s", e)
+            logger.warning(
+                "[Scouting] Unified VLM foveated identification failed: %s", e
+            )
 
     # ── Apply Scouting Results to Initial State ───────────────────
     scouting_updates = {"video_frames": prescan_frames}

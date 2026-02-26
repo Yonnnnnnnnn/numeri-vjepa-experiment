@@ -501,6 +501,8 @@ class SLMEngine:
             "3. For EACH identified object, you MUST provide a bounding box.\n"
             "4. DO NOT use vague generic labels like 'item' or 'thing' —\n"
             "   be as specific as possible (e.g. 'red toy car', 'Snickers bar').\n"
+            "   REJECT generic labels like 'drink', 'bottle', or 'can' if there\n"
+            "   is visible text or branding on the object.\n"
             "5. Objects that are clearly background, peripheral, or unrelated\n"
             "   (human hands, shelving, walls) should be marked as 'CONTRA'.\n"
             "6. Prioritize objects near the CENTER of the frame first.\n\n"

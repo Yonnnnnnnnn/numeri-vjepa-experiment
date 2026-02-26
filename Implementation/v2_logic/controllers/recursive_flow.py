@@ -1037,6 +1037,19 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
         best_iou = 0.0
         target_u_v = target_unit_v
 
+        # V4.0 Specificity Guard: Replaces generic VLM labels with specific latent anchor labels
+        GENERIC_LABELS = {
+            "item",
+            "thing",
+            "product",
+            "object",
+            "can",
+            "bottle",
+            "drink",
+            "items",
+            "objects",
+        }
+
         # Arbitrate between candidates using LNN Identity Rules
         for cand in candidates:
             cand_label = cand["label"]
@@ -1058,6 +1071,8 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
             # If this wasn't discovered via latent search, verify its label using latents anyway
             if cluster_latent is not None and cand.get("source") != "latent_search":
                 best_sim = 0.0
+                best_match_label = None
+
                 for anchor_label, anchor_vec in active_anchors:
                     if (
                         anchor_label.lower() in cand_label.lower()
@@ -1067,7 +1082,24 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
                             np.linalg.norm(cluster_latent) * np.linalg.norm(anchor_vec)
                             + 1e-9
                         )
-                        best_sim = max(best_sim, float(sim))
+                        if sim > best_sim:
+                            best_sim = float(sim)
+                            best_match_label = anchor_label
+
+                # V4.0: SPECIFICITY REPLACEMENT
+                # If current label is generic but we have a specific latent match, override it
+                if cand_label.lower() in GENERIC_LABELS and best_sim > 0.85:
+                    logger.info(
+                        "[v3_math_node] Specificity Guard: Overriding generic '%s' with specific anchor '%s' (sim=%.2f)",
+                        cand_label,
+                        best_match_label,
+                        best_sim,
+                    )
+                    cand_label = best_match_label
+                    # Re-fetch volume for the new specific label
+                    u_v = (
+                        slm.estimate_object_volume(cand_label) if slm else target_unit_v
+                    )
 
                 if best_sim > 0:
                     latent_match_score = best_sim
