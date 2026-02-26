@@ -47,7 +47,10 @@ Where:
 
 - $\mathbf{z}_c$: Current cluster fingerprint (DINOv2).
 - $\mathbf{z}_x$: Genesis anchor fingerprint (V-JEPA).
-- **Identity Sovereignty**: Visual similarity ($\cos$) overrides geometric bias (IoU) if a high-confidence anchor match exists ($>0.85$). This enables the system to correctly classify objects based on precise latent matching, mitigating "Semantic Collapse" typically caused by textual generalizability from standard VLMs.
+- **Identity Sovereignty (V4.0)**: Visual similarity ($\cos$) overrides geometric bias (IoU) if a high-confidence anchor match exists ($>0.85$).
+  - `If (cos_sim(anchor_i, cluster_j) > 0.85) AND (label_vlm(cluster_j) is GENERIC) → Identity = label(anchor_i)`.
+  - This forces the system to trust its physical memory (Latent Anchor) over a weak VLM generalization (Semantic Collapse).
+  - **Specificity Guard**: Any VLM label in `[item, thing, product, object, can, bottle, drink]` is automatically flagged as "GENERIC" and requires Latent anchoring for validation.
 
 ### In V3.8 Implementation:
 

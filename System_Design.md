@@ -35,7 +35,8 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 ### 1.2. Cognitive Layer (Otak)
 
 - **V-JEPA**: Spatio-temporal world model providing latent memory.
-- **Bio-Inspired Scouting (Step 0)**: A two-pass discovery module. **Pass 1 (Saccade)**: Uses DINOv2 Saliency to identify visual hotspots across video keyframes. **Pass 2 (Foveation)**: Clips regional keyframes into a **PointBeam ROI**. Crucially for V4 Architecture, V-JEPA first extracts a **Latent Anchor** representing the exact physical matrix of the ROI object, before passing the crop to the VLM (PaliGemma) for labeling. This ensures the literal physical representation is anchored against "Semantic Collapse" generalizations by the VLM.
+- **Unified VLM (Qwen2.5-VL)**: Acts as the primary semantic engine for both Scouting and Foveation. Replaces the legacy dual-VLM (PaliGemma + Qwen) setup to prevent "Intelligence Fragmentation".
+- **Bio-Inspired Scouting (Step 0)**: A two-pass discovery module. **Pass 1 (Saccade)**: Uses DINOv2 Saliency to identify visual hotspots across video keyframes. **Pass 2 (Foveation)**: Clips regional keyframes into a **PointBeam ROI**. Crucially for V4 Architecture, V-JEPA first extracts a **Latent Anchor** representing the exact physical matrix of the ROI object, before passing the crop to the **Unified VLM (Qwen)** for labeling. This ensures the literal physical representation is anchored against "Semantic Collapse" generalizations, while Qwen provides high-specificity brand identification.
 - **Density Engine**: MLP that fuses DINOv2 features with visual specularity to predict packing density ($\rho$). In V3.8.1, it implements a **Heuristic Cold Start** (Prior: Feature Variance $\to$ Density) to enable valid volumetric math before full model fitting.
 - **Geometric Kernel**: `GoldenAlphaCalibrator` (Binary Search) for finding the optimal $\alpha$ where $V_{concave} \approx V_{unit}$.
 

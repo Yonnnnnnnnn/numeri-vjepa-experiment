@@ -7,8 +7,9 @@ Start Symbol : APIContract (this document)
 
 Non-Terminals :
 ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
-│ <EngineAPI> → VJEPAEngine | SLMEngine | Director | Executor │
+│ <EngineAPI> → VJEPAEngine | SLMEngine (Unified VLM) | Director | Executor │
 │ <LoopAPI> → Feedback mechanisms │
+│ <LegacyAPI> → VLJEPAEngine (PaliGemma) - Deprecated in V4.0 │
 └───────────────────────────────────────────────────────────────────────────┘
 
 Terminals : str, float, int, Tensor, Latent
@@ -64,8 +65,9 @@ This document defines the interfaces between the core modules of the Antigravity
 ### 1.5. Targeted SLM (`SLMEngine`)
 
 - **`generate_initial_intents(prompt, frame, detections) -> List[Dict]`**
-  - Input: User prompt, GroundingDINO frame + detections.
-  - Output: List of specific intent labels vs contra labels.
+  - Input: User prompt, Frame (full or crop) + optional detections.
+  - Output: List of specific intent labels vs contra labels with bounding boxes.
+  - **V4.0 Unified VLM**: This is now the primary semantic engine for the entire system, replacing legacy PaliGemma proxies.
 - **`generate_reasoning(image, anomaly_type, context) -> ReasoningResult`**
   - Input: Current frame, anomaly classification, and state context.
   - Output: Textual explanation and next-step hypothesis.

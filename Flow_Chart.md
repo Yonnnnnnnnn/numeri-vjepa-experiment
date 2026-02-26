@@ -27,7 +27,7 @@ flowchart TD
     Start([Start Loop]) --> check_init{Is Initialized?}
     check_init -- "No" --> saccade[Step 0.1: Peripheral Saccade (DINOv2 Saliency)]
     saccade --> fixation[Step 0.2: PointBeam Fixation (Hotspot Discovery)]
-    fixation --> fovea[Step 0.3: Foveated Genesis (VLM Multi-SKU)]
+    fixation --> fovea[Step 0.3: Foveated Genesis (Unified VLM Qwen)]
     fovea --> lnn_intent_filter[LNN: Intent Filter]
     lnn_intent_filter -- "Validated SKU" --> vjepa_brain_node
 
