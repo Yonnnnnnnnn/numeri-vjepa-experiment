@@ -105,8 +105,8 @@ class VLJEPAEngine:
     def identify_intent(
         self,
         frame,
-        prompt="What object is being counted in this video? Answer with a single word.",
-        default_intent="cups",
+        prompt="What is the main object type in this image? Answer with a single word.",
+        default_intent="items",
     ):
         """
         Identify the scanning context using vision-language reasoning.

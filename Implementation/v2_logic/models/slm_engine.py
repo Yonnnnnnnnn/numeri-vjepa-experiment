@@ -171,41 +171,118 @@ class SLMEngine:
         """
         Semantic Pivot: Extracts a generic noun from a specific label.
         Example: "Blue Plastic Cup" -> "cup"
+
+        V4.3: Domain-Agnostic — expanded taxonomy covers toys, candy,
+        accessories, food, electronics, stationery, and more.
+        Uses regex word-boundary to prevent false matches (e.g. 'can' in 'candy').
         """
-        # Daftar anchor words yang umum diketahui VLM memiliki volume standar
-        # Diurutkan dari yang spesifik ke umum (Generic Anchor Strategy)
+        import re
+
+        # V4.3: Universal anchor taxonomy (ordered specific → generic)
         anchors = [
-            # Specific containers matched first
-            "mug",
+            # ── Containers & Drinkware ──
             "tumbler",
+            "mug",
             "jar",
             "jug",
             "cup",
             "bottle",
             "can",
-            # Ambiguous materials/shapes processed later
             "glass",
-            "ball",
-            "sphere",
-            # Boxes & Packaging
+            "flask",
+            "thermos",
+            # ── Toys & Games ──
+            "action figure",
+            "figurine",
+            "toy car",
+            "toy",
+            "doll",
+            "plushie",
+            "stuffed animal",
+            "puzzle",
+            "lego",
+            "block",
+            "dice",
+            "marble",
+            # ── Candy & Snacks ──
+            "candy bar",
+            "chocolate bar",
+            "candy",
+            "chocolate",
+            "lollipop",
+            "gummy",
+            "cookie",
+            "biscuit",
+            "cracker",
+            "chip",
+            "snack",
+            # ── Accessories & Jewelry ──
+            "bracelet",
+            "necklace",
+            "earring",
+            "ring",
+            "watch",
+            "keychain",
+            "hairclip",
+            "accessory",
+            "pendant",
+            "brooch",
+            "pin",
+            # ── Stationery & Office ──
+            "eraser",
+            "marker",
+            "crayon",
+            "pencil",
+            "pen",
+            "ruler",
+            "tape",
+            "glue",
+            "scissors",
+            "notebook",
+            "sticker",
+            # ── Food & Produce ──
+            "apple",
+            "orange",
+            "banana",
+            "fruit",
+            "egg",
+            "potato",
+            "tomato",
+            "vegetable",
+            # ── Packaging ──
             "carton",
             "box",
             "container",
+            "packet",
             "pouch",
             "sachet",
             "bag",
-            # Tools
-            "marker",
-            "pencil",
-            "pen",
-            # Tech (Smartphone before phone)
+            "wrapper",
+            # ── Sports & Outdoor ──
+            "ball",
+            "sphere",
+            "shuttlecock",
+            "puck",
+            # ── Electronics ──
             "smartphone",
             "laptop",
             "phone",
-            # Furniture
+            "battery",
+            "charger",
+            "usb",
+            "cable",
+            # ── Cosmetics & Personal Care ──
+            "lipstick",
+            "compact",
+            "perfume",
+            "soap",
+            "shampoo",
+            "lotion",
+            # ── Furniture ──
             "chair",
             "table",
-            # People
+            "lamp",
+            # ── People ──
             "woman",
             "man",
             "person",
@@ -214,15 +291,13 @@ class SLMEngine:
 
         label_lower = label.lower()
 
-        # 1. Exact match check (jika label sudah generik)
+        # 1. Exact match check (if label is already generic)
         if label_lower in anchors:
             return label_lower
 
-        # 2. Substring match (prioritize longer matches if overlap, or order in list)
+        # 2. Word-boundary match (prevents 'can' matching 'candy')
         for anchor in anchors:
-            # Menggunakan regex boundary (\b) agar tidak match parsial (misal 'can' di 'candy')
-            # tapi simple substring check seringkali cukup untuk MVP
-            if anchor in label_lower:
+            if re.search(r"\b" + re.escape(anchor) + r"\b", label_lower):
                 return anchor
 
         # 3. Fallback: Return original label
@@ -278,12 +353,71 @@ class SLMEngine:
             clean_resp = "".join(c for c in response if c in "0123456789.eE-+")
             match = re.search(r"[-+]?\d*\.?\d+([eE][-+]?\d+)?", clean_resp)
 
-            # Context-aware fallback values (in m^3)
+            # V4.3: Domain-Agnostic fallback volumes (in m^3)
+            # Covers containers, toys, candy, accessories, food, stationery, etc.
             fallbacks = {
-                "cup": 0.00025,
-                "bottle": 0.0005,
-                "ball": 0.00005,
-                "can": 0.00033,
+                # ── Containers & Drinkware ──
+                "cup": 0.00025,  # ~250ml
+                "mug": 0.00030,  # ~300ml
+                "bottle": 0.0005,  # ~500ml
+                "can": 0.00033,  # ~330ml
+                "jar": 0.0004,  # ~400ml
+                "glass": 0.00025,  # ~250ml
+                "flask": 0.0003,  # ~300ml
+                # ── Toys & Games ──
+                "toy": 0.0002,  # ~200cm^3 (small toy car)
+                "action figure": 0.0003,
+                "figurine": 0.00015,
+                "doll": 0.001,  # ~1000cm^3
+                "plushie": 0.002,  # ~2000cm^3
+                "lego": 0.000002,  # ~2cm^3 per brick
+                "block": 0.00003,  # ~30cm^3
+                "dice": 0.000008,  # ~8cm^3
+                "marble": 0.000004,  # ~4cm^3
+                "puzzle": 0.0001,  # flat piece
+                # ── Candy & Snacks ──
+                "candy": 0.000008,  # ~8cm^3 (wrapped candy)
+                "chocolate": 0.00005,  # ~50cm^3 (small bar)
+                "lollipop": 0.00003,  # ~30cm^3
+                "gummy": 0.000003,  # ~3cm^3
+                "cookie": 0.00004,  # ~40cm^3 (flat disk)
+                "biscuit": 0.00003,
+                "snack": 0.00005,
+                # ── Accessories & Jewelry ──
+                "ring": 0.000002,  # ~2cm^3
+                "earring": 0.000001,  # ~1cm^3
+                "bracelet": 0.00001,  # ~10cm^3
+                "necklace": 0.00002,
+                "watch": 0.00003,
+                "keychain": 0.00001,
+                "pin": 0.0000005,  # ~0.5cm^3
+                "accessory": 0.00001,
+                # ── Stationery ──
+                "pen": 0.00001,  # ~10cm^3
+                "pencil": 0.000008,
+                "eraser": 0.00002,  # ~20cm^3
+                "marker": 0.00002,
+                "crayon": 0.00001,
+                "sticker": 0.000001,
+                # ── Food & Produce ──
+                "apple": 0.0002,  # ~200cm^3
+                "orange": 0.00025,
+                "banana": 0.00012,
+                "egg": 0.00006,  # ~60cm^3
+                "potato": 0.00015,
+                "tomato": 0.00015,
+                # ── Packaging ──
+                "box": 0.001,  # ~1000cm^3 (small box)
+                "carton": 0.001,
+                "sachet": 0.00003,  # ~30cm^3
+                "pouch": 0.00005,
+                "bag": 0.0005,
+                # ── Sports ──
+                "ball": 0.00005,  # ~50cm^3 (tennis ball)
+                # ── Cosmetics ──
+                "lipstick": 0.00001,
+                "soap": 0.0001,
+                "perfume": 0.00015,
             }
             default_fallback = 0.001
 
@@ -321,6 +455,14 @@ class SLMEngine:
                 for k, v in fallbacks.items():
                     if k in label.lower():
                         return v
+                # V4.3 Dynamic VLM Estimation: if the VLM gave a partial
+                # response that didn't parse, trust the fallback table.
+                # If nothing matches at all, the VLM prompt was the last resort.
+                logger.warning(
+                    "[SLMEngine] V4.3: No fallback matched for '%s'. Using default %.6f m^3",
+                    label,
+                    default_fallback,
+                )
                 return default_fallback
 
         except Exception as e:
@@ -347,24 +489,28 @@ class SLMEngine:
         """
         self._ensure_model_loaded()
 
+        # V4.3: Domain-Agnostic VLM prompt — works for any object type
         vlm_prompt = (
             f"The user's EXPLICIT instruction is: '{prompt}'.\n\n"
             "CRITICAL INSTRUCTIONS:\n"
             "1. FOCUS on the MAIN SUBJECT of this image — the objects that are\n"
             "   prominently centered or clearly framed by the camera.\n"
-            "2. You MUST identify the SPECIFIC brand/product name of EVERY distinct\n"
-            "   object type visible. Read the actual label text on each product.\n"
-            "3. For EACH identified brand, you MUST provide a bounding box (grounding).\n"
-            "4. DO NOT use generic labels like 'can' or 'bottle' — be brand-specific.\n"
+            "2. You MUST identify the SPECIFIC name of EVERY distinct\n"
+            "   object type visible. If objects have brand labels, read them.\n"
+            "   If not, describe the object precisely (color, type, variant).\n"
+            "3. For EACH identified object, you MUST provide a bounding box.\n"
+            "4. DO NOT use vague generic labels like 'item' or 'thing' —\n"
+            "   be as specific as possible (e.g. 'red toy car', 'Snickers bar').\n"
             "5. Objects that are clearly background, peripheral, or unrelated\n"
             "   (human hands, shelving, walls) should be marked as 'CONTRA'.\n"
             "6. Prioritize objects near the CENTER of the frame first.\n\n"
             "Reply in this EXACT format (one per line):\n"
-            "INTENT: [product name] BBOX: [x1, y1, x2, y2]\n"
+            "INTENT: [object name] BBOX: [x1, y1, x2, y2]\n"
             "CONTRA: [distractor] BBOX: [x1, y1, x2, y2]\n\n"
             "COORDINATES: Use normalized values [0-1000] for bounding boxes.\n"
             "Example:\n"
-            "INTENT: Ayam Brand Baked Beans BBOX: [100, 200, 300, 400]\n"
+            "INTENT: Red Toy Car BBOX: [100, 200, 300, 400]\n"
+            "INTENT: Snickers Bar BBOX: [350, 150, 500, 300]\n"
             "CONTRA: human hand BBOX: [500, 600, 700, 800]\n"
         )
 
@@ -473,13 +619,23 @@ class SLMEngine:
                 # --- V3.7 EXTRACTION ENHANCEMENT ---
                 # Force specificity: if label is just 'can' but prompt has 'Amoy', skip generic entry
                 # unless no other specific brands are found.
+                # V4.3: Expanded generic suppression list (domain-agnostic)
                 if label_lower in [
                     "can",
                     "cans",
                     "bottle",
                     "bottles",
                     "item",
+                    "items",
+                    "object",
                     "objects",
+                    "thing",
+                    "things",
+                    "product",
+                    "products",
+                    "piece",
+                    "pieces",
+                    "stuff",
                 ]:
                     if any(kw in label_lower for kw in user_keywords if len(kw) > 4):
                         # If it's generic but part of a keyword, keep it

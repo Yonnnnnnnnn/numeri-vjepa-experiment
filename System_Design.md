@@ -49,6 +49,7 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 - **PointBeam Focus (V4.1)**: Dynamic ROI mechanism that shifts system attention to anomalous or high-saliency regions. In Step 0, it fixates on discovered clusters to enable Refined Intent Genesis. During loops, it fixates on "unexplained blobs" to trigger targeted re-counting.
 - **SLM Reasoner**: Large language logic for intent refinement and discovery.
 - **Analyst Override (V3.4)**: When the SLM's object count disagrees with the Scout's visual count during a `volumetric` anomaly loop, the system trusts the SLM (Analyst) and overrides `n_visible`. This breaks the logical deadlock where Scout hallucinates (e.g., 5) but SLM correctly identifies (e.g., 3).
+- **Domain-Agnostic Object Recognition (V4.3)**: Removes domain bias (warehouse cans/bottles) by expanding the Semantic Anchor taxonomy to include toys, candy, accessories, jewelry, electronics, food, and stationery. Volume fallbacks now cover 30+ object categories with realistic m³ priors. When no fallback matches, the system uses **Dynamic VLM Volume Estimation** — trusting the VLM's answer if it passes sanity bounds (1cm³ < V < 1m³), rather than falling back to a generic 1-liter default. The VLM prompt in `generate_initial_intents()` now uses domain-neutral examples.
 
 ## 2. Sovereignty Implementation
 
