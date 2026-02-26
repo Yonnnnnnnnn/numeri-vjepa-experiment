@@ -122,6 +122,14 @@ def _calculate_centrality_score(
 
     distance = ((bbox_cx - center[0]) ** 2 + (bbox_cy - center[1]) ** 2) ** 0.5
     score = max(0.0, 1.0 - (distance / decay_radius))
+
+    logger.info(
+        "[CentralityBias] BBox Center: (%.2f, %.2f) | Dist: %.2f | Score: %.2f",
+        bbox_cx,
+        bbox_cy,
+        distance,
+        score,
+    )
     return round(score, 3)
 
 
@@ -158,7 +166,10 @@ def _run_vlm_scout_and_analyst(
     # Analyze top frames (usually start, middle, end or based on diversity)
     for idx, frame in sampled_frames[:max_frames]:
         try:
-            logger.info("[IntentGenesis] VLM analyzing frame %d for SKUs...", idx)
+            logger.info(
+                "[FoveatedIdentity] VLM analyzing frame %d for focused discovery...",
+                idx,
+            )
             frame_intents = slm_engine.generate_initial_intents(
                 prompt=user_prompt,
                 frame=frame,
@@ -187,12 +198,11 @@ def _run_vlm_scout_and_analyst(
                     seen_labels.add(label)
                     all_intents.append(intent)
                     logger.info(
-                        "[IntentGenesis] VLM GROUNDED discovery: '%s' at frame %d "
-                        "(centrality=%.2f, confidence=%.2f)",
+                        "[FoveatedIdentity] DISCOVERED: '%s' (Confidence Boost: %.2f -> %.2f via Centrality=%.2f)",
                         label,
-                        idx,
-                        centrality,
+                        base_conf,
                         boosted_conf,
+                        centrality,
                     )
 
         except Exception as exc:
@@ -405,6 +415,16 @@ def intent_genesis_node(state: RecursiveFlowState) -> Dict[str, Any]:
                 x1, y1 = int(b["x"] * w), int(b["y"] * h)
                 x2, y2 = int((b["x"] + b["w"]) * w), int((b["y"] + b["h"]) * h)
                 crop = f[max(0, y1) : min(h, y2), max(0, x1) : min(w, x2)].copy()
+
+                logger.info(
+                    "[PointBeamFocus] Extracting ROI for '%s' from Frame %d at [%d, %d, %d, %d]",
+                    intent["label"],
+                    intent.get("frame_idx", 0),
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                )
                 reference_crops.append(crop)
 
     # --- Phase 3: Populate active_intent ---

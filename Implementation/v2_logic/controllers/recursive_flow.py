@@ -475,7 +475,10 @@ def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
                 )
                 focus_roi = (w // 2, h // 2, w, h)  # Bottom-right quadrant
                 updates["focus_roi"] = focus_roi
-                logger.info("[director] POINTBEAM: Set focus ROI to %s", focus_roi)
+                logger.info(
+                    "[PointBeamFocus] REFINEMENT: Shifting attention to quadrant (Bottom-Right) [%s]",
+                    focus_roi,
+                )
             elif "left" in hypothesis:
                 h, w = (
                     perception.image.shape[:2]
@@ -484,7 +487,10 @@ def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
                 )
                 focus_roi = (0, 0, w // 2, h)  # Left half
                 updates["focus_roi"] = focus_roi
-                logger.info("[director] POINTBEAM: Set focus ROI to %s", focus_roi)
+                logger.info(
+                    "[PointBeamFocus] REFINEMENT: Shifting attention to region (Left-Half) [%s]",
+                    focus_roi,
+                )
 
         # --- FIX 3: SLM ANALYST OVERRIDE (Trust the Analyst) ---
         # Previously, SLM count was only used when it AGREED with Scout.
@@ -563,7 +569,7 @@ def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
                 if slm_vol > 0 and slm_vol != 0.001:
                     updates["estimated_unit_volume"] = slm_vol
                     logger.info(
-                        "[director] SLM PHYSICAL PRIOR: Estimated volume for '%s' is %.5f m^3",
+                        "[FoveatedIdentity] PHYSICAL PRIOR: Estimated volume for '%s' is %.6f m^3",
                         target_label,
                         slm_vol,
                     )
