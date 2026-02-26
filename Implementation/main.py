@@ -99,6 +99,12 @@ def main():
         default=0.2,
         help="Log-diff threshold for event generation (Sensitivity)",
     )
+    parser.add_argument(
+        "--prompt",
+        type=str,
+        default="",
+        help="User prompt for brand-specific SKU discovery (e.g. 'count Baked beans, Amoy, Custard')",
+    )
 
     args = parser.parse_args()
 
@@ -112,6 +118,8 @@ def main():
     print(f" Source Video   : {args.video}")
     print(f" Output target  : {args.output}")
     print(f" Sensitivity    : {args.threshold}")
+    if args.prompt:
+        print(f" Prompt         : {args.prompt}")
     print("-" * 50)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -126,7 +134,13 @@ def main():
     print("-" * 50)
 
     try:
-        run_v2_visualizer(args.video, args.output, args.threshold, device=device)
+        run_v2_visualizer(
+            args.video,
+            args.output,
+            args.threshold,
+            device=device,
+            prompt=args.prompt,
+        )
     except KeyboardInterrupt:
         print("\nProcess interrupted by user.")
     except (RuntimeError, ValueError, FileNotFoundError) as e:

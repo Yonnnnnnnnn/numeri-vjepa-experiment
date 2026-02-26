@@ -1,9 +1,12 @@
 """
 [SUPERSEDED] V2 Inference Engine (Legacy Segmentation Pipeline)
 NOTE: This script is superseded by v2_logic.controllers.recursive_flow.py (LangGraph).
-It remains available for historical reference but lacks V3.1 volumetric reconciliation.
-NOTE: This script is superseded by v2_logic.controllers.recursive_flow.py (LangGraph).
 It remains available for legacy side-by-side visualization but does not use the 13-step recursive logic.
+
+V4.2: Prompt Forwarding (Anti-Intent Collapse)
+- Accepts user prompt and forwards it to VLM for brand-specific SKU discovery.
+- Uses identify_foveated_intents() when prompt is provided (multi-SKU support).
+- Falls back to legacy identify_intent() (single-word) when no prompt is given.
 
 Orchestrates the 4-layer asynchronous stack with side-by-side visualization.
 Optimized for Google Colab (cv2.VideoWriter + IPython compatibility).
@@ -144,6 +147,7 @@ def run_v2_visualizer(
     output_path: str,
     threshold: float = 0.2,
     device: str = "cuda",
+    prompt: str = "",
 ):
     """
     Experimental V2 Visualizer for Google Colab.
@@ -190,13 +194,51 @@ def run_v2_visualizer(
     if not ret:
         return
 
-    # Identify intents
-    raw_intent = director.identify_intent(first_frame)
-    # Split if multiple items (e.g. "cup, ball" -> ["cup", "ball"])
-    sku_list = [s.strip() for s in raw_intent.replace(",", " . ").split(".")]
-    sku_list = [s for s in sku_list if s and s.lower() != "none"]
-    if not sku_list:
-        sku_list = ["items"]
+    # V4.2: Convert BGR to RGB for VLM (Anti-Color Hallucination)
+    first_frame_rgb = cv2.cvtColor(first_frame, cv2.COLOR_BGR2RGB)
+
+    # V4.2: Foveated Multi-SKU Discovery when prompt is provided
+    # This fixes "Intent Collapse" where detailed prompts like
+    # "Baked beans, Amoy, Custard" were collapsed to a single word "cans".
+    if prompt:
+        logger.info(
+            "[Director] V4.2: Using Foveated Discovery with prompt: '%s'", prompt
+        )
+        sku_list = director.identify_foveated_intents(
+            first_frame_rgb, user_prompt=prompt
+        )
+        # Filter out empty/none entries
+        sku_list = [s for s in sku_list if s and s.lower() != "none"]
+        if not sku_list:
+            # Fallback: extract nouns from user prompt
+            skip_verbs = {
+                "count",
+                "find",
+                "detect",
+                "track",
+                "show",
+                "identify",
+                "scan",
+                "list",
+                "prioritize",
+                "label",
+                "task",
+            }
+            sku_list = [
+                w.strip(".,;:!?'\"()[]")
+                for w in prompt.lower().split()
+                if w.strip(".,;:!?'\"()[]")
+                and w.strip(".,;:!?'\"()[]") not in skip_verbs
+                and len(w.strip(".,;:!?'\"()[]")) > 2
+            ] or ["items"]
+    else:
+        # Legacy single-word discovery (no prompt provided)
+        raw_intent = director.identify_intent(first_frame_rgb)
+        # Split if multiple items (e.g. "cup, ball" -> ["cup", "ball"])
+        sku_list = [s.strip() for s in raw_intent.replace(",", " . ").split(".")]
+        sku_list = [s for s in sku_list if s and s.lower() != "none"]
+        if not sku_list:
+            sku_list = ["items"]
 
     # Assign Colors
     palette = [
@@ -206,12 +248,16 @@ def run_v2_visualizer(
         (0, 165, 255),
         (255, 0, 0),
         (200, 200, 200),
+        (255, 255, 0),
+        (128, 0, 255),
+        (0, 128, 255),
+        (255, 128, 0),
     ]
     for i, sku in enumerate(sku_list):
         sku_colors[sku] = palette[i % len(palette)]
         sku_counts[sku] = 0
 
-    logger.info("[Director] Discovered SKUs: %s", sku_list)
+    logger.info("[Director] V4.2 Discovered SKUs: %s", sku_list)
     pbar = tqdm(total=total_frames, desc="V3.3 Multi-SKU Inference")
 
     frame_idx = 1
