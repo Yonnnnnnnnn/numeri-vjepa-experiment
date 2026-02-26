@@ -195,6 +195,7 @@ def main():
     # hotspots (areas that are consistently visually interesting).
     scouting_focus_roi = None
     foveated_intents = None
+    scouting_latent_anchor = None
 
     try:
         from v2_logic.models.dinov2_engine import DINOv2Engine
@@ -244,6 +245,57 @@ def main():
                     "[Scouting] PointBeam Fixation: ROI locked to %s",
                     scouting_focus_roi,
                 )
+
+                # --- LATENT LOCKING: Extract V-JEPA Anchor before VLM ---
+                try:
+                    from v2_logic.models.v_jepa_engine import VJEPAEngine
+
+                    vjepa = VJEPAEngine(
+                        device="cuda" if torch.cuda.is_available() else "cpu"
+                    )
+
+                    # Use the first valid prescan frame for encoding
+                    _, first_prescan = prescan_frames[0]
+                    fh, fw = first_prescan.shape[:2]
+
+                    import torch.nn.functional as F
+
+                    t_frame = (
+                        torch.from_numpy(first_prescan)
+                        .permute(2, 0, 1)
+                        .float()
+                        .unsqueeze(0)
+                        / 255.0
+                    )
+                    t_frame_resized = F.interpolate(t_frame, size=(224, 224))
+
+                    vjepa.encode(t_frame_resized)
+
+                    x1, y1, x2, y2 = scouting_focus_roi
+                    bbox_norm = {
+                        "x": x1 / fw,
+                        "y": y1 / fh,
+                        "w": (x2 - x1) / fw,
+                        "h": (y2 - y1) / fh,
+                    }
+                    scouting_latent_anchor = vjepa.extract_object_latent(bbox_norm)
+                    logger.info(
+                        "[Scouting] Latent Lock: Extracted Anchor (shape: %s)",
+                        (
+                            scouting_latent_anchor.shape
+                            if scouting_latent_anchor is not None
+                            else "None"
+                        ),
+                    )
+
+                    del vjepa
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                        import gc
+
+                        gc.collect()
+                except Exception as e:
+                    logger.warning("[Scouting] Latent Anchor extraction failed: %s", e)
 
         # Clean up DINOv2 to free VRAM for VLM
         del dinov2
@@ -323,6 +375,33 @@ def main():
         # Override seed intent with foveated discoveries
         target_intent = foveated_intents
         scouting_updates["active_intent"] = foveated_intents
+
+        # Package into Genesis Intents with Latent Anchors
+        genesis_intents = []
+        for label in foveated_intents:
+            gi = {
+                "label": label,
+                "confidence": 1.0,
+                "bbox": (
+                    {
+                        "x": scouting_focus_roi[0],
+                        "y": scouting_focus_roi[1],
+                        "w": scouting_focus_roi[2] - scouting_focus_roi[0],
+                        "h": scouting_focus_roi[3] - scouting_focus_roi[1],
+                    }
+                    if scouting_focus_roi
+                    else {}
+                ),
+                "frame_idx": 0,
+                "latent_pose": scouting_latent_anchor,
+            }
+            genesis_intents.append(gi)
+        scouting_updates["genesis_intents"] = genesis_intents
+
+        # Also seed active_latent_anchors for the first pass
+        if scouting_latent_anchor is not None:
+            scouting_updates["active_latent_anchors"] = [scouting_latent_anchor]
+
         logger.info(
             "[Scouting] Overriding seed intent with foveated: %s", foveated_intents
         )

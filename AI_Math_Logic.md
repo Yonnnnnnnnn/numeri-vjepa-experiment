@@ -46,8 +46,8 @@ $$
 Where:
 
 - $\mathbf{z}_c$: Current cluster fingerprint (DINOv2).
-- $\mathbf{z}_x$: Genesis anchor fingerprint.
-- **Identity Sovereignty**: Visual similarity ($\cos$) overrides geometric bias (IoU) if a high-confidence anchor match exists ($>0.7$). This enables the system to identify objects even if GroundingDINO fails to generate a proposal label.
+- $\mathbf{z}_x$: Genesis anchor fingerprint (V-JEPA).
+- **Identity Sovereignty**: Visual similarity ($\cos$) overrides geometric bias (IoU) if a high-confidence anchor match exists ($>0.85$). This enables the system to correctly classify objects based on precise latent matching, mitigating "Semantic Collapse" typically caused by textual generalizability from standard VLMs.
 
 ### In V3.8 Implementation:
 

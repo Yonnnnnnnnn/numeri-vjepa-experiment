@@ -435,6 +435,24 @@ def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
             )
             updates["active_intent"] = current_intent
 
+            # --- V4 LATENT ANCHOR UPDATE ---
+            new_anchors = []
+            for gi in perception.genesis_intents:
+                if (
+                    gi.get("label", "").lower() in discovered_labels
+                    and gi.get("latent_pose") is not None
+                ):
+                    new_anchors.append(gi["latent_pose"])
+
+            if new_anchors:
+                # Append to existing
+                current_anchors = list(perception.active_latent_anchors)
+                current_anchors.extend(new_anchors)
+                updates["active_latent_anchors"] = current_anchors
+                logger.info(
+                    "[director] Activated %d new Latent Anchors", len(new_anchors)
+                )
+
         if new_contras:
             updated_contras = list(perception.contra_intents) + new_contras
             updates["contra_intents"] = updated_contras
@@ -972,9 +990,14 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
                 )
 
         vjepa = get_vjepa_engine()
-        latent_anchors = perception.latent_anchors or {}
+        # V4: Use Latent Anchors from Genesis Intents
+        active_anchors = []
+        for gi in perception.genesis_intents or []:
+            l_pose = gi.get("latent_pose")
+            if l_pose is not None and not gi.get("is_contra", False):
+                active_anchors.append((gi.get("label", "item"), l_pose))
 
-        # 0. Extract current cluster fingerprint (DINOv2)
+        # 0. Extract current cluster fingerprint (V-JEPA/DINOv2)
         cluster_latent = None
         if vjepa and cluster.get("bbox"):
             try:
@@ -986,11 +1009,12 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
 
         # 1. Hybrid Discovery: Supplement GroundingDINO with Latent Search
         if cluster_latent is not None:
-            for anchor_label, anchor_vec in latent_anchors.items():
-                sim = np.dot(cluster_latent, anchor_vec) / (
+            for anchor_label, anchor_vec in active_anchors:
+                # V4 Cosine Similarity (Strict)
+                sim = np.dot(cluster_latent.flatten(), anchor_vec.flatten()) / (
                     np.linalg.norm(cluster_latent) * np.linalg.norm(anchor_vec) + 1e-9
                 )
-                if sim > 0.7:  # High confidence threshold for discovery
+                if sim > 0.85:  # V4 High confidence threshold
                     exists = any(
                         c["label"].lower() == anchor_label.lower() for c in candidates
                     )
@@ -1003,7 +1027,7 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
                             }
                         )
                         logger.info(
-                            "[v3_math_node] Identity Discovery: Cluster matches anchor '%s' (sim=%.2f)",
+                            "[v3_math_node] Identity Discovery: Cluster strictly matches anchor '%s' (sim=%.2f)",
                             anchor_label,
                             sim,
                         )
@@ -1034,12 +1058,12 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
             # If this wasn't discovered via latent search, verify its label using latents anyway
             if cluster_latent is not None and cand.get("source") != "latent_search":
                 best_sim = 0.0
-                for anchor_label, anchor_vec in latent_anchors.items():
+                for anchor_label, anchor_vec in active_anchors:
                     if (
                         anchor_label.lower() in cand_label.lower()
                         or cand_label.lower() in anchor_label.lower()
                     ):
-                        sim = np.dot(cluster_latent, anchor_vec) / (
+                        sim = np.dot(cluster_latent.flatten(), anchor_vec.flatten()) / (
                             np.linalg.norm(cluster_latent) * np.linalg.norm(anchor_vec)
                             + 1e-9
                         )
@@ -1052,6 +1076,16 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
                         cand_label,
                         best_sim,
                     )
+
+                # V4 Strict Semantic Collapse Guard:
+                # If VLM says it's this object, but Latent similarity is bad (<0.85), veto it.
+                if best_sim < 0.85 and cand.get("source") == "grounding_dino":
+                    logger.warning(
+                        "[v3_math_node] Vetoing VLM label '%s' due to low latent sim %.2f",
+                        cand_label,
+                        best_sim,
+                    )
+                    latent_match_score = 0.0
 
             # Ask LNN Model for the truth value of: Identity(cluster, sku)
             identity_score = lnn_kb.reconcile_identity(

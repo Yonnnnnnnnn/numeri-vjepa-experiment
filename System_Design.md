@@ -35,7 +35,7 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 ### 1.2. Cognitive Layer (Otak)
 
 - **V-JEPA**: Spatio-temporal world model providing latent memory.
-- **Bio-Inspired Scouting (Step 0)**: A two-pass discovery module. **Pass 1 (Saccade)**: Uses DINOv2 Saliency to identify visual hotspots across video keyframes. **Pass 2 (Foveation)**: Clips regional keyframes into a **PointBeam ROI** and uses VLM (PaliGemma) for high-resolution, focused SKU identification. This resolves the **Intent Collapse** error where specific brand labels were lost in wide-angle peripheral views.
+- **Bio-Inspired Scouting (Step 0)**: A two-pass discovery module. **Pass 1 (Saccade)**: Uses DINOv2 Saliency to identify visual hotspots across video keyframes. **Pass 2 (Foveation)**: Clips regional keyframes into a **PointBeam ROI**. Crucially for V4 Architecture, V-JEPA first extracts a **Latent Anchor** representing the exact physical matrix of the ROI object, before passing the crop to the VLM (PaliGemma) for labeling. This ensures the literal physical representation is anchored against "Semantic Collapse" generalizations by the VLM.
 - **Density Engine**: MLP that fuses DINOv2 features with visual specularity to predict packing density ($\rho$). In V3.8.1, it implements a **Heuristic Cold Start** (Prior: Feature Variance $\to$ Density) to enable valid volumetric math before full model fitting.
 - **Geometric Kernel**: `GoldenAlphaCalibrator` (Binary Search) for finding the optimal $\alpha$ where $V_{concave} \approx V_{unit}$.
 
@@ -56,6 +56,7 @@ The Antigravity V2 system is a high-speed inventory counting and auditing platfo
 - **Recursive Intent**: The system treats $N_{vol}$ as the "Physical Truth" and $N_{vis}$ as a "Hypothesis". Discrepancies trigger a re-observation loop.
 - **Per-Cluster Weighing (V3.3.3)**: Instead of a global stack volume division, the system map each 3D cluster to its visual label and divides by that specific SKU's prior volume. This allows accurate counting in heterogeneous scenes (e.g., balls mixed with cups).
 - **Spatial Memory / Residual Intent Mapping (V3.4)**: When a 3D cluster has no visual detection match (e.g., an occluded ball under a cup), the Math Kernel checks which genesis intents are "unaccounted for" and assigns the orphaned volume to the first unaccounted intent. This gives the system "object permanence" — it remembers objects even when they cannot be seen.
+- **Strict Latent Arbitration (V4)**: GroundingDINO predictions are vetoed entirely if their Latent Cosine Similarity drops `< 0.85` compared to the active Latent Anchors for that class, effectively preventing massive overlapping counts from loose text descriptions like "drink".
 - **Sovereignty Protocol**: Consensus is reached only when the `FusionConfidence` exceeds the configured threshold across all shields.
 
 ## 3. Physical Safety & Performance

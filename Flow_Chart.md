@@ -43,7 +43,7 @@ flowchart TD
 
     %% Phase 2: Audit
     sam2_depth_node & density_sensing_node -- "Step 8" --> v3_math_node[v3_math_node: Volumetric Pooling]
-    v3_math_node --> lnn_identity_arbitrator[LNN: Identity Arbitrator]
+    v3_math_node --> lnn_identity_arbitrator[LNN: Identity Arbitrator (Latent vs Volume)]
     lnn_identity_arbitrator -- "N_volumetric" --> fusion_engine_node[fusion_engine_node: Multi-Shield Fusion]
     countgd_executor_node & v2e_sensor_node --> fusion_engine_node
 

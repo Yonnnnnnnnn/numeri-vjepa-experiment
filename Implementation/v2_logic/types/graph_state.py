@@ -232,13 +232,17 @@ class PerceptionState(BaseModel):
             "Extracted from reference crops during Genesis."
         ),
     )
+    active_latent_anchors: List[Any] = Field(
+        default_factory=list,
+        description="Active target latent pose arrays (np.ndarray) for the current counting pass",
+    )
 
     # --- V3.3: Intent Genesis & Contra Intent Immunity ---
     genesis_intents: List[Dict[str, Any]] = Field(
         default_factory=list,
         description=(
             "SKU-specific intents from Step 0. Each dict: "
-            "{'label': str, 'confidence': float, 'bbox': dict, 'frame_idx': int}"
+            "{'label': str, 'confidence': float, 'bbox': dict, 'frame_idx': int, 'latent_pose': np.ndarray}"
         ),
     )
     reference_crops: List[Any] = Field(
@@ -249,7 +253,7 @@ class PerceptionState(BaseModel):
         default_factory=list,
         description=(
             "Identified distractors from Discovery Loop. Each dict: "
-            "{'label': str, 'latent_id': str, 'bbox': dict}"
+            "{'label': str, 'latent_id': str, 'bbox': dict, 'latent_pose': np.ndarray}"
         ),
     )
     negative_masks: List[Any] = Field(

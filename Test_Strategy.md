@@ -33,3 +33,5 @@ This document outlines the strategy for verifying the Antigravity V3.1 "Sovereig
   - Verify tensor batching stability by feeding variant resolution frames into `VJEPAEngine.encode()`.
   - Validate coordinate parsing logic for GroundingDINO list-format boxes.
   - Smoke test the Semantic Filter against instruction-heavy prompts to ensure zero "Label Pollution".
+- **(V4.0) Latent Locking & Vector Mathematics**:
+  - Verify `test_latent_locking.py` confirms that V-JEPA object extraction maintains identical cosine similarity vectors for strict threshold arbitration ($>0.85$).
