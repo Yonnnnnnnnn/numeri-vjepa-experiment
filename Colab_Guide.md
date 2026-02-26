@@ -374,9 +374,10 @@ print(f"🧠 BAGIAN 1: Menjalankan Recursive Intent Logic V3.3 untuk: '{prompt}'
 print("-" * 50)
 !python {PROJECT_DIR}/Implementation/run_recursive_system.py --video "$video_file" --prompt "$prompt"
 
-print("\n\n👁️ BAGIAN 2: Menghasilkan Video Visualisasi (MP4)...")
+print("\n\n👁️ BAGIAN 2: Menghasilkan Video Visualisasi (MP4) dengan Prompt Forwarding V4.2...")
 print("-" * 50)
-!python {PROJECT_DIR}/Implementation/main.py --video "$video_file" --output "$output_file"
+# V4.2: Meneruskan prompt ke visualizer agar VLM menggunakan foveated multi-SKU discovery
+!python {PROJECT_DIR}/Implementation/main.py --video "$video_file" --output "$output_file" --prompt "$prompt"
 
 print("\n\n✅ Pengujian Selesai!")
 ```
