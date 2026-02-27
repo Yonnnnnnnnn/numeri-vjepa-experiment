@@ -42,7 +42,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # pylint: disable=wrong-import-position
 from v2_logic.models.v2e_engine import V2EEngine
-from v2_logic.models.vl_jepa_engine import VLJEPAEngine
 from v2_logic.models.v_jepa_engine import VJEPAEngine
 from v2_logic.models.count_vid_engine import CountVidEngine
 
@@ -62,7 +61,10 @@ class GlideCountPipeline:
         logger.info("Initializing V2 Pipeline on %s...", self.device)
 
         self.layer1_input = V2EEngine(device=self.device)
-        self.layer2_director = VLJEPAEngine(device=self.device)
+        # V4.0: Unified VLM — Using SLMEngine (Qwen2.5-VL) for brand specificity
+        from v2_logic.models.slm_engine import SLMEngine
+
+        self.layer2_director = SLMEngine()
         self.layer3_brain = VJEPAEngine(device=self.device)
         self.layer4_executor = CountVidEngine(device=self.device)
 
@@ -71,24 +73,32 @@ class GlideCountPipeline:
 
     def run_inference(self, video_path):
         """
-        Run the full 4-layer inference loop on a video file.
+        Run the full 4-layer inference loop on a video file with V4.0 Unified VLM.
         """
         if not os.path.exists(video_path):
             logger.error("Video not found: %s", video_path)
             return None
 
-        cap = cv2.VideoCapture(video_path)  # pylint: disable=no-member
-        fps = cap.get(cv2.CAP_PROP_FPS)  # pylint: disable=no-member
+        cap = cv2.VideoCapture(video_path)
+        fps = cap.get(cv2.CAP_PROP_FPS)
         frame_idx = 0
 
-        # 1. Director identifies intent on first frame
+        # 1. Director identifies intent on first frame using Unified VLM
         ret, first_frame = cap.read()
         if not ret:
             logger.error("Could not read video.")
             return None
 
-        intent = self.layer2_director.identify_intent(first_frame)
-        logger.info("[Director] Identified Intent: %s", intent)
+        # V4.2: Foveated discovery for better specificity
+        rgb_frame = cv2.cvtColor(first_frame, cv2.COLOR_BGR2RGB)
+        # V4.0 Unified VLM Discovery
+        discovered_dicts = self.layer2_director.generate_initial_intents(
+            frame=rgb_frame, prompt="Identify all inventory items clearly."
+        )
+        sku_list = [d["label"] for d in discovered_dicts if not d.get("is_contra")]
+        intent = sku_list[0] if sku_list else "item"
+
+        logger.info("[Director] V4.0 Unified VLM Identified Intent: %s", intent)
 
         # 2. Main Glide Loop
         while True:
@@ -102,10 +112,10 @@ class GlideCountPipeline:
             _ = self.layer1_input.generate_events(frame, timestamp)
 
             # Layer 3 Buffer: V-JEPA expects 16 frames for temporal tokens
-            rgb_frame = cv2.cvtColor(  # pylint: disable=no-member
-                frame, cv2.COLOR_BGR2RGB  # pylint: disable=no-member
+            rgb_current = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame_tensor = (
+                torch.from_numpy(rgb_current).permute(2, 0, 1).float() / 255.0
             )
-            frame_tensor = torch.from_numpy(rgb_frame).permute(2, 0, 1).float() / 255.0
             frame_tensor = torch.nn.functional.interpolate(
                 frame_tensor.unsqueeze(0), size=(224, 224)
             ).squeeze(0)
@@ -113,26 +123,31 @@ class GlideCountPipeline:
 
             if len(self.frame_buffer) == 16:
                 # Stack 16 frames: (1, 3, 16, 224, 224)
-                # Note: V-JEPA ViT-L with num_frames=16 expects this temporal depth
                 input_batch = (
                     torch.stack(self.frame_buffer).permute(1, 0, 2, 3).unsqueeze(0)
                 )
 
-                # Layer 3: Encode World State
+                # Layer 3: Encode World State (V-JEPA Brain)
+                # This provides the latent context for Step 2 and Step 12
                 _ = self.layer3_brain.encode(input_batch)
 
-                # Clear buffer (or slide it)
+                # Clear buffer
                 self.frame_buffer = []
 
-                # Layer 4: Precise Count (triggered every 16 frames for stable estimation)
-                # Here we pass the last frame of the sequence + the latent context
-                count = self.layer4_executor.count_frame(
-                    input_batch[:, :, -1, :, :], prompt=intent
+                # Layer 4: Precise Count with Intent Lock
+                # Updated to use the corrected 'count' method
+                count, _ = self.layer4_executor.count(
+                    frame, prompt=intent, target_size=frame.shape[:2]
                 )
                 self.temporal_counts.append((timestamp, count))
                 logger.debug("[Pipeline] Frame %d count: %d", frame_idx, count)
 
             frame_idx += 1
+
+        # 3. Final Tally
+        final_result = self.layer4_executor.tally_unique(self.temporal_counts)
+        logger.info("Final Inventory Result: %d units of %s", final_result, intent)
+        return final_result
 
         # 3. Final Tally
         final_result = self.layer4_executor.tally_unique(self.temporal_counts)

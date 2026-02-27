@@ -50,7 +50,6 @@ import torch
 from tqdm import tqdm
 
 from v2_logic.models.v2e_engine import V2EEngine
-from v2_logic.models.vl_jepa_engine import VLJEPAEngine
 from v2_logic.models.v_jepa_engine import VJEPAEngine
 from v2_logic.models.count_vid_engine import CountVidEngine
 from v2_logic.models.segmentation_engine import SegmentationEngine
@@ -124,7 +123,7 @@ def draw_dashboard(
         y_off += 22
 
     # Layer Indicators (Bottom Left)
-    layers = ["V2E", "VLJ", "VJP", "CVD", "SAM", "DPT"]
+    layers = ["V2E", "SLM", "VJP", "CVD", "SAM", "DPT"]
     lx = 10
     for l_name in layers:
         cv2.rectangle(overlay, (lx, h - 30), (lx + 50, h - 10), (50, 50, 50), -1)
@@ -158,7 +157,10 @@ def run_v2_visualizer(
     hf_token = os.getenv("HF_TOKEN")
 
     v2e = V2EEngine(pos_thres=threshold, neg_thres=threshold, device=device)
-    director = VLJEPAEngine(device=device, token=hf_token)
+    # V4.0: Unified VLM — Using SLMEngine (Qwen2.5-VL) instead of legacy PaliGemma
+    from v2_logic.models.slm_engine import SLMEngine
+
+    director = SLMEngine()
     brain = VJEPAEngine(device=device)
     executor = CountVidEngine(device=device)
     segmenter = SegmentationEngine(device=device)
@@ -190,52 +192,39 @@ def run_v2_visualizer(
     current_total_count = 0
 
     # Process First Frame for Intent Discovery (Step 0 Simulation)
-    ret, first_frame = cap.read()
+    ret, cap_first_frame = cap.read()  # Renamed to avoid confusion
     if not ret:
         return
 
     # V4.2: Convert BGR to RGB for VLM (Anti-Color Hallucination)
-    first_frame_rgb = cv2.cvtColor(first_frame, cv2.COLOR_BGR2RGB)
+    first_frame_rgb = cv2.cvtColor(cap_first_frame, cv2.COLOR_BGR2RGB)
 
     # V4.2: Foveated Multi-SKU Discovery when prompt is provided
     # This fixes "Intent Collapse" where detailed prompts like
     # "Baked beans, Amoy, Custard" were collapsed to a single word "cans".
     if prompt:
         logger.info(
-            "[Director] V4.2: Using Foveated Discovery with prompt: '%s'", prompt
+            "[Director] V4.2: Using Unified SLM Discovery with prompt: '%s'", prompt
         )
-        sku_list = director.identify_foveated_intents(
-            first_frame_rgb, user_prompt=prompt
+        # V4.0: Use Unified VLM Discovery instead of legacy PaliGemma proxy
+        discovered_dicts = director.generate_initial_intents(
+            frame=first_frame_rgb, prompt=prompt
         )
+        sku_list = [d["label"] for d in discovered_dicts if not d.get("is_contra")]
+
         # Filter out empty/none entries
         sku_list = [s for s in sku_list if s and s.lower() != "none"]
         if not sku_list:
             # Fallback: extract nouns from user prompt
-            skip_verbs = {
-                "count",
-                "find",
-                "detect",
-                "track",
-                "show",
-                "identify",
-                "scan",
-                "list",
-                "prioritize",
-                "label",
-                "task",
-            }
             sku_list = [
-                w.strip(".,;:!?'\"()[]")
-                for w in prompt.lower().split()
-                if w.strip(".,;:!?'\"()[]")
-                and w.strip(".,;:!?'\"()[]") not in skip_verbs
-                and len(w.strip(".,;:!?'\"()[]")) > 2
+                w.strip(".,;:!?'\"()[]") for w in prompt.lower().split() if len(w) > 2
             ] or ["items"]
     else:
-        # Legacy single-word discovery (no prompt provided)
-        raw_intent = director.identify_intent(first_frame_rgb)
-        # Split if multiple items (e.g. "cup, ball" -> ["cup", "ball"])
-        sku_list = [s.strip() for s in raw_intent.replace(",", " . ").split(".")]
+        # Fallback to general discovery if no prompt
+        discovered_dicts = director.generate_initial_intents(
+            frame=first_frame_rgb, prompt="List all objects in this scene."
+        )
+        sku_list = [d["label"] for d in discovered_dicts if not d.get("is_contra")]
         sku_list = [s for s in sku_list if s and s.lower() != "none"]
         if not sku_list:
             sku_list = ["items"]

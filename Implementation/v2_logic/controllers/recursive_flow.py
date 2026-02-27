@@ -11,7 +11,7 @@ Start Symbol    : RecursiveFlowController (this module)
 Non-Terminals   :
   ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
   │  <SensorNodes>     → v2e_sensor_node | vjepa_brain_node                   │
-  │  <DirectorNodes>   → vljepa_director_node                                 │
+  │  <DirectorNodes>   → latent_director_node                                 │
   │  <ExecutorNodes>   → countgd_executor_node | sam2_depth_node              │
   │  <FusionNodes>     → fusion_engine_node                                   │
   │  <DecisionNodes>   → logic_gate_node | targeted_slm_node                  │
@@ -31,7 +31,7 @@ Non-Terminals   :
   │  <LogicGate>               ← from models.logic_gate                       │
   └───────────────────────────────────────────────────────────────────────────┘
 
-Terminals       : "v2e_sensor", "vjepa_brain", "vljepa_director", etc.
+Terminals       : "v2e_sensor", "vjepa_brain", "latent_director", etc.
 
 Production Rules:
   RecursiveFlowController → imports + <NodeDefinitions> + <GraphBuilder>
@@ -337,7 +337,7 @@ def vjepa_brain_node(state: RecursiveFlowState) -> Dict[str, Any]:
 # ... (Node Definitions until Fusion)
 
 
-def vljepa_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
+def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
     """
     Generate or update intent list based on V-JEPA latent.
     Acts as the "Sutradara" (Director) of the system.
@@ -1484,7 +1484,7 @@ def build_recursive_graph() -> StateGraph:
     vjepa_brain_node (Step 1: Anchor)
       │
       v
-    vljepa_director_node (Step 2: Director)
+    latent_director_node (Step 2: Director)
       ├───────────────┬───────────────┬─────────────┐
       v               v               v             v
     countvid     sam2_depth     density_sense    v2e_sensor
@@ -1508,7 +1508,7 @@ def build_recursive_graph() -> StateGraph:
                 END               interpolation_node
                                            │
                                            v
-                                  vljepa_director_node (loop)
+                                  latent_director_node (loop)
     ```
     """
     # Initialize the graph with the state schema
@@ -1521,7 +1521,7 @@ def build_recursive_graph() -> StateGraph:
     graph.add_node("intent_genesis_node", intent_genesis_node)
     graph.add_node("v2e_sensor_node", v2e_sensor_node)
     graph.add_node("vjepa_brain_node", vjepa_brain_node)
-    graph.add_node("vljepa_director_node", vljepa_director_node)
+    graph.add_node("latent_director_node", latent_director_node)
     graph.add_node("countvid_executor_node", countvid_executor_node)
     graph.add_node("sam2_depth_node", sam2_depth_node)
     graph.add_node("density_sensing_node", density_sensing_node)
@@ -1547,13 +1547,13 @@ def build_recursive_graph() -> StateGraph:
     graph.add_edge("intent_genesis_node", "vjepa_brain_node")
 
     # Brain → Director (Step 2)
-    graph.add_edge("vjepa_brain_node", "vljepa_director_node")
+    graph.add_edge("vjepa_brain_node", "latent_director_node")
 
     # Director → Parallel Senses (Sovereignties 1, 2, 3)
-    graph.add_edge("vljepa_director_node", "v2e_sensor_node")
-    graph.add_edge("vljepa_director_node", "sam2_depth_node")
-    graph.add_edge("vljepa_director_node", "countvid_executor_node")
-    graph.add_edge("vljepa_director_node", "density_sensing_node")
+    graph.add_edge("latent_director_node", "v2e_sensor_node")
+    graph.add_edge("latent_director_node", "sam2_depth_node")
+    graph.add_edge("latent_director_node", "countvid_executor_node")
+    graph.add_edge("latent_director_node", "density_sensing_node")
 
     # Senses converge at Math Kernel
     graph.add_edge("v2e_sensor_node", "v3_math_node")
@@ -1579,7 +1579,7 @@ def build_recursive_graph() -> StateGraph:
 
     # SLM → Interpolation → Director (Recursive Loop)
     graph.add_edge("targeted_slm_node", "interpolation_node")
-    graph.add_edge("interpolation_node", "vljepa_director_node")
+    graph.add_edge("interpolation_node", "latent_director_node")
 
     logger.info("[build_recursive_graph] Graph compiled.")
     app = graph.compile()
