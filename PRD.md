@@ -1,4 +1,4 @@
-# Product Requirements Document (PRD): V3.1 Sovereignty Protocol
+# Product Requirements Document (PRD): V4.1 Unified Sovereignty
 
 ## 1. Project Overview
 
@@ -50,4 +50,5 @@
 
 1.  **Phase 1-4 (DONE)**: Core Perception, Memory, Density, and Fusion.
 2.  **Phase 5 (DONE)**: 13-Step Orchestration (Sovereignty Protocol).
-3.  **Phase 6 (IN PROGRESS)**: Defensive Refinement, Cleanup, & Engine Optimization. V3.8 completed (Tensor/Parse Fixes).
+3.  **Phase 6 (DONE)**: VLM Unification (V4.0). Deprecated PaliGemma, Promoted Qwen 2.5-VL.
+4.  **Phase 7 (IN PROGRESS)**: Identity Sovereignty (V4.1). Latent-driven intent matching and specificity guards.

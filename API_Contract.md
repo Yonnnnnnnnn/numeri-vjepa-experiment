@@ -9,7 +9,7 @@ Non-Terminals :
 ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
 │ <EngineAPI> → VJEPAEngine | SLMEngine (Unified VLM) | Director | Executor │
 │ <LoopAPI> → Feedback mechanisms │
-│ <LegacyAPI> → VLJEPAEngine (PaliGemma) - Deprecated in V4.0 │
+│ <LegacyAPI> → VLJEPAEngine (PaliGemma) - DEPRECATED (Moved to Legacy) │
 └───────────────────────────────────────────────────────────────────────────┘
 
 Terminals : str, float, int, Tensor, Latent

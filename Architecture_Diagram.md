@@ -9,7 +9,7 @@ Non-Terminals :
 ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
 │ <SensoryLayer> → v2e integration │
 │ <BrainLayer> → V-JEPA integration │
-│ <LogicLayer> → VL-JEPA integration │
+│ <LogicLayer> → Unified VLM (SLM) & Latent Anchor integration │
 │ <ActionLayer> → CountVid integration │
 └───────────────────────────────────────────────────────────────────────────┘
 
@@ -30,7 +30,7 @@ graph TD
     %% Define Objects (Nodes)
     intent_genesis_node("intent_genesis_node<br>(Step 0: Bio-Inspired Scouting - Unified VLM)")
     vjepa_brain_node("vjepa_brain_node<br>(Step 1: Anchor)")
-    vljepa_director_node("vljepa_director_node<br>(Step 2-3: Intent & Calibration - Hypothesis Handling)")
+    latent_director_node("latent_director_node<br>(Step 2-3: Latent & Calibration - Hypothesis Handling)")
     v2e_sensor_node("v2e_sensor_node<br>(Residue Guard)")
     sam2_depth_node("sam2_depth_node<br>(3D Geometry)")
     density_sensing_node("density_sensing_node<br>(Density Sensing)")
@@ -46,11 +46,11 @@ graph TD
     init_gate -- "Yes" --> vjepa_brain_node
 
     intent_genesis_node -- "Step 1: Anchor" --> vjepa_brain_node
-    vjepa_brain_node -- "Step 2-3" --> vljepa_director_node
-    vljepa_director_node -- "Step 4-7: Orbit" --> v2e_sensor_node
-    vljepa_director_node -- "Step 4-7: Orbit" --> sam2_depth_node
-    vljepa_director_node -- "Step 4-7: Orbit" --> density_sensing_node
-    vljepa_director_node -- "Step 4-7: Orbit" --> countvid_executor_node
+    vjepa_brain_node -- "Step 2-3" --> latent_director_node
+    latent_director_node -- "Step 4-7: Orbit" --> v2e_sensor_node
+    latent_director_node -- "Step 4-7: Orbit" --> sam2_depth_node
+    latent_director_node -- "Step 4-7: Orbit" --> density_sensing_node
+    latent_director_node -- "Step 4-7: Orbit" --> countvid_executor_node
 
     v2e_sensor_node -- "Evidence" --> fusion_engine_node
     sam2_depth_node -- "Evidence" --> v3_math_node
@@ -61,10 +61,10 @@ graph TD
     fusion_engine_node -- "Step 10: Confidence" --> logic_gate_node
     logic_gate_node -- "Step 11: Evaluate" --> EXIT((EXIT))
     logic_gate_node -- "Step 12: Anomaly" --> targeted_slm_node
-    targeted_slm_node -- "Step 13: Loop" --> vljepa_director_node
+    targeted_slm_node -- "Step 13: Loop" --> latent_director_node
 
     %% Styling
     linkStyle default stroke-width:2px,fill:none,stroke:white;
     classDef object fill:#1a1a1a,stroke:#4a4a4a,stroke-width:2px,color:white;
-    class intent_genesis_node,vjepa_brain_node,vljepa_director_node,v2e_sensor_node,sam2_depth_node,density_sensing_node,countvid_executor_node,v3_math_node,fusion_engine_node,logic_gate_node,targeted_slm_node object;
+    class intent_genesis_node,vjepa_brain_node,latent_director_node,v2e_sensor_node,sam2_depth_node,density_sensing_node,countvid_executor_node,v3_math_node,fusion_engine_node,logic_gate_node,targeted_slm_node object;
 ```

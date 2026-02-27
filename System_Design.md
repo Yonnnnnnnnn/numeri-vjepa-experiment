@@ -8,14 +8,15 @@ Start Symbol : SystemDesign (this document)
 Non-Terminals :
 ┌─ INTERNAL ────────────────────────────────────────────────────────────────┐
 │ <Perception> → v2e, SAM2, CountVid, DINOv2 │
-│ <Brain> → V-JEPA, Intent Genesis (VLM+GroundingDINO) │
-│ <Controller> → VL-JEPA, CountVid, SAM2, Fusion │
+│ <CognitiveLayer> → Unified VLM (SLM) & Latent Anchor integration │
+│ <LogicLayer> → LangGraph Sovereignty Chain │
+│ <LegacyAPI> → VLJEPAEngine (PaliGemma) - DEPRECATED (Moved to Legacy) │
 └───────────────────────────────────────────────────────────────────────────┘
 
 Terminals : str, component_names
 
 Production Rules:
-SystemDesign → <Perception> <Brain> <Controller>
+SystemDesign → <Perception> <CognitiveLayer> <LogicLayer>
 ═══════════════════════════════════════════════════════════════════════════════
 """
 

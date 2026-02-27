@@ -26,7 +26,7 @@ sequenceDiagram
     participant G as Genesis (Step 0: VLMxScout)
     participant S as Sensors (V2E/SAM2/Density)
     participant B as Brain (V-JEPA)
-    participant D as Director (VL-JEPA)
+    participant D as Director (Latent Director)
     participant M as Math (V3 Reconciliation)
     participant F as Fusion (Multi-Shield)
     participant LG as Gate (Logic Gate)
@@ -35,7 +35,7 @@ sequenceDiagram
     Note over G: Phase 0: Bio-Inspired Scouting (Saccade & Fovea)
     G->>G: Step 0.1-0.2: Saliency Map -> focus_roi (PointBeam)
     G->>B: Step 0.2.1: Latent Anchor Lock (V-JEPA)
-    G->>D: Step 0.3: foveated_intents (Unified VLM) & focus_roi
+    G->>D: Step 0.3: foveated_intents (Unified VLM) & Latent Anchor Lock
 
     Note over B,D: Phase 1: Anchor
     B->>D: Latent Context & Memory

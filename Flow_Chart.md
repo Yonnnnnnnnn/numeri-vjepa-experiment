@@ -33,13 +33,13 @@ flowchart TD
 
     check_init -- "Yes" --> vjepa_brain_node
 
-    vjepa_brain_node[vjepa_brain_node: Temporal Context] -- "Step 1" --> vljepa_director_node[vljepa_director_node: Intent & Calibration]
+    vjepa_brain_node[vjepa_brain_node: Temporal Context] -- "Step 1" --> latent_director_node[latent_director_node: Latent & Calibration]
 
     %% Phase 1: Orbit
-    vljepa_director_node -- "Step 4" --> countgd_executor_node[countgd_executor_node: N_visible]
-    vljepa_director_node -- "Step 5" --> v2e_sensor_node[v2e_sensor_node: Spike Residue]
-    vljepa_director_node -- "Step 6" --> sam2_depth_node[sam2_depth_node: 3D Geometry]
-    vljepa_director_node -- "Step 7" --> density_sensing_node[density_sensing_node: Rho Prediction]
+    latent_director_node -- "Step 4" --> countgd_executor_node[countgd_executor_node: N_visible]
+    latent_director_node -- "Step 5" --> v2e_sensor_node[v2e_sensor_node: Spike Residue]
+    latent_director_node -- "Step 6" --> sam2_depth_node[sam2_depth_node: 3D Geometry]
+    latent_director_node -- "Step 7" --> density_sensing_node[density_sensing_node: Rho Prediction]
 
     %% Phase 2: Audit
     sam2_depth_node & density_sensing_node -- "Step 8" --> v3_math_node[v3_math_node: Volumetric Pooling]
@@ -53,7 +53,7 @@ flowchart TD
     logic_gate_node -- "Step 11: Valid (Exit)" --> End([Final Inventory Audit])
 
     logic_gate_node -- "Step 12: Anomaly / Discovery" --> targeted_slm_node[Targeted SLM: Reasoner]
-    targeted_slm_node -- "Step 13: Loop" --> vljepa_director_node
+    targeted_slm_node -- "Step 13: Loop" --> latent_director_node
 
     %% Failsafe
     logic_gate_node -- "Max Loops" --> End
