@@ -33,9 +33,11 @@ Terminals       : str, dict, list, numpy.ndarray, int, float
 
 Production Rules:
   IntentGenesisModule  → imports + <_calculate_centrality_score>
-                       + <_run_vlm_scout_and_analyst> + <intent_genesis_node>
+                       + <_run_vlm_scout_and_analyst> + <_spatial_anchor_guard>
+                       + <intent_genesis_node>
   intent_genesis_node  → _sample_frames + _run_vlm_scout_and_analyst
-                       + _extract_latent_anchors + _crop_detections
+                       + _spatial_anchor_guard + _extract_latent_anchors
+                       + _crop_detections
                        → genesis_intents + reference_crops + latent_anchors
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -47,6 +49,7 @@ V3.3: This node replaces hardcoded discovery_keywords with dynamic intent genera
 V3.5: Global Pre-Scan — multi-frame Genesis across entire video duration.
 V3.9: VLM-first Genesis — GroundingDINO removed; VLM handles grounding directly.
 V4.0: PointBeam Focus — Centrality Bias boosts confidence for centered objects.
+V5.0: Spatial Anchor Guard — IoU deduplication prevents duplicated intent coordinates.
 """
 
 import logging
@@ -212,6 +215,127 @@ def _run_vlm_scout_and_analyst(
 
 
 # VLM Analyst helpers removed in V3.9 as they are integrated into _run_vlm_scout_and_analyst
+
+
+# =============================================================================
+# SPATIAL ANCHOR GUARD (V5.0)
+# =============================================================================
+
+
+def _calculate_iou(
+    bbox_a: Dict[str, float],
+    bbox_b: Dict[str, float],
+) -> float:
+    """
+    Calculate Intersection over Union (IoU) between two bounding boxes.
+
+    Args:
+        bbox_a: Dict with keys 'x', 'y', 'w', 'h' (normalized 0-1).
+        bbox_b: Dict with keys 'x', 'y', 'w', 'h' (normalized 0-1).
+
+    Returns:
+        IoU value [0.0 - 1.0].
+    """
+    ax1 = bbox_a.get("x", 0.0)
+    ay1 = bbox_a.get("y", 0.0)
+    ax2 = ax1 + bbox_a.get("w", 0.0)
+    ay2 = ay1 + bbox_a.get("h", 0.0)
+
+    bx1 = bbox_b.get("x", 0.0)
+    by1 = bbox_b.get("y", 0.0)
+    bx2 = bx1 + bbox_b.get("w", 0.0)
+    by2 = by1 + bbox_b.get("h", 0.0)
+
+    inter_x1 = max(ax1, bx1)
+    inter_y1 = max(ay1, by1)
+    inter_x2 = min(ax2, bx2)
+    inter_y2 = min(ay2, by2)
+
+    inter_area = max(0, inter_x2 - inter_x1) * max(0, inter_y2 - inter_y1)
+    area_a = (ax2 - ax1) * (ay2 - ay1)
+    area_b = (bx2 - bx1) * (by2 - by1)
+    union_area = area_a + area_b - inter_area
+
+    if union_area <= 0:
+        return 0.0
+    return inter_area / union_area
+
+
+def _spatial_anchor_guard(
+    intents: List[Dict[str, Any]],
+    iou_threshold: float = 0.7,
+) -> List[Dict[str, Any]]:
+    """
+    V5.0 Spatial Anchor Guard: Deduplicate intents that share the same
+    physical space (high IoU overlap). When two intents overlap, keep
+    the one with higher centrality score, or if tied, the more specific
+    label (longer name = more specific).
+
+    This prevents the VLM hallucination pattern where it assigns
+    multiple different labels (e.g., 'Baby Bottles', 'Boxed Products',
+    'Boxes') to the same physical bounding box.
+
+    Args:
+        intents: List of intent dicts from VLM scout.
+        iou_threshold: IoU above which two intents are considered duplicates.
+
+    Returns:
+        Filtered list of non-overlapping intents.
+    """
+    if len(intents) <= 1:
+        return intents
+
+    # Mark intents to suppress
+    suppressed = set()
+    n = len(intents)
+
+    for i in range(n):
+        if i in suppressed:
+            continue
+        bbox_i = intents[i].get("bbox")
+        if not bbox_i:
+            continue
+
+        for j in range(i + 1, n):
+            if j in suppressed:
+                continue
+            bbox_j = intents[j].get("bbox")
+            if not bbox_j:
+                continue
+
+            iou = _calculate_iou(bbox_i, bbox_j)
+            if iou >= iou_threshold:
+                # Decide winner: higher centrality wins, then longer label
+                score_i = intents[i].get("centrality_score", 0.0)
+                score_j = intents[j].get("centrality_score", 0.0)
+
+                if score_i > score_j:
+                    loser = j
+                elif score_j > score_i:
+                    loser = i
+                else:
+                    # Tie-breaker: keep the more specific label
+                    label_i = intents[i].get("label", "")
+                    label_j = intents[j].get("label", "")
+                    loser = j if len(label_i) >= len(label_j) else i
+
+                suppressed.add(loser)
+                winner = i if loser == j else j
+                logger.info(
+                    "[SpatialAnchorGuard] Suppressed overlapping intent '%s' "
+                    "(IoU=%.2f with '%s')",
+                    intents[loser].get("label", "?"),
+                    iou,
+                    intents[winner].get("label", "?"),
+                )
+
+    survivors = [intents[i] for i in range(n) if i not in suppressed]
+    logger.info(
+        "[SpatialAnchorGuard] %d/%d intents survived deduplication",
+        len(survivors),
+        n,
+    )
+    return survivors
 
 
 # =============================================================================
@@ -399,6 +523,9 @@ def intent_genesis_node(state: RecursiveFlowState) -> Dict[str, Any]:
 
     # Step A: Perform Grounded Intent Discovery
     genesis_intents = _run_vlm_scout_and_analyst(frames, user_prompt, slm)
+
+    # Step A.1: V5.0 Spatial Anchor Guard — deduplicate overlapping bboxes
+    genesis_intents = _spatial_anchor_guard(genesis_intents, iou_threshold=0.7)
 
     # Step B: Perform Accumulative Visual Fingerprinting
     latent_anchors = _extract_latent_anchors(genesis_intents, vjepa)

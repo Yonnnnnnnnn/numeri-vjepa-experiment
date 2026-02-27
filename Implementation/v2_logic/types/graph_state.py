@@ -25,8 +25,10 @@ Terminals       : str, int, float, List, Dict, Tuple, Optional, Literal
 
 Production Rules:
   GraphStateModels     → imports + <ContextModels> + <StateModels> + <RootContainer>
-  <ContextModels>      → GlobalContext (user_prompt, main_intent, priors)
-  <StateModels>        → PerceptionState (genesis/contra intents, negative masks)
+  <ContextModels>      → GlobalContext (user_prompt, main_intent, priors,
+                         focal_trigger_threshold, causal_buffer_frames)
+  <StateModels>        → PerceptionState (genesis/contra intents, negative masks,
+                         latent_focus_scores, causal_frame_buffer)
                        | DecisionState | OutputAccumulator
   <RootContainer>      → RecursiveFlowState(TypedDict)
 ═══════════════════════════════════════════════════════════════════════════════
@@ -35,6 +37,7 @@ Pattern: Data Transfer Object (DTO)
 - Encapsulates state data for transfer between LangGraph nodes.
 - Provides validation and serialization via Pydantic.
 - V3.9: Added Intent Genesis & Contra Intent Immunity fields.
+- V5.0: Added Causal Buffer & Latent Focus fields for Wait-and-Watch discovery.
 """
 
 import operator
@@ -100,6 +103,21 @@ class GlobalContext(BaseModel):
     )
     density_prior: float = Field(
         default=1.0, description="Initial density estimate (rho) for objects"
+    )
+    # V5.0: Focal Discovery parameters
+    focal_trigger_threshold: float = Field(
+        default=5.0,
+        description=(
+            "Accumulated centrality score threshold to trigger focal VLM analysis. "
+            "Higher = more patient (requires longer dwell-time)"
+        ),
+    )
+    causal_buffer_frames: int = Field(
+        default=45,
+        description=(
+            "Number of frames to buffer before confirming focal interest (~1.5s at 30fps). "
+            "Acts as the 'Wait-and-Watch' observation window"
+        ),
     )
 
 
@@ -266,6 +284,25 @@ class PerceptionState(BaseModel):
     is_volumetric_data_fresh: bool = Field(
         default=False,
         description="Circuit Breaker flag: True if V3 Math has run in current frame",
+    )
+
+    # --- V5.0: Causal Buffer & Latent Focus (Wait-and-Watch) ---
+    latent_focus_scores: Dict[str, float] = Field(
+        default_factory=dict,
+        description=(
+            "Accumulated centrality-weighted dwell score per latent ID. "
+            "Key: latent_id, Value: cumulative focus score. "
+            "Updated each frame via: score = score * 0.8 + centrality_score"
+        ),
+    )
+    causal_frame_buffer: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description=(
+            "Rolling buffer of recent frame snapshots for Back-in-Time retrieval. "
+            "Each entry: {'frame_idx': int, 'image': np.ndarray, "
+            "'latent_confidences': Dict[str, float]}. "
+            "Size bounded by GlobalContext.causal_buffer_frames"
+        ),
     )
 
 

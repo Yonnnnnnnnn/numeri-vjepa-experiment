@@ -10,30 +10,29 @@ Downloading: "https://github.com/facebookresearch/dinov2/zipball/main" to /root/
 /root/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
   warnings.warn("xFormers is not available (Block)")
 Downloading: "https://dl.fbaipublicfiles.com/dinov2/dinov2_vitb14/dinov2_vitb14_pretrain.pth" to /root/.cache/torch/hub/checkpoints/dinov2_vitb14_pretrain.pth
-100% 330M/330M [00:00<00:00, 378MB/s]
+100% 330M/330M [00:00<00:00, 361MB/s]
 /usr/lib/python3.12/contextlib.py:105: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
   self.gen = func(*args, **kwds)
 Loading VLM (Qwen2.5-VL) components...
  - Loading Model: Qwen/Qwen2-VL-7B-Instruct (4-bit)
  - [VLM] Local model not found or check failed. Trying online...
-config.json: 1.20kB [00:00, 1.88MB/s]
-model.safetensors.index.json: 56.5kB [00:00, 133MB/s]
+config.json: 1.20kB [00:00, 2.24MB/s]
+model.safetensors.index.json: 56.5kB [00:00, 128MB/s]
 Downloading (incomplete total...): 0.00B [00:00, ?B/s]
-Downloading (incomplete total...):  98% 16.2G/16.6G [03:59<00:07, 54.4MB/s]
-Downloading (incomplete total...):  99% 16.4G/16.6G [04:05<00:04, 30.5MB/s]
-Downloading (incomplete total...): 100% 16.6G/16.6G [04:06<00:00, 57.5MB/s]
-Fetching 5 files: 100% 5/5 [04:06<00:00, 49.27s/it]
-Download complete: 100% 16.6G/16.6G [04:06<00:00, 67.3MB/s]
-Loading weights: 100% 730/730 [01:08<00:00, 10.67it/s, Materializing param=model.visual.patch_embed.proj.weight]
-generation_config.json: 100% 244/244 [00:00<00:00, 908kB/s]
+Downloading (incomplete total...):  95% 15.8G/16.6G [03:11<00:01, 707MB/s]
+Downloading (incomplete total...): 100% 16.6G/16.6G [03:19<00:00, 119MB/s]
+Fetching 5 files: 100% 5/5 [03:19<00:00, 39.97s/it]
+Download complete: 100% 16.6G/16.6G [03:19<00:00, 82.9MB/s]
+Loading weights: 100% 730/730 [01:09<00:00, 10.52it/s, Materializing param=model.visual.patch_embed.proj.weight]
+generation_config.json: 100% 244/244 [00:00<00:00, 1.02MB/s]
  - Loading Processor...
-chat_template.json: 1.05kB [00:00, 1.67MB/s]
-preprocessor_config.json: 100% 347/347 [00:00<00:00, 1.60MB/s]
+chat_template.json: 1.05kB [00:00, 1.94MB/s]
+preprocessor_config.json: 100% 347/347 [00:00<00:00, 1.50MB/s]
 The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. 
-tokenizer_config.json: 4.19kB [00:00, 11.4MB/s]
-vocab.json: 2.78MB [00:00, 32.9MB/s]
-merges.txt: 1.67MB [00:00, 81.2MB/s]
-tokenizer.json: 7.03MB [00:00, 56.2MB/s]
+tokenizer_config.json: 4.19kB [00:00, 10.4MB/s]
+vocab.json: 2.78MB [00:00, 36.1MB/s]
+merges.txt: 1.67MB [00:00, 89.4MB/s]
+tokenizer.json: 7.03MB [00:00, 28.4MB/s]
 VLM loaded on: cuda:0
 /usr/local/lib/python3.12/dist-packages/pydantic/main.py:464: UserWarning: Pydantic serializer warnings:
   PydanticSerializationUnexpectedValue(Expected `int` - serialized value may not be as expected [field_name='focus_roi', input_value=411, input_type=int32])
@@ -43,7 +42,7 @@ VLM loaded on: cuda:0
   return self.__pydantic_serializer__.to_python(
 Loading VLM (Qwen2.5-VL) components...
  - Loading Model: Qwen/Qwen2-VL-7B-Instruct (4-bit)
-Loading weights: 100% 730/730 [01:07<00:00, 10.77it/s, Materializing param=model.visual.patch_embed.proj.weight]
+Loading weights: 100% 730/730 [01:09<00:00, 10.57it/s, Materializing param=model.visual.patch_embed.proj.weight]
  - Loading Processor...
 VLM loaded on: cuda:0
 /usr/lib/python3.12/contextlib.py:105: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
@@ -52,10 +51,10 @@ VLM loaded on: cuda:0
 Using cache found in /root/.cache/torch/hub/facebookresearch_dinov2_main
 [SegmentationEngine] Loading SAM2...
 [SegmentationEngine] No local checkpoint. Loading from HuggingFace...
-sam2.1_hiera_tiny.pt: 100% 156M/156M [00:02<00:00, 65.9MB/s] 
-[DensityPredictor] Calibrating with heuristic prior (Variance -> Density)...
+sam2.1_hiera_tiny.pt: 100% 156M/156M [00:03<00:00, 50.8MB/s]
 [SegmentationEngine] Loaded from Local HF Cache: facebook/sam2.1-hiera-tiny
 [SegmentationEngine] SAM2 loaded on cuda
+[DensityPredictor] Calibrating with heuristic prior (Variance -> Density)...
 [DensityPredictor] Heuristic calibration complete.
 /usr/local/lib/python3.12/dist-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
   warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
@@ -67,17 +66,17 @@ sam2.1_hiera_tiny.pt: 100% 156M/156M [00:02<00:00, 65.9MB/s]
 [SegmentationEngine] Clustered 12 masks into 6 volumetric clusters
 final text_encoder_type: /content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/checkpoints/bert-base-uncased
 load tokenizer done.
-Loading weights: 100% 199/199 [00:00<00:00, 685.11it/s, Materializing param=pooler.dense.weight]
+Loading weights: 100% 199/199 [00:00<00:00, 701.99it/s, Materializing param=pooler.dense.weight]
 BertModel LOAD REPORT from: /content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/checkpoints/bert-base-uncased
 Key                                        | Status     |  | 
 -------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
 cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
 cls.seq_relationship.bias                  | UNEXPECTED |  | 
-cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
 cls.seq_relationship.weight                | UNEXPECTED |  | 
-cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
 cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
-cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
 
 Notes:
 - UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
@@ -1385,7 +1384,6 @@ load tokenizer done.
 
 👁️ BAGIAN 2: Menghasilkan Video Visualisasi (MP4)...
 --------------------------------------------------
-INFO:numexpr.utils:NumExpr defaulting to 2 threads.
 ==================================================
  INFERENCE VISUALIZER: GLIDE-AND-COUNT
 ==================================================
@@ -1400,64 +1398,7 @@ INFO:numexpr.utils:NumExpr defaulting to 2 threads.
 INFO:v2ecore.emulator:ON/OFF log_e temporal contrast thresholds: 0.2 / 0.2 +/- 0.03
 WARNING:v2ecore.emulator:cannot get screen size for window placement: No enumerators available
 INFO:v2_logic.models.v2e_engine:[V2E] Initialized on cuda
-INFO:v2_logic.models.vl_jepa_engine:[VL-JEPA] Loading model: google/paligemma-3b-mix-224 on cuda
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: GET https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
-preprocessor_config.json: 100% 699/699 [00:00<00:00, 3.43MB/s]
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/google/paligemma-3b-mix-224/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/chat_template.json "HTTP/1.1 404 Not Found"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/audio_tokenizer_config.json "HTTP/1.1 404 Not Found"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
-The image processor of type `SiglipImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. 
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/config.json "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: GET https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/config.json "HTTP/1.1 200 OK"
-config.json: 100% 1.03k/1.03k [00:00<00:00, 4.70MB/s]
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: GET https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
-tokenizer_config.json: 100% 40.0k/40.0k [00:00<00:00, 5.54MB/s]
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/google/paligemma-3b-mix-224/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
-INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/google/paligemma-3b-mix-224/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/tokenizer.json "HTTP/1.1 302 Found"
-INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/google/paligemma-3b-mix-224/xet-read-token/d1d8734c9c3ad0ccfeea4afc270faa356c2ba515 "HTTP/1.1 200 OK"
-tokenizer.json: 100% 17.5M/17.5M [00:00<00:00, 27.1MB/s]
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/tokenizer.model "HTTP/1.1 302 Found"
-tokenizer.model: 100% 4.26M/4.26M [00:00<00:00, 17.5MB/s]
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/added_tokens.json "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: GET https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/added_tokens.json "HTTP/1.1 200 OK"
-added_tokens.json: 100% 24.0/24.0 [00:00<00:00, 144kB/s]
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/special_tokens_map.json "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: GET https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/special_tokens_map.json "HTTP/1.1 200 OK"
-special_tokens_map.json: 100% 607/607 [00:00<00:00, 3.11MB/s]
-INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/google/paligemma-3b-mix-224 "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/config.json "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/config.json "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/model.safetensors.index.json "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: GET https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/model.safetensors.index.json "HTTP/1.1 200 OK"
-model.safetensors.index.json: 100% 62.6k/62.6k [00:00<00:00, 4.68MB/s]
-INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/google/paligemma-3b-mix-224/revision/main "HTTP/1.1 200 OK"
-Downloading (incomplete total...): 0.00B [00:00, ?B/s]
-Fetching 3 files:   0% 0/3 [00:00<?, ?it/s]INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/d1d8734c9c3ad0ccfeea4afc270faa356c2ba515/model-00001-of-00003.safetensors "HTTP/1.1 302 Found"
-Downloading (incomplete total...):   0% 0.00/4.95G [00:00<?, ?B/s]INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/d1d8734c9c3ad0ccfeea4afc270faa356c2ba515/model-00003-of-00003.safetensors "HTTP/1.1 302 Found"
-Downloading (incomplete total...):   0% 0.00/6.69G [00:00<?, ?B/s]INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/d1d8734c9c3ad0ccfeea4afc270faa356c2ba515/model-00002-of-00003.safetensors "HTTP/1.1 302 Found"
-Downloading (incomplete total...): 100% 11.7G/11.7G [07:30<00:00, 168MB/s]
-Fetching 3 files: 100% 3/3 [07:30<00:00, 150.14s/it]
-Download complete: 100% 11.7G/11.7G [07:30<00:00, 25.9MB/s]
-Loading weights: 100% 603/603 [00:45<00:00, 13.28it/s, Materializing param=model.vision_tower.vision_model.post_layernorm.weight]
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/generation_config.json "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: GET https://huggingface.co/google/paligemma-3b-mix-224/resolve/main/generation_config.json "HTTP/1.1 200 OK"
-generation_config.json: 100% 137/137 [00:00<00:00, 723kB/s]
-INFO:v2_logic.models.vl_jepa_engine:[VL-JEPA] Model loaded successfully
+INFO:numexpr.utils:NumExpr defaulting to 2 threads.
 INFO:v2_logic.models.v_jepa_engine:[V-JEPA] Initialized on cuda
 INFO:v2_logic.models.v_jepa_engine:[V-JEPA] Successfully loaded and aligned weights from /content/numeri-vjepa-experiment/Implementation/v2_logic/models/../../checkpoints/vjepa_vitl16.pth.tar
 /usr/local/lib/python3.12/dist-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
@@ -1466,17 +1407,17 @@ INFO:v2_logic.models.v_jepa_engine:[V-JEPA] Successfully loaded and aligned weig
   return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
 final text_encoder_type: /content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/checkpoints/bert-base-uncased
 load tokenizer done.
-Loading weights: 100% 199/199 [00:00<00:00, 1116.30it/s, Materializing param=pooler.dense.weight]
+Loading weights: 100% 199/199 [00:00<00:00, 926.94it/s, Materializing param=pooler.dense.weight]
 BertModel LOAD REPORT from: /content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/checkpoints/bert-base-uncased
 Key                                        | Status     |  | 
 -------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
 cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
 cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
-cls.seq_relationship.bias                  | UNEXPECTED |  | 
-cls.predictions.bias                       | UNEXPECTED |  | 
-cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
-cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
 cls.seq_relationship.weight                | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
 
 Notes:
 - UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
@@ -1494,10 +1435,675 @@ WARNING:dinov2:xFormers not available
 INFO:v2_logic.models.depth_engine:[DepthEngine] Loading from checkpoint: /content/numeri-vjepa-experiment/Techs/Depth-Anything-V2-main/Depth-Anything-V2-main/checkpoints/depth_anything_v2_vits.pth
 INFO:dinov2:using MLP layer as FFN
 INFO:v2_logic.models.depth_engine:[DepthEngine] Model loaded on cuda (encoder=vits)
-You are passing both `text` and `images` to `PaliGemmaProcessor`. The processor expects special image tokens in the text, as many tokens as there are images per each text. It is recommended to add `<image>` tokens in the very beginning of your text. For this call, we will infer how many images each text has and add special tokens.
-The following generation flags are not valid and may be ignored: ['temperature', 'top_p']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
-INFO:v2_logic.models.vl_jepa_engine:[VL-JEPA] Identified Intent: drink
-INFO:v2_logic.pipeline.engine_v2:[Director] V4.2 Discovered SKUs: ['drink']
+INFO:v2_logic.models.slm_engine:[SLMEngine] Loading VLM backend...
+Loading VLM (Qwen2.5-VL) components...
+ - Loading Model: Qwen/Qwen2-VL-7B-Instruct (4-bit)
+Loading weights: 100% 730/730 [01:08<00:00, 10.67it/s, Materializing param=model.visual.patch_embed.proj.weight]
+ - Loading Processor...
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. 
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2-VL-7B-Instruct "HTTP/1.1 200 OK"
+VLM loaded on: cuda:0
+INFO:v2_logic.models.slm_engine:[SLMEngine] Genesis grounded response: INTENT: Baby Bottles BBOX: [90, 100, 500, 600]
+INTENT: Pacifiers BBOX: [500, 150, 800, 600]
+INTENT: Boxed Products BBOX: [90, 100, 500, 600]
+INTENT: Boxed Products BBOX: [500, 150, 800, 600]
+INTENT: Shelf BBOX: [0, 0, 1000, 1000]
+INTENT: Boxes BBOX: [90, 100, 500, 600]
+INTENT: Boxes BBOX: [500, 150, 800, 600]
+INTENT: Boxes BBOX: [90, 100, 500, 600]
+INTENT: Boxes BBOX: [500, 150, 800, 600]
+INTENT: Boxes BBOX: [90, 100, 500, 600]
+INTENT: Boxes BBOX: [500, 150, 800, 600]
+INTENT: Boxes BBOX: [90, 100, 500, 600]
+INTENT: Boxes BBOX: [500, 150, 800, 600]
+INTENT: Boxes BBOX: [90, 100, 500, 600]
+INTENT: Boxes BBOX: [500, 150, 800, 600]
+INTENT: Boxes BBOX: [90, 100, 500, 600]
+INTENT: Boxes BBOX: [500, 150, 800, 600]
+INTENT: Boxes BBOX: [90, 100, 500, 600]
+INTENT: Boxes BBOX: [500, 150, 800, 600]
+INTENT:
+INFO:root:********************** Model 2026-02-27 04:36:25.740376 **********************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:15.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:31.0
+INFO:root:↓ BOUNDS UPDATED TIGHTENED:15.0 FOR:'is_candidate' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:1 PARENT:0 
+INFO:root:↓ BOUNDS UPDATED TIGHTENED:1.0 FOR:'is_product_category' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:2 PARENT:0 
+INFO:root:↓ BOUNDS UPDATED TIGHTENED:15.0 FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:3 PARENT:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:53.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:11.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:29.0
+INFO:root:↓ CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:3 PARENT:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:13.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:2
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:3.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:10.0
+INFO:root:↓ CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:3 PARENT:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:6.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:3
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:1.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:5.0
+INFO:root:↓ CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:3 PARENT:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:3.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:4
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:1.0
+INFO:root:↓ CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:3 PARENT:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:5
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:3 PARENT:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 152.0 BOUNDS UPDATES IN 6 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:3 PARENT:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:2.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:5.0
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:2.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 7.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:1.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:3.0
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 4.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:1.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:3.0
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 4.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:1.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:3.0
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 4.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:v2_logic.models.slm_engine:[SLMEngine] LNN-Filtered Keywords: ['list', 'all', 'object', 'thi', 'scene']
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:1.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:3.0
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 4.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:1.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:3.0
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 4.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:1.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:3.0
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 4.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:1.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:3.0
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 4.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:1.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:3.0
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 4.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:DOWNWARD INFERENCE RESULT:1.0
+INFO:root:----------------------
+INFO:root:REASONING STEP:1
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 1.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:******************************************************************************
+INFO:root:----------------------
+INFO:root:REASONING STEP:0
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
+INFO:root:======================
+INFO:root:INFERENCE CONVERGED WITH 0.0 BOUNDS UPDATES IN 1 REASONING STEPS 
+INFO:root:******************************************************************************
+WARNING:v2_logic.models.slm_engine:[SLMEngine] MISSING PRO: keyword 'list' from prompt not found in VLM intents. Force adding generic intent.
+WARNING:v2_logic.models.slm_engine:[SLMEngine] MISSING PRO: keyword 'object' from prompt not found in VLM intents. Force adding generic intent.
+WARNING:v2_logic.models.slm_engine:[SLMEngine] MISSING PRO: keyword 'scene' from prompt not found in VLM intents. Force adding generic intent.
+INFO:v2_logic.pipeline.engine_v2:[Director] V4.2 Discovered SKUs: ['Baby Bottles', 'Pacifiers', 'Object', 'Shelf', 'Scene', 'List']
 V3.3 Multi-SKU Inference:   0% 0/1684 [00:00<?, ?it/s]/usr/lib/python3.12/contextlib.py:105: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
   self.gen = func(*args, **kwds)
 [CountVid Patch] ⚠️ Smart Dispatcher: Falling back to Positional Signature.
@@ -1508,497 +2114,497 @@ INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-V3.3 Multi-SKU Inference:   1% 14/1684 [00:07<06:17,  4.42it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:   1% 14/1684 [00:09<06:58,  3.99it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 3 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 64
+V3.3 Multi-SKU Inference:   2% 31/1684 [00:18<05:49,  4.73it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 3 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
+V3.3 Multi-SKU Inference:   3% 47/1684 [00:27<05:56,  4.59it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
+V3.3 Multi-SKU Inference:   4% 63/1684 [00:37<05:55,  4.56it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 3 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
+V3.3 Multi-SKU Inference:   5% 77/1684 [00:46<07:58,  3.36it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
+V3.3 Multi-SKU Inference:   6% 93/1684 [00:56<07:38,  3.47it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
+V3.3 Multi-SKU Inference:   7% 110/1684 [01:06<04:57,  5.29it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
+V3.3 Multi-SKU Inference:   8% 127/1684 [01:15<05:26,  4.77it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
+V3.3 Multi-SKU Inference:   8% 142/1684 [01:25<07:09,  3.59it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
+V3.3 Multi-SKU Inference:   9% 159/1684 [01:34<05:05,  5.00it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
+V3.3 Multi-SKU Inference:  10% 175/1684 [01:44<04:36,  5.46it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
+V3.3 Multi-SKU Inference:  11% 190/1684 [01:53<05:31,  4.51it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 3 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
+V3.3 Multi-SKU Inference:  12% 207/1684 [02:03<05:16,  4.67it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 3 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
-V3.3 Multi-SKU Inference:   2% 30/1684 [00:11<03:12,  8.58it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  13% 223/1684 [02:12<06:12,  3.93it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 3 objects (outside ROI/area range)
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
-V3.3 Multi-SKU Inference:   3% 46/1684 [00:15<02:43, 10.04it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  14% 238/1684 [02:21<06:52,  3.51it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
+V3.3 Multi-SKU Inference:  15% 255/1684 [02:31<05:56,  4.01it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
+V3.3 Multi-SKU Inference:  16% 270/1684 [02:40<06:40,  3.53it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:   4% 62/1684 [00:18<02:24, 11.19it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
+V3.3 Multi-SKU Inference:  17% 287/1684 [02:49<05:07,  4.54it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
+V3.3 Multi-SKU Inference:  18% 302/1684 [02:59<06:28,  3.56it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
+V3.3 Multi-SKU Inference:  19% 319/1684 [03:08<05:13,  4.35it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
+V3.3 Multi-SKU Inference:  20% 334/1684 [03:17<05:37,  4.00it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
+V3.3 Multi-SKU Inference:  21% 350/1684 [03:27<04:26,  5.00it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  22% 366/1684 [03:36<04:42,  4.66it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  23% 382/1684 [03:46<04:44,  4.58it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  24% 399/1684 [03:55<04:35,  4.66it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  25% 415/1684 [04:05<05:21,  3.95it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  26% 431/1684 [04:14<05:41,  3.67it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  26% 446/1684 [04:23<06:02,  3.41it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  27% 461/1684 [04:33<05:55,  3.44it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  28% 479/1684 [04:42<04:23,  4.57it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  29% 494/1684 [04:51<05:36,  3.54it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  30% 511/1684 [05:01<03:43,  5.25it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  31% 525/1684 [05:10<05:27,  3.54it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  32% 543/1684 [05:20<04:10,  4.56it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  33% 558/1684 [05:29<05:15,  3.57it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  34% 575/1684 [05:39<03:25,  5.40it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 3 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:   5% 79/1684 [00:22<02:42,  9.86it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:   6% 93/1684 [00:25<03:08,  8.45it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:   7% 111/1684 [00:28<02:37,  9.96it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:   7% 126/1684 [00:32<03:02,  8.53it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:   8% 143/1684 [00:35<02:36,  9.82it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:   9% 158/1684 [00:39<02:45,  9.20it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  35% 591/1684 [05:49<03:58,  4.59it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  10% 173/1684 [00:42<02:36,  9.67it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  36% 605/1684 [05:58<05:09,  3.49it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  37% 623/1684 [06:07<03:49,  4.62it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  11% 190/1684 [00:46<02:29, 10.02it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  38% 639/1684 [06:17<03:40,  4.75it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  39% 654/1684 [06:27<03:28,  4.93it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  40% 669/1684 [06:36<03:57,  4.27it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  41% 687/1684 [06:46<02:56,  5.65it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  42% 702/1684 [06:55<04:04,  4.01it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  43% 718/1684 [07:05<03:11,  5.04it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  44% 735/1684 [07:15<02:27,  6.45it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  45% 751/1684 [07:24<02:39,  5.85it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  45% 766/1684 [07:34<03:17,  4.65it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  46% 782/1684 [07:44<02:54,  5.18it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  47% 799/1684 [07:53<02:26,  6.05it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 113
+V3.3 Multi-SKU Inference:  48% 815/1684 [08:02<02:46,  5.21it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 113
+V3.3 Multi-SKU Inference:  49% 831/1684 [08:12<02:26,  5.83it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 151
+V3.3 Multi-SKU Inference:  50% 846/1684 [08:21<02:41,  5.19it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 166
+V3.3 Multi-SKU Inference:  51% 863/1684 [08:30<02:10,  6.30it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 166
+V3.3 Multi-SKU Inference:  52% 877/1684 [08:39<02:49,  4.75it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 166
+V3.3 Multi-SKU Inference:  53% 895/1684 [08:49<02:32,  5.18it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  54% 911/1684 [08:58<02:22,  5.44it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  55% 926/1684 [09:07<02:30,  5.05it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  56% 943/1684 [09:16<02:14,  5.52it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  57% 958/1684 [09:25<02:15,  5.37it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  58% 974/1684 [09:35<02:10,  5.42it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  59% 990/1684 [09:44<01:55,  6.02it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  60% 1007/1684 [09:53<01:56,  5.80it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  61% 1023/1684 [10:02<01:53,  5.81it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  62% 1039/1684 [10:12<02:01,  5.30it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  63% 1055/1684 [10:21<02:21,  4.45it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  64% 1070/1684 [10:30<02:33,  4.00it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  65% 1087/1684 [10:40<01:56,  5.11it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  65% 1103/1684 [10:51<01:50,  5.26it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  66% 1119/1684 [11:01<01:58,  4.78it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  67% 1133/1684 [11:10<02:15,  4.07it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  68% 1150/1684 [11:20<01:38,  5.40it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  69% 1166/1684 [11:29<01:33,  5.55it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  70% 1182/1684 [11:39<01:35,  5.24it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  71% 1198/1684 [11:49<01:27,  5.54it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 3 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  12% 205/1684 [00:49<02:34,  9.58it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  72% 1215/1684 [11:59<01:16,  6.13it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  73% 1230/1684 [12:08<01:32,  4.93it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  74% 1247/1684 [12:18<01:32,  4.73it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  75% 1263/1684 [12:27<01:31,  4.59it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  76% 1279/1684 [12:37<01:36,  4.22it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  77% 1294/1684 [12:46<01:40,  3.89it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  78% 1310/1684 [12:56<01:24,  4.45it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  79% 1327/1684 [13:06<01:08,  5.23it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  80% 1343/1684 [13:15<01:04,  5.26it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  81% 1357/1684 [13:25<01:33,  3.50it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 3 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  13% 220/1684 [00:53<02:44,  8.90it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  82% 1374/1684 [13:34<00:56,  5.51it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  83% 1390/1684 [13:44<01:00,  4.84it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  83% 1406/1684 [13:54<00:48,  5.69it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  84% 1422/1684 [14:04<00:47,  5.51it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  85% 1439/1684 [14:14<00:38,  6.38it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  14% 237/1684 [00:56<02:29,  9.68it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  86% 1454/1684 [14:23<00:55,  4.14it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  87% 1470/1684 [14:33<00:44,  4.86it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  15% 255/1684 [00:59<02:20, 10.16it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  16% 270/1684 [01:03<02:46,  8.51it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  88% 1487/1684 [14:43<00:33,  5.91it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  17% 285/1684 [01:06<02:45,  8.43it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  89% 1502/1684 [14:53<00:48,  3.78it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  18% 303/1684 [01:09<02:13, 10.32it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  90% 1518/1684 [15:03<00:31,  5.21it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  19% 318/1684 [01:13<02:45,  8.26it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  91% 1534/1684 [15:13<00:28,  5.34it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  20% 335/1684 [01:17<02:16,  9.92it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  92% 1550/1684 [15:22<00:26,  5.05it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  93% 1566/1684 [15:32<00:21,  5.49it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  94% 1583/1684 [15:42<00:16,  6.25it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  95% 1599/1684 [15:52<00:14,  5.71it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  96% 1615/1684 [16:02<00:13,  5.12it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  97% 1631/1684 [16:12<00:09,  5.78it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  21% 350/1684 [01:21<02:20,  9.50it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  98% 1647/1684 [16:21<00:06,  5.59it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  99% 1662/1684 [16:31<00:05,  4.21it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  22% 367/1684 [01:24<02:21,  9.32it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  23% 383/1684 [01:28<02:11,  9.92it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  24% 398/1684 [01:31<02:35,  8.29it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  25% 413/1684 [01:35<02:33,  8.29it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference: 100% 1679/1684 [16:40<00:00,  5.16it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  26% 431/1684 [01:38<01:55, 10.87it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  26% 446/1684 [01:42<02:18,  8.93it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  27% 461/1684 [01:45<02:26,  8.35it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  28% 479/1684 [01:49<02:00,  9.96it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  29% 494/1684 [01:52<02:28,  8.03it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  30% 510/1684 [01:56<02:10,  8.97it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  31% 525/1684 [01:59<02:20,  8.27it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  32% 542/1684 [02:03<02:00,  9.46it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  33% 559/1684 [02:07<01:51, 10.13it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  34% 574/1684 [02:10<02:14,  8.23it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 3 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  35% 591/1684 [02:14<02:02,  8.91it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  36% 605/1684 [02:18<02:18,  7.81it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  37% 623/1684 [02:21<01:48,  9.77it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  38% 639/1684 [02:25<02:02,  8.55it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  39% 654/1684 [02:29<01:56,  8.82it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  40% 671/1684 [02:33<01:41, 10.00it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  41% 686/1684 [02:37<01:50,  9.05it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  42% 702/1684 [02:41<01:56,  8.42it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  43% 718/1684 [02:45<01:35, 10.10it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  44% 735/1684 [02:49<01:25, 11.08it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  45% 751/1684 [02:53<01:48,  8.62it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  46% 767/1684 [02:57<01:27, 10.52it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  46% 783/1684 [03:01<01:27, 10.35it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  47% 799/1684 [03:05<01:42,  8.67it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  48% 815/1684 [03:09<01:35,  9.14it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  49% 831/1684 [03:13<01:27,  9.71it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  50% 846/1684 [03:16<01:44,  8.00it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 75
-V3.3 Multi-SKU Inference:  51% 862/1684 [03:20<01:22,  9.91it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  52% 879/1684 [03:25<01:13, 10.93it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  53% 895/1684 [03:28<01:20,  9.78it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  54% 911/1684 [03:32<01:18,  9.85it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  55% 927/1684 [03:36<01:14, 10.15it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  56% 943/1684 [03:40<01:21,  9.05it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  57% 958/1684 [03:44<01:16,  9.54it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  58% 975/1684 [03:48<01:05, 10.78it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  59% 990/1684 [03:52<01:10,  9.81it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  60% 1006/1684 [03:56<01:16,  8.90it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  61% 1022/1684 [04:00<01:09,  9.52it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  62% 1038/1684 [04:04<01:02, 10.33it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  63% 1054/1684 [04:08<01:07,  9.39it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  64% 1071/1684 [04:12<00:59, 10.23it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  65% 1087/1684 [04:16<00:59, 10.02it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  65% 1103/1684 [04:20<01:10,  8.24it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  66% 1119/1684 [04:24<01:02,  9.03it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  67% 1135/1684 [04:28<00:59,  9.25it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  68% 1151/1684 [04:32<01:00,  8.81it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  69% 1167/1684 [04:36<00:56,  9.21it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  70% 1182/1684 [04:40<00:53,  9.40it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  71% 1198/1684 [04:44<01:04,  7.57it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 3 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  72% 1214/1684 [04:48<00:48,  9.76it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  73% 1230/1684 [04:52<00:42, 10.63it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  74% 1247/1684 [04:56<00:42, 10.20it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  75% 1262/1684 [05:00<00:52,  8.05it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  76% 1277/1684 [05:03<00:53,  7.66it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  77% 1294/1684 [05:07<00:45,  8.53it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  78% 1310/1684 [05:11<00:38,  9.67it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  79% 1325/1684 [05:15<00:42,  8.51it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  80% 1341/1684 [05:19<00:40,  8.45it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  81% 1358/1684 [05:23<00:32, 10.07it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 3 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  82% 1374/1684 [05:27<00:31,  9.83it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  83% 1390/1684 [05:31<00:29,  9.96it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  83% 1406/1684 [05:35<00:34,  7.97it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  84% 1422/1684 [05:39<00:27,  9.64it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  85% 1438/1684 [05:43<00:23, 10.36it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  86% 1454/1684 [05:47<00:26,  8.59it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  87% 1470/1684 [05:51<00:21,  9.86it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  88% 1486/1684 [05:55<00:20,  9.48it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  89% 1502/1684 [05:59<00:25,  7.28it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  90% 1518/1684 [06:04<00:19,  8.71it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  91% 1534/1684 [06:08<00:15,  9.79it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  92% 1550/1684 [06:12<00:16,  7.97it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  93% 1566/1684 [06:16<00:12,  9.24it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  94% 1582/1684 [06:20<00:10,  9.45it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  95% 1598/1684 [06:24<00:09,  9.04it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  96% 1614/1684 [06:28<00:07,  9.37it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  97% 1630/1684 [06:32<00:05, 10.05it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  98% 1646/1684 [06:36<00:04,  9.48it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference:  99% 1662/1684 [06:40<00:02,  8.84it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference: 100% 1678/1684 [06:44<00:00,  9.31it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 91
-V3.3 Multi-SKU Inference: 100% 1683/1684 [06:47<00:00,  4.13it/s]
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference: 100% 1683/1684 [16:49<00:00,  1.67it/s]
 INFO:v2_logic.pipeline.engine_v2:Visualizer complete. Saved to /content/output_v2.mp4
 
 

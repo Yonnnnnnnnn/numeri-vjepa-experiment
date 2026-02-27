@@ -23,7 +23,8 @@ Terminals       : str, dict, Image, int
 Production Rules:
   SLMEngineModule → imports + <ReasoningResult> + <SLMEngine>
   SLMEngine       → __init__ + generate_reasoning + _construct_prompt
-                  + estimate_object_volume + generate_initial_intents
+                  + estimate_object_volume + generate_focal_intent
+                  + generate_initial_intents
 ═══════════════════════════════════════════════════════════════════════════════
 
 Pattern: Facade (wrapping VLM) + Strategy (different prompts for different anomalies)
@@ -468,6 +469,93 @@ class SLMEngine:
         except Exception as e:
             logger.error("[SLMEngine] Volume estimation failed: %s", e)
             return 0.001
+
+    def generate_focal_intent(
+        self,
+        frame: np.ndarray,
+        roi: Optional[Dict[str, float]] = None,
+        latent_id: str = "",
+    ) -> Optional[str]:
+        """
+        V5.0 Focal Intent: Targeted VLM analysis on a specific ROI.
+        Unlike generate_initial_intents (global scouting), this focuses
+        ONLY on a cropped region to minimize hallucination.
+
+        Called by the Wait-and-Watch mechanism after an object has demonstrated
+        sufficient centrality persistence (Foveated Identity Confirmation).
+
+        Args:
+            frame: Full video frame (H, W, 3) — ideally the "best" frame
+                   from the causal buffer (Back-in-Time Retrieval).
+            roi: Bounding box dict {'x', 'y', 'w', 'h'} (normalized 0-1).
+                 If None, analyzes the full frame (fallback).
+            latent_id: Proto-identity label from V-JEPA for context.
+
+        Returns:
+            Specific label string (e.g., 'Coca Cola 350ml') or None on failure.
+        """
+        self._ensure_model_loaded()
+
+        # Crop the frame to the ROI if provided
+        if roi and isinstance(roi, dict):
+            h, w = frame.shape[:2]
+            x1 = max(0, int(roi.get("x", 0) * w))
+            y1 = max(0, int(roi.get("y", 0) * h))
+            x2 = min(w, int((roi.get("x", 0) + roi.get("w", 0)) * w))
+            y2 = min(h, int((roi.get("y", 0) + roi.get("h", 0)) * h))
+
+            # Add 10% padding for better context
+            pad_x = max(1, int((x2 - x1) * 0.1))
+            pad_y = max(1, int((y2 - y1) * 0.1))
+            x1 = max(0, x1 - pad_x)
+            y1 = max(0, y1 - pad_y)
+            x2 = min(w, x2 + pad_x)
+            y2 = min(h, y2 + pad_y)
+
+            if x2 > x1 and y2 > y1:
+                frame = frame[y1:y2, x1:x2].copy()
+                logger.info(
+                    "[SLMEngine] Focal crop: [%d,%d,%d,%d] for latent '%s'",
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    latent_id,
+                )
+
+        vlm_prompt = (
+            f"You are analyzing a SINGLE object that has been tracked as '{latent_id}'.\n\n"
+            "TASK: Identify this object as specifically as possible.\n"
+            "- Read any visible text, brand name, or label.\n"
+            "- Describe the object type precisely (e.g., 'Pepsi 330ml can', "
+            "'Indomie Goreng packet').\n"
+            "- If no text is visible, describe by color, shape, and type.\n\n"
+            "Reply with ONLY the specific name, nothing else.\n"
+            "Example: Coca Cola 350ml\n"
+        )
+
+        try:
+            response = self.vlm.predict(
+                frame, prompt_text=vlm_prompt, max_new_tokens=64
+            )
+            label = response.strip().split("\n")[0].strip()
+
+            if label and len(label) > 1:
+                logger.info(
+                    "[SLMEngine] V5.0 Focal Intent: '%s' → '%s'",
+                    latent_id,
+                    label,
+                )
+                return label
+
+            logger.warning(
+                "[SLMEngine] Focal analysis returned empty for '%s'", latent_id
+            )
+            return None
+
+        except Exception as exc:
+            logger.error("[SLMEngine] Focal intent failed: %s", exc)
+            return None
 
     def generate_initial_intents(
         self,

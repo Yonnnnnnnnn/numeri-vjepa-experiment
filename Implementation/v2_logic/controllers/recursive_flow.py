@@ -306,10 +306,14 @@ def vjepa_brain_node(state: RecursiveFlowState) -> Dict[str, Any]:
     """
     Encode frame into V-JEPA latent space.
     Maintains world context for permanence.
+
+    V5.0: Also accumulates Causal Focus Score per tracked latent ID
+    and maintains a rolling frame buffer for Back-in-Time retrieval.
     """
     logger.info("[vjepa_brain_node] Encoding latent context")
     vjepa = get_vjepa_engine()
     perception = state["perception"]
+    ctx = state["ctx"]
 
     if vjepa and perception.image is not None:
         # Preprocess image to tensor [1, 3, 224, 224] for V-JEPA
@@ -329,6 +333,60 @@ def vjepa_brain_node(state: RecursiveFlowState) -> Dict[str, Any]:
         # This allows separate visualizer processes (like engine_v2) to access the latent state
         vjepa.export_context("vjepa_context_dump.pt")
 
+        # =====================================================================
+        # V5.0: CAUSAL BUFFER & FOCUS SCORE ACCUMULATION
+        # =====================================================================
+        updates = {}
+
+        # --- Focus Score Accumulation ---
+        # For each genesis intent with a known latent, update its focus score
+        # using exponential moving average: score = score * decay + centrality
+        focus_scores = dict(perception.latent_focus_scores)  # Copy current
+        decay_factor = 0.8
+
+        for intent in perception.genesis_intents:
+            latent_id = intent.get("label", "")
+            bbox = intent.get("bbox")
+            if not latent_id or not bbox:
+                continue
+
+            # Calculate current centrality (re-use genesis logic)
+            from .intent_genesis_node import _calculate_centrality_score
+
+            centrality = _calculate_centrality_score(bbox)
+
+            # Exponential moving average accumulation
+            old_score = focus_scores.get(latent_id, 0.0)
+            new_score = old_score * decay_factor + centrality
+            focus_scores[latent_id] = round(new_score, 4)
+
+        if focus_scores:
+            updates["latent_focus_scores"] = focus_scores
+            logger.info(
+                "[vjepa_brain_node] V5.0 Focus Scores: %s",
+                {k: f"{v:.2f}" for k, v in focus_scores.items()},
+            )
+
+        # --- Causal Frame Buffer (Rolling Window) ---
+        max_buffer = ctx.causal_buffer_frames
+        buffer = list(perception.causal_frame_buffer)  # Copy current
+
+        buffer_entry = {
+            "frame_idx": perception.current_frame_idx,
+            "image": perception.image,
+            "latent_confidences": dict(focus_scores),
+        }
+        buffer.append(buffer_entry)
+
+        # Trim to max buffer size (FIFO)
+        if len(buffer) > max_buffer:
+            buffer = buffer[-max_buffer:]
+
+        updates["causal_frame_buffer"] = buffer
+
+        if updates:
+            return {"perception": updates}
+
         return {}
 
     return {}
@@ -343,9 +401,17 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
     Acts as the "Sutradara" (Director) of the system.
 
     Implements:
+    - V5.0 Wait-and-Watch: Focal trigger based on accumulated centrality dwell
     - Discovery Loop: Parse SLM hypothesis for new object labels
     - Refinement Loop: Adjust sensitivity or set PointBeam ROI
+    - V5.1 LNN Last Gate: Final confirmation for all VLM labels
     """
+    from .recursive_flow import get_slm_engine, get_vjepa_engine, get_lnn_kb
+
+    slm = get_slm_engine()
+    vjepa = get_vjepa_engine()
+    lnn = get_lnn_kb()
+
     ctx = state["ctx"]
     decision = state["decision"]
     perception = state["perception"]
@@ -359,13 +425,86 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
 
     updates = {}
 
+    # =========================================================================
+    # V5.0/5.1: WAIT-AND-WATCH FOCAL TRIGGER + LNN GATE
+    # =========================================================================
+    focus_scores = perception.latent_focus_scores
+    threshold = ctx.focal_trigger_threshold
+    buffer = perception.causal_frame_buffer
+
+    for latent_id, score in focus_scores.items():
+        # Trigger focal analysis if score reached threshold
+        if score >= threshold and latent_id not in current_intent:
+            logger.info(
+                "[FocalTrigger] V5.0 WAIT-AND-WATCH: Latent '%s' reached "
+                "focus score %.2f. Triggering focal analysis.",
+                latent_id,
+                score,
+            )
+
+            # --- LATENT ANTICIPATION: Back-in-Time Retrieval ---
+            best_frame = None
+            best_confidence = -1.0
+            for entry in buffer:
+                entry_conf = entry.get("latent_confidences", {}).get(latent_id, 0.0)
+                if entry_conf > best_confidence:
+                    best_confidence = entry_conf
+                    best_frame = entry.get("image")
+
+            if best_frame is not None and slm:
+                try:
+                    # Find the bbox for this latent from genesis_intents
+                    target_bbox = next(
+                        (
+                            gi.get("bbox")
+                            for gi in perception.genesis_intents
+                            if gi.get("label") == latent_id
+                        ),
+                        None,
+                    )
+
+                    focal_label = slm.generate_focal_intent(
+                        frame=best_frame, roi=target_bbox, latent_id=latent_id
+                    )
+
+                    if focal_label:
+                        # --- V5.1: LNN AS LAST GATE (GEBAG TERAKHIR) ---
+                        lnn_confidence = lnn.validate_intent(focal_label)
+                        if lnn_confidence >= 0.7:
+                            if focal_label not in current_intent:
+                                current_intent.append(focal_label)
+                            updates["active_intent"] = current_intent
+                            logger.info(
+                                "[FocalTrigger] LNN CONFIRMED: '%s' (conf=%.2f) promoted to active_intent",
+                                focal_label,
+                                lnn_confidence,
+                            )
+                        else:
+                            # If LNN rejects, it's likely a distractor/noise
+                            logger.info(
+                                "[FocalTrigger] LNN REJECTED: '%s' (conf=%.2f). Registering as Contra Intent.",
+                                focal_label,
+                                lnn_confidence,
+                            )
+                            # Register as contra to suppress in future frames
+                            updated_contras = list(perception.contra_intents)
+                            updated_contras.append(
+                                {
+                                    "label": focal_label,
+                                    "latent_id": f"contra_focal_{latent_id}",
+                                    "bbox": target_bbox,
+                                }
+                            )
+                            updates["contra_intents"] = updated_contras
+                except Exception as exc:
+                    logger.warning("[FocalTrigger] Focal analysis failed: %s", exc)
+
     # Phase 9: Adaptive Intent Update from SLM Hypothesis
     if decision.slm_hypothesis:
         hypothesis = decision.slm_hypothesis.lower()
         logger.info("[director] SLM Hypothesis received: %s", decision.slm_hypothesis)
 
-        # --- DISCOVERY LOOP V3.3: Genesis Intent Matching ---
-        # Replace hardcoded keywords with dynamic matching against genesis_intents
+        # --- DISCOVERY LOOP V5.1: LNN Enhanced Step 12 ---
         genesis_labels = [
             gi.get("label", "").lower()
             for gi in perception.genesis_intents
@@ -380,25 +519,14 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
 
         # Parse hypothesis for mentioned objects
         for genesis_label in genesis_labels:
-            # Check if any genesis intent label appears in the hypothesis
             if genesis_label in hypothesis and genesis_label not in [
                 x.lower() for x in current_intent
             ]:
                 discovered_labels.append(genesis_label)
 
-        # Check for known Contra Intents mentioned (should stay suppressed)
-        for contra_label in contra_labels:
-            if contra_label in hypothesis:
-                logger.info(
-                    "[director] IMMUNITY: Known contra intent '%s' detected, ignoring",
-                    contra_label,
-                )
-
-        # Check for NEW unknown objects not in genesis or contra lists
-        # These need VLM classification (Step 12: is it New Genesis or Contra?)
+        # Step 12: Handle NEW unknown objects (LNN Gate)
         import re
 
-        # Look for quoted object names or "found X" patterns
         mentioned_objects = re.findall(
             r'"([^"]+)"|found\s+(?:a|an)?\s*(\w+)', hypothesis
         )
@@ -406,36 +534,53 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
             obj_name = (match_groups[0] or match_groups[1]).lower().strip()
             if not obj_name:
                 continue
+
             is_known_genesis = any(obj_name in gl for gl in genesis_labels)
             is_known_contra = any(obj_name in cl for cl in contra_labels)
             is_current = obj_name in [x.lower() for x in current_intent]
 
             if not is_known_genesis and not is_known_contra and not is_current:
-                # Step 12: Unknown anomaly → classify as Contra Intent
-                # (VLM already analyzed in genesis; anything new is a distractor)
-                new_contras.append(
-                    {
-                        "label": obj_name,
-                        "latent_id": f"contra_{decision.loop_count}_{obj_name}",
-                        "bbox": {},
-                    }
-                )
-                logger.info(
-                    "[director] STEP 12: New Contra Intent registered: '%s'",
-                    obj_name,
-                )
+                # --- V5.1: LNN deciding Step 12 logic ---
+                lnn_conf = lnn.validate_intent(obj_name)
+                if lnn_conf >= 0.7:
+                    # It's a valid product we missed! Promote to genesis
+                    logger.info(
+                        "[director] STEP 12+: LNN validated misses product '%s'. Promoting to active_intent.",
+                        obj_name,
+                    )
+                    discovered_labels.append(obj_name)
+                else:
+                    # It's noise/distractor → Contra Intent
+                    new_contras.append(
+                        {
+                            "label": obj_name,
+                            "latent_id": f"contra_{decision.loop_count}_{obj_name}",
+                            "bbox": {},
+                        }
+                    )
+                    logger.info(
+                        "[director] STEP 12: LNN rejected noise '%s'. Registering as Contra Intent.",
+                        obj_name,
+                    )
 
         if discovered_labels:
             for label in discovered_labels:
-                if isinstance(label, str) and label not in current_intent:
-                    current_intent.append(label)
-            logger.info(
-                "[director] DISCOVERY LOOP V3.3: Added genesis labels: %s",
-                discovered_labels,
-            )
-            updates["active_intent"] = current_intent
+                if label not in [x.lower() for x in current_intent]:
+                    # Find original casing if possible
+                    orig_label = next(
+                        (
+                            gi.get("label")
+                            for gi in perception.genesis_intents
+                            if gi.get("label", "").lower() == label
+                        ),
+                        label,
+                    )
+                    current_intent.append(orig_label)
 
-            # --- V4 LATENT ANCHOR UPDATE ---
+            updates["active_intent"] = current_intent
+            logger.info("[director] Discovery Update: %s", discovered_labels)
+
+            # Activate Latent Anchors
             new_anchors = []
             for gi in perception.genesis_intents:
                 if (
@@ -445,160 +590,97 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
                     new_anchors.append(gi["latent_pose"])
 
             if new_anchors:
-                # Append to existing
                 current_anchors = list(perception.active_latent_anchors)
                 current_anchors.extend(new_anchors)
                 updates["active_latent_anchors"] = current_anchors
-                logger.info(
-                    "[director] Activated %d new Latent Anchors", len(new_anchors)
-                )
 
         if new_contras:
             updated_contras = list(perception.contra_intents) + new_contras
             updates["contra_intents"] = updated_contras
-            # Step 12.1: Generate negative masks for new contras
-            # (Actual mask generation happens in fusion_engine_node)
-            logger.info(
-                "[director] STEP 12.1: %d new Contra Intents → Negative Masks pending",
-                len(new_contras),
-            )
 
-        # --- REFINEMENT LOOP: Parse for occlusion/sensitivity hints ---
-        refinement_hints = [
-            "occluded",
-            "hidden",
-            "behind",
-            "blocked",
-            "covered",
-            "overlap",
-        ]
-        needs_refinement = any(hint in hypothesis for hint in refinement_hints)
-
-        if needs_refinement:
-            # Increase sensitivity for next pass
-            new_sensitivity = min(sensitivity * 1.2, 2.0)  # Cap at 2x
+        # REFINEMENT LOOP (Sensitivity + PointBeam Focus)
+        refinement_hints = ["occluded", "hidden", "behind", "blocked", "covered"]
+        if any(hint in hypothesis for hint in refinement_hints):
+            new_sensitivity = min(sensitivity * 1.2, 2.0)
             updates["sensitivity_modifier"] = new_sensitivity
             logger.info(
-                "[director] REFINEMENT LOOP: Sensitivity adjusted to %.2f",
+                "[director] Refinement Loop: Sensitivity adjusted to %.2f",
                 new_sensitivity,
             )
 
-            # If "corner" or spatial hint is mentioned, set PointBeam ROI
-            if "corner" in hypothesis or "edge" in hypothesis:
-                # Example: Focus on bottom-right quadrant
-                h, w = (
-                    perception.image.shape[:2]
-                    if perception.image is not None
-                    else (480, 640)
-                )
-                focus_roi = (w // 2, h // 2, w, h)  # Bottom-right quadrant
-                updates["focus_roi"] = focus_roi
-                logger.info(
-                    "[PointBeamFocus] REFINEMENT: Shifting attention to quadrant (Bottom-Right) [%s]",
-                    focus_roi,
-                )
-            elif "left" in hypothesis:
-                h, w = (
-                    perception.image.shape[:2]
-                    if perception.image is not None
-                    else (480, 640)
-                )
-                focus_roi = (0, 0, w // 2, h)  # Left half
-                updates["focus_roi"] = focus_roi
-                logger.info(
-                    "[PointBeamFocus] REFINEMENT: Shifting attention to region (Left-Half) [%s]",
-                    focus_roi,
-                )
+        if "corner" in hypothesis or "edge" in hypothesis:
+            h, w = (
+                perception.image.shape[:2]
+                if perception.image is not None
+                else (480, 640)
+            )
+            focus_roi = (w // 2, h // 2, w, h)
+            updates["focus_roi"] = focus_roi
+            logger.info(
+                "[PointBeamFocus] REFINEMENT: Shifting attention to Bottom-Right %s",
+                focus_roi,
+            )
+        elif "left" in hypothesis:
+            h, w = (
+                perception.image.shape[:2]
+                if perception.image is not None
+                else (480, 640)
+            )
+            focus_roi = (0, 0, w // 2, h)
+            updates["focus_roi"] = focus_roi
+            logger.info(
+                "[PointBeamFocus] REFINEMENT: Shifting attention to LEFT-HALF %s",
+                focus_roi,
+            )
 
-        # --- FIX 3: SLM ANALYST OVERRIDE (Trust the Analyst) ---
-        # Previously, SLM count was only used when it AGREED with Scout.
-        # Now, when SLM provides a specific count, we trust it over Scout's
-        # hallucinated visual count, breaking the logical deadlock.
+        # --- FIX 3: SLM ANALYST OVERRIDE ---
         if decision.anomaly_type == "volumetric":
             import re
 
-            # Broader pattern to catch: "3 objects", "three cups", "I see 3", etc.
             count_match = re.search(
                 r"(\d+)\s+(?:object|item|cup|ball|bottle)", hypothesis
             )
             if not count_match:
-                # Fallback: any standalone number in a counting context
                 count_match = re.search(
                     r"(?:are|see|count|found|total)\D*(\d+)", hypothesis
                 )
-
             if count_match:
                 try:
                     slm_count = int(count_match.group(1))
-
                     if slm_count > 0 and slm_count != perception.n_visible:
-                        # --- ANALYST OVERRIDE ---
-                        # SLM disagrees with Scout → trust the Analyst
                         logger.warning(
-                            "[director] ANALYST OVERRIDE: Scout=%d vs SLM=%d. "
-                            "Trusting SLM count.",
+                            "[director] ANALYST OVERRIDE: Scout=%d vs SLM=%d. Trusting SLM.",
                             perception.n_visible,
                             slm_count,
                         )
                         updates["n_visible"] = slm_count
-
-                        # Also recalibrate unit volume with the corrected count
                         total_vol = perception.total_observed_volume
                         if total_vol > 0:
-                            new_unit_volume = total_vol / slm_count
-                            updates["estimated_unit_volume"] = new_unit_volume
-                            logger.info(
-                                "[director] VOLUMETRIC CALIBRATION: "
-                                "Recalibrating unit_volume = %.6f m^3 "
-                                "(based on SLM count=%d)",
-                                new_unit_volume,
-                                slm_count,
-                            )
-
-                    elif slm_count == perception.n_visible and perception.n_visible > 0:
-                        # SLM agrees with visual count → recalibrate unit volume
-                        total_vol = perception.total_observed_volume
-                        if total_vol > 0:
-                            new_unit_volume = total_vol / perception.n_visible
-                            updates["estimated_unit_volume"] = new_unit_volume
-                            logger.info(
-                                "[director] VOLUMETRIC CALIBRATION: SLM confirmed count=%d, "
-                                "recalibrating unit_volume = %.6f m^3",
-                                perception.n_visible,
-                                new_unit_volume,
-                            )
+                            updates["estimated_unit_volume"] = total_vol / slm_count
                 except Exception as e:
-                    logger.warning("[director] Failed to parse SLM count: %s", e)
+                    logger.warning("[director] SLM Override failed: %s", e)
 
     # --- INITIAL VOLUME ESTIMATION FROM SLM ---
-    # If we have an intent but no valid volume prior (still 0 or default 0.001), ask SLM.
     current_vol = perception.estimated_unit_volume
-    if current_vol <= 0.001:  # Assuming 0.001 is the "uninformed" default
-        # Get target label from updates (if just discovered) or existing state
+    if current_vol <= 0.001:
         target_list = updates.get(
             "active_intent", perception.active_intent or list(ctx.main_intent)
         )
         target_label = target_list[0] if target_list else "object"
-
-        slm = get_slm_engine()
         if slm:
             try:
                 slm_vol = slm.estimate_object_volume(target_label)
                 if slm_vol > 0 and slm_vol != 0.001:
                     updates["estimated_unit_volume"] = slm_vol
                     logger.info(
-                        "[FoveatedIdentity] PHYSICAL PRIOR: Estimated volume for '%s' is %.6f m^3",
+                        "[PHYSICAL PRIOR] SLM volume for '%s' is %.6f m^3",
                         target_label,
                         slm_vol,
                     )
             except Exception as e:
-                logger.warning("[director] Failed to get SLM volume prior: %s", e)
+                logger.warning("[director] Failed to get volume prior: %s", e)
 
-    # Always ensure active_intent is populated (even if no changes)
-    if not perception.active_intent and "active_intent" not in updates:
-        updates["active_intent"] = list(ctx.main_intent)
-
-    # V3.3.4: Reset Circuit Breaker at start of sensor orbit
+    # V3.3.4: Reset Freshness Circuit Breaker
     updates["is_volumetric_data_fresh"] = False
 
     if updates:
