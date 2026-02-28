@@ -151,7 +151,7 @@ def main():
         user_prompt=user_prompt,
     )
 
-    logger.info("Running Recursive Intent System - Logic Version: V3.9")
+    logger.info("Running Recursive Intent System - Logic Version: V5.1")
     logger.info(f"Session started: {session_id}")
     logger.info(f"User Prompt: '{user_prompt}'")
     logger.info(f"Seed Intent: {target_intent}")

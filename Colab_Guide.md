@@ -1,6 +1,6 @@
-# 🎓 Google Colab Guide (V2 - GitHub Workflow)
+# 🎓 Google Colab Guide (V5.1 - Focal Discovery)
 
-Panduan menjalankan **V2 Inference Pipeline** di Google Colab dengan clone langsung dari **GitHub**.
+Panduan menjalankan **V5.1 Focal Discovery Loop** di Google Colab dengan integrasi **LNN Gatekeeping**, **Wait-and-Watch**, dan **Causal Buffer**.
 
 ## Syarat Utama
 
@@ -100,7 +100,8 @@ def setup_repo():
     if os.path.exists(PROJECT_DIR):
         print(f"✅ Repository sudah ada di: {PROJECT_DIR}")
         %cd $PROJECT_DIR
-        !git pull origin master
+        !git fetch origin
+        !git reset --hard origin/master
     else:
         print("📥 Cloning repository...")
         res = subprocess.run(["git", "clone", REPO_URL, PROJECT_DIR])
@@ -266,8 +267,13 @@ PROJECT_DIR = "/content/numeri-vjepa-experiment"
 !python Implementation/scripts/download_v2_weights.py
 ```
 
-> [!NOTE]
-> Per **2026-02-24**: **Recursive Intent Protocol V3.3** dan **Neuro-Symbolic Reconciliation V3.8 (LNN Integration)** sekarang sudah sepenuhnya terintegrasi. Sistem sudah dilengkapi perlindungan logika deduktif menggunakan threshold LNN untuk memastikan resolusi identitas SKU (berdasarkan Latent Match & Volume Consistency) akurat secara fisik.
+> [!IMPORTANT]
+> **Per 2026-02-28**: **Logic Version V5.1 (Focal Discovery)** sekarang aktif.
+> Fitur Baru:
+>
+> 1. **Wait-and-Watch**: Triger VLM hanya jika objek menetap di tengah (centrality bias).
+> 2. **LNN Gatekeeping**: LNN memvalidasi semua label VLM sebelum dipromosikan.
+> 3. **Causal Buffer**: Mengambil frame historis terbaik untuk analisis SLM.
 
 ### 4.2 Download CountVid Checkpoints
 
@@ -362,7 +368,7 @@ Jalankan cell ini untuk melihat **Logika (Teks)** dan menghasilkan **Video (Visu
 ```python
 # 1. Konfigurasi & Eksekusi (Gunakan Form di sebelah kanan ->)
 PROJECT_DIR = "/content/numeri-vjepa-experiment"
-#@title 🧠 Recursive Intent Logic V3.3
+#@title 🧠 Recursive Intent Logic V5.1 (Focal Discovery)
 prompt = "count red cups" #@param {type:"string"}
 video_file = "/content/numeri-vjepa-experiment/Techs/sam2-main/sam2-main/demo/data/gallery/02_cups.mp4" #@param {type:"string"}
 output_file = "/content/output_v2.mp4" #@param {type:"string"}
@@ -370,7 +376,7 @@ output_file = "/content/output_v2.mp4" #@param {type:"string"}
 # Pastikan kita di folder yang benar
 %cd $PROJECT_DIR
 
-print(f"🧠 BAGIAN 1: Menjalankan Recursive Intent Logic V3.3 untuk: '{prompt}'")
+print(f"🧠 BAGIAN 1: Menjalankan Recursive Intent Logic V5.1 untuk: '{prompt}'")
 print("-" * 50)
 !python {PROJECT_DIR}/Implementation/run_recursive_system.py --video "$video_file" --prompt "$prompt"
 
@@ -425,15 +431,20 @@ VIDEO_FILE = "/content/my_video.mp4"
 !rm -f /content/*.mp4
 ```
 
-### Error Lama Masih Muncul di Log? (Stale Code)
+### Error Lama Masih Muncul di Log? (STALE CODE / GHOSTING)
 
-Jika Anda sudah melakukan `git pull` tapi error lama masih muncul:
+Jika Anda sudah melakukan sync tapi log masih menampilkan `Logic V3.3` (padahal harusnya `V5.1`+):
 
-1. Klik menu **Runtime** -> **Restart session**.
-2. Jalankan ulang **Langkah 1**.
-3. Jalankan ulang perintah Anda.
+1. **Jalankan Sinkronisasi Paksa:**
+   ```python
+   %cd /content/numeri-vjepa-experiment
+   !git fetch origin
+   !git reset --hard origin/master
+   ```
+2. **Restart Session (WAJIB):** Klik menu **Runtime** -> **Restart session** (atau `Ctrl+M .`).
+3. **Jalankan Ulang Cell Import/Path:** Anda harus menjalankan ulang cell yang berisi `sys.path.append` sebelum menjalankan script.
 
-Ini karena Colab menyimpan kode lama di RAM sampai Anda me-restart session.
+Ini terjadi karena Python menyimpan modul di memori (cache). Tanpa Restart Session, kode baru di disk tidak akan di-load kembali ke RAM.
 
 ---
 

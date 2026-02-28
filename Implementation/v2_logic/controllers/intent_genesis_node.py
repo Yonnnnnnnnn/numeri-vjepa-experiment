@@ -1,5 +1,5 @@
 """
-Intent Genesis Node (Step 0) — V3.9 VLM-First + V4.0 PointBeam Focus
+Intent Genesis Node (Step 0) — V5.1 Focal Discovery & LNN Gatekeeping
 
 Pre-emptive semantic scanning that runs ONCE before the main recursive loop.
 Uses VLM Qwen (Scout+Analyst) to directly discover objects and produce

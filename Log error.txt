@@ -10,29 +10,29 @@ Downloading: "https://github.com/facebookresearch/dinov2/zipball/main" to /root/
 /root/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
   warnings.warn("xFormers is not available (Block)")
 Downloading: "https://dl.fbaipublicfiles.com/dinov2/dinov2_vitb14/dinov2_vitb14_pretrain.pth" to /root/.cache/torch/hub/checkpoints/dinov2_vitb14_pretrain.pth
-100% 330M/330M [00:00<00:00, 361MB/s]
+100% 330M/330M [00:01<00:00, 319MB/s]
 /usr/lib/python3.12/contextlib.py:105: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
   self.gen = func(*args, **kwds)
 Loading VLM (Qwen2.5-VL) components...
  - Loading Model: Qwen/Qwen2-VL-7B-Instruct (4-bit)
  - [VLM] Local model not found or check failed. Trying online...
-config.json: 1.20kB [00:00, 2.24MB/s]
-model.safetensors.index.json: 56.5kB [00:00, 128MB/s]
+config.json: 1.20kB [00:00, 2.57MB/s]
+model.safetensors.index.json: 56.5kB [00:00, 131MB/s]
 Downloading (incomplete total...): 0.00B [00:00, ?B/s]
-Downloading (incomplete total...):  95% 15.8G/16.6G [03:11<00:01, 707MB/s]
-Downloading (incomplete total...): 100% 16.6G/16.6G [03:19<00:00, 119MB/s]
-Fetching 5 files: 100% 5/5 [03:19<00:00, 39.97s/it]
-Download complete: 100% 16.6G/16.6G [03:19<00:00, 82.9MB/s]
-Loading weights: 100% 730/730 [01:09<00:00, 10.52it/s, Materializing param=model.visual.patch_embed.proj.weight]
-generation_config.json: 100% 244/244 [00:00<00:00, 1.02MB/s]
+Downloading (incomplete total...):  91% 15.1G/16.6G [03:35<00:09, 165MB/s] 
+Downloading (incomplete total...): 100% 16.6G/16.6G [03:41<00:00, 198MB/s]
+Fetching 5 files: 100% 5/5 [03:41<00:00, 44.34s/it]
+Download complete: 100% 16.6G/16.6G [03:41<00:00, 74.8MB/s]
+Loading weights: 100% 730/730 [01:09<00:00, 10.44it/s, Materializing param=model.visual.patch_embed.proj.weight]
+generation_config.json: 100% 244/244 [00:00<00:00, 1.36MB/s]
  - Loading Processor...
-chat_template.json: 1.05kB [00:00, 1.94MB/s]
-preprocessor_config.json: 100% 347/347 [00:00<00:00, 1.50MB/s]
+chat_template.json: 1.05kB [00:00, 1.80MB/s]
+preprocessor_config.json: 100% 347/347 [00:00<00:00, 2.01MB/s]
 The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. 
-tokenizer_config.json: 4.19kB [00:00, 10.4MB/s]
-vocab.json: 2.78MB [00:00, 36.1MB/s]
-merges.txt: 1.67MB [00:00, 89.4MB/s]
-tokenizer.json: 7.03MB [00:00, 28.4MB/s]
+tokenizer_config.json: 4.19kB [00:00, 11.6MB/s]
+vocab.json: 2.78MB [00:00, 68.3MB/s]
+merges.txt: 1.67MB [00:00, 74.5MB/s]
+tokenizer.json: 7.03MB [00:00, 163MB/s]
 VLM loaded on: cuda:0
 /usr/local/lib/python3.12/dist-packages/pydantic/main.py:464: UserWarning: Pydantic serializer warnings:
   PydanticSerializationUnexpectedValue(Expected `int` - serialized value may not be as expected [field_name='focus_roi', input_value=411, input_type=int32])
@@ -42,7 +42,7 @@ VLM loaded on: cuda:0
   return self.__pydantic_serializer__.to_python(
 Loading VLM (Qwen2.5-VL) components...
  - Loading Model: Qwen/Qwen2-VL-7B-Instruct (4-bit)
-Loading weights: 100% 730/730 [01:09<00:00, 10.57it/s, Materializing param=model.visual.patch_embed.proj.weight]
+Loading weights: 100% 730/730 [01:09<00:00, 10.49it/s, Materializing param=model.visual.patch_embed.proj.weight]
  - Loading Processor...
 VLM loaded on: cuda:0
 /usr/lib/python3.12/contextlib.py:105: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
@@ -51,7 +51,7 @@ VLM loaded on: cuda:0
 Using cache found in /root/.cache/torch/hub/facebookresearch_dinov2_main
 [SegmentationEngine] Loading SAM2...
 [SegmentationEngine] No local checkpoint. Loading from HuggingFace...
-sam2.1_hiera_tiny.pt: 100% 156M/156M [00:03<00:00, 50.8MB/s]
+sam2.1_hiera_tiny.pt: 100% 156M/156M [00:02<00:00, 53.3MB/s]
 [SegmentationEngine] Loaded from Local HF Cache: facebook/sam2.1-hiera-tiny
 [SegmentationEngine] SAM2 loaded on cuda
 [DensityPredictor] Calibrating with heuristic prior (Variance -> Density)...
@@ -66,17 +66,17 @@ sam2.1_hiera_tiny.pt: 100% 156M/156M [00:03<00:00, 50.8MB/s]
 [SegmentationEngine] Clustered 12 masks into 6 volumetric clusters
 final text_encoder_type: /content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/checkpoints/bert-base-uncased
 load tokenizer done.
-Loading weights: 100% 199/199 [00:00<00:00, 701.99it/s, Materializing param=pooler.dense.weight]
+Loading weights: 100% 199/199 [00:00<00:00, 646.29it/s, Materializing param=pooler.dense.weight]
 BertModel LOAD REPORT from: /content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/checkpoints/bert-base-uncased
 Key                                        | Status     |  | 
 -------------------------------------------+------------+--+-
-cls.predictions.bias                       | UNEXPECTED |  | 
-cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
-cls.seq_relationship.bias                  | UNEXPECTED |  | 
-cls.seq_relationship.weight                | UNEXPECTED |  | 
 cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
-cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.predictions.bias                       | UNEXPECTED |  | 
 cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
 
 Notes:
 - UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
@@ -1407,7 +1407,7 @@ INFO:v2_logic.models.v_jepa_engine:[V-JEPA] Successfully loaded and aligned weig
   return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
 final text_encoder_type: /content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/checkpoints/bert-base-uncased
 load tokenizer done.
-Loading weights: 100% 199/199 [00:00<00:00, 926.94it/s, Materializing param=pooler.dense.weight]
+Loading weights: 100% 199/199 [00:00<00:00, 1101.38it/s, Materializing param=pooler.dense.weight]
 BertModel LOAD REPORT from: /content/numeri-vjepa-experiment/Techs/CountVid-main/CountVid-main/checkpoints/bert-base-uncased
 Key                                        | Status     |  | 
 -------------------------------------------+------------+--+-
@@ -1438,7 +1438,7 @@ INFO:v2_logic.models.depth_engine:[DepthEngine] Model loaded on cuda (encoder=vi
 INFO:v2_logic.models.slm_engine:[SLMEngine] Loading VLM backend...
 Loading VLM (Qwen2.5-VL) components...
  - Loading Model: Qwen/Qwen2-VL-7B-Instruct (4-bit)
-Loading weights: 100% 730/730 [01:08<00:00, 10.67it/s, Materializing param=model.visual.patch_embed.proj.weight]
+Loading weights: 100% 730/730 [01:08<00:00, 10.60it/s, Materializing param=model.visual.patch_embed.proj.weight]
  - Loading Processor...
 The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. 
 INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2-VL-7B-Instruct "HTTP/1.1 200 OK"
@@ -1463,7 +1463,7 @@ INTENT: Boxes BBOX: [500, 150, 800, 600]
 INTENT: Boxes BBOX: [90, 100, 500, 600]
 INTENT: Boxes BBOX: [500, 150, 800, 600]
 INTENT:
-INFO:root:********************** Model 2026-02-27 04:36:25.740376 **********************
+INFO:root:********************** Model 2026-02-28 02:46:41.178669 **********************
 INFO:root:----------------------
 INFO:root:REASONING STEP:0
 INFO:root:↑ BOUNDS UPDATED TIGHTENED:15.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
@@ -1473,57 +1473,53 @@ INFO:root:↓ BOUNDS UPDATED TIGHTENED:15.0 FOR:'is_candidate' FROM:'(is_candida
 INFO:root:↓ BOUNDS UPDATED TIGHTENED:1.0 FOR:'is_product_category' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:2 PARENT:0 
 INFO:root:↓ BOUNDS UPDATED TIGHTENED:15.0 FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:3 PARENT:0 
 INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
-INFO:root:DOWNWARD INFERENCE RESULT:53.0
+INFO:root:DOWNWARD INFERENCE RESULT:54.0
 INFO:root:----------------------
 INFO:root:REASONING STEP:1
 INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
-INFO:root:↑ BOUNDS UPDATED TIGHTENED:11.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:12.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
 INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
-INFO:root:UPWARD INFERENCE RESULT:29.0
+INFO:root:UPWARD INFERENCE RESULT:32.0
 INFO:root:↓ CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:3 PARENT:0 
 INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
-INFO:root:DOWNWARD INFERENCE RESULT:13.0
+INFO:root:DOWNWARD INFERENCE RESULT:14.0
 INFO:root:----------------------
 INFO:root:REASONING STEP:2
 INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
 INFO:root:↑ BOUNDS UPDATED TIGHTENED:3.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
 INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
-INFO:root:UPWARD INFERENCE RESULT:10.0
+INFO:root:UPWARD INFERENCE RESULT:9.0
 INFO:root:↓ CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:3 PARENT:0 
 INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
-INFO:root:DOWNWARD INFERENCE RESULT:6.0
+INFO:root:DOWNWARD INFERENCE RESULT:5.0
 INFO:root:----------------------
 INFO:root:REASONING STEP:3
 INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
 INFO:root:↑ BOUNDS UPDATED TIGHTENED:1.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
 INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
-INFO:root:UPWARD INFERENCE RESULT:5.0
-INFO:root:↓ CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:3 PARENT:0 
+INFO:root:UPWARD INFERENCE RESULT:4.0
 INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
-INFO:root:DOWNWARD INFERENCE RESULT:3.0
+INFO:root:DOWNWARD INFERENCE RESULT:2.0
 INFO:root:----------------------
 INFO:root:REASONING STEP:4
 INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
 INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
 INFO:root:UPWARD INFERENCE RESULT:1.0
-INFO:root:↓ CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:3 PARENT:0 
 INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
 INFO:root:DOWNWARD INFERENCE RESULT:1.0
 INFO:root:----------------------
 INFO:root:REASONING STEP:5
 INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
 INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
-INFO:root:↓ CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:3 PARENT:0 
 INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
 INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
 INFO:root:======================
-INFO:root:INFERENCE CONVERGED WITH 152.0 BOUNDS UPDATES IN 6 REASONING STEPS 
+INFO:root:INFERENCE CONVERGED WITH 153.0 BOUNDS UPDATES IN 6 REASONING STEPS 
 INFO:root:******************************************************************************
 INFO:root:----------------------
 INFO:root:REASONING STEP:0
 INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
 INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
-INFO:root:↓ CONTRADICTION FOR:'¬is_conversational(0)' FROM:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:3 PARENT:0 
 INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
 INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
 INFO:root:======================
@@ -1532,19 +1528,25 @@ INFO:root:**********************************************************************
 INFO:root:----------------------
 INFO:root:REASONING STEP:0
 INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
-INFO:root:↑ BOUNDS UPDATED TIGHTENED:2.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:↑ BOUNDS UPDATED TIGHTENED:1.0 FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
 INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
-INFO:root:UPWARD INFERENCE RESULT:5.0
+INFO:root:UPWARD INFERENCE RESULT:3.0
 INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
 INFO:root:DOWNWARD INFERENCE RESULT:2.0
 INFO:root:----------------------
 INFO:root:REASONING STEP:1
 INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
 INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
+INFO:root:UPWARD INFERENCE RESULT:1.0
+INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
+INFO:root:----------------------
+INFO:root:REASONING STEP:2
+INFO:root:↑ CONTRADICTION FOR:'¬is_conversational(0)' FORMULA:3 
+INFO:root:↑ CONTRADICTION FOR:'(is_candidate(0) ∧ is_product_category(0) ∧ ¬is_conversational(0))' FORMULA:0 
 INFO:root:↓ CONTRADICTION FOR:'is_conversational' FROM:'¬is_conversational(0)' FORMULA:4 PARENT:3 
 INFO:root:NO UPDATES AVAILABLE, TRYING A NEW AXIOM
 INFO:root:======================
-INFO:root:INFERENCE CONVERGED WITH 7.0 BOUNDS UPDATES IN 2 REASONING STEPS 
+INFO:root:INFERENCE CONVERGED WITH 6.0 BOUNDS UPDATES IN 3 REASONING STEPS 
 INFO:root:******************************************************************************
 INFO:root:----------------------
 INFO:root:REASONING STEP:0
@@ -2114,497 +2116,497 @@ INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-V3.3 Multi-SKU Inference:   1% 14/1684 [00:09<06:58,  3.99it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:   1% 13/1684 [00:09<08:33,  3.26it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 3 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 64
-V3.3 Multi-SKU Inference:   2% 31/1684 [00:18<05:49,  4.73it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:   2% 31/1684 [00:17<05:44,  4.80it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 3 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
-V3.3 Multi-SKU Inference:   3% 47/1684 [00:27<05:56,  4.59it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:   3% 46/1684 [00:26<07:11,  3.80it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
-V3.3 Multi-SKU Inference:   4% 63/1684 [00:37<05:55,  4.56it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:   4% 63/1684 [00:35<04:47,  5.64it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 3 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
-V3.3 Multi-SKU Inference:   5% 77/1684 [00:46<07:58,  3.36it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:   5% 78/1684 [00:44<07:04,  3.79it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
-V3.3 Multi-SKU Inference:   6% 93/1684 [00:56<07:38,  3.47it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:   6% 95/1684 [00:53<05:29,  4.82it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
-V3.3 Multi-SKU Inference:   7% 110/1684 [01:06<04:57,  5.29it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:   6% 109/1684 [01:02<07:16,  3.61it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
-V3.3 Multi-SKU Inference:   8% 127/1684 [01:15<05:26,  4.77it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:   8% 127/1684 [01:11<05:28,  4.73it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
-V3.3 Multi-SKU Inference:   8% 142/1684 [01:25<07:09,  3.59it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:   8% 142/1684 [01:20<06:55,  3.71it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
-V3.3 Multi-SKU Inference:   9% 159/1684 [01:34<05:05,  5.00it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:   9% 158/1684 [01:28<06:03,  4.20it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
-V3.3 Multi-SKU Inference:  10% 175/1684 [01:44<04:36,  5.46it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  10% 174/1684 [01:37<04:31,  5.56it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
-V3.3 Multi-SKU Inference:  11% 190/1684 [01:53<05:31,  4.51it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  11% 191/1684 [01:46<05:00,  4.97it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 3 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 72
-V3.3 Multi-SKU Inference:  12% 207/1684 [02:03<05:16,  4.67it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  12% 206/1684 [01:56<05:21,  4.60it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 3 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
-V3.3 Multi-SKU Inference:  13% 223/1684 [02:12<06:12,  3.93it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  13% 220/1684 [02:04<06:34,  3.72it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
-V3.3 Multi-SKU Inference:  14% 238/1684 [02:21<06:52,  3.51it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  14% 237/1684 [02:13<06:01,  4.00it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
-V3.3 Multi-SKU Inference:  15% 255/1684 [02:31<05:56,  4.01it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  15% 254/1684 [02:22<05:31,  4.32it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
-V3.3 Multi-SKU Inference:  16% 270/1684 [02:40<06:40,  3.53it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  16% 269/1684 [02:30<06:15,  3.76it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
-V3.3 Multi-SKU Inference:  17% 287/1684 [02:49<05:07,  4.54it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  17% 287/1684 [02:39<04:43,  4.94it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
-V3.3 Multi-SKU Inference:  18% 302/1684 [02:59<06:28,  3.56it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  18% 302/1684 [02:48<06:08,  3.76it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
-V3.3 Multi-SKU Inference:  19% 319/1684 [03:08<05:13,  4.35it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
-V3.3 Multi-SKU Inference:  20% 334/1684 [03:17<05:37,  4.00it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  19% 319/1684 [02:57<04:16,  5.32it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
-V3.3 Multi-SKU Inference:  21% 350/1684 [03:27<04:26,  5.00it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  20% 335/1684 [03:06<05:04,  4.43it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 74
+V3.3 Multi-SKU Inference:  21% 350/1684 [03:15<05:04,  4.38it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  22% 366/1684 [03:36<04:42,  4.66it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  22% 367/1684 [03:24<04:26,  4.93it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  23% 382/1684 [03:46<04:44,  4.58it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  23% 383/1684 [03:33<04:33,  4.76it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  24% 399/1684 [03:55<04:35,  4.66it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  24% 399/1684 [03:42<04:39,  4.60it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  25% 415/1684 [04:05<05:21,  3.95it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  25% 413/1684 [03:51<05:41,  3.72it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  26% 431/1684 [04:14<05:41,  3.67it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  26% 430/1684 [04:00<04:19,  4.83it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  26% 446/1684 [04:23<06:02,  3.41it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  26% 446/1684 [04:08<04:57,  4.16it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  27% 461/1684 [04:33<05:55,  3.44it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  27% 461/1684 [04:17<05:30,  3.70it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  28% 479/1684 [04:42<04:23,  4.57it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  28% 479/1684 [04:26<04:11,  4.79it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  29% 494/1684 [04:51<05:36,  3.54it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  29% 495/1684 [04:35<04:09,  4.77it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  30% 511/1684 [05:01<03:43,  5.25it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  30% 510/1684 [04:44<04:57,  3.94it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  31% 525/1684 [05:10<05:27,  3.54it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  31% 525/1684 [04:53<05:18,  3.64it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  32% 543/1684 [05:20<04:10,  4.56it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  32% 542/1684 [05:02<03:26,  5.53it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  33% 558/1684 [05:29<05:15,  3.57it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  33% 559/1684 [05:11<03:38,  5.14it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  34% 575/1684 [05:39<03:25,  5.40it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  34% 574/1684 [05:20<04:55,  3.76it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 3 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  35% 591/1684 [05:49<03:58,  4.59it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  35% 591/1684 [05:29<03:58,  4.59it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  36% 605/1684 [05:58<05:09,  3.49it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  36% 606/1684 [05:38<03:51,  4.66it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  37% 623/1684 [06:07<03:49,  4.62it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  38% 639/1684 [06:17<03:40,  4.75it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  37% 623/1684 [05:46<03:32,  4.99it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  39% 654/1684 [06:27<03:28,  4.93it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  38% 639/1684 [05:55<04:01,  4.33it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  40% 669/1684 [06:36<03:57,  4.27it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  41% 687/1684 [06:46<02:56,  5.65it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  39% 654/1684 [06:05<03:24,  5.04it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  42% 702/1684 [06:55<04:04,  4.01it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  40% 671/1684 [06:14<03:00,  5.60it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  41% 687/1684 [06:22<03:28,  4.79it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
+V3.3 Multi-SKU Inference:  42% 702/1684 [06:31<03:59,  4.10it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  43% 718/1684 [07:05<03:11,  5.04it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  43% 718/1684 [06:41<03:09,  5.09it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  44% 735/1684 [07:15<02:27,  6.45it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  44% 734/1684 [06:50<02:37,  6.04it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  45% 751/1684 [07:24<02:39,  5.85it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  45% 750/1684 [06:59<02:32,  6.13it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  45% 766/1684 [07:34<03:17,  4.65it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  46% 767/1684 [07:08<02:27,  6.22it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  46% 782/1684 [07:44<02:54,  5.18it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  46% 783/1684 [07:18<02:44,  5.47it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 101
-V3.3 Multi-SKU Inference:  47% 799/1684 [07:53<02:26,  6.05it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  47% 798/1684 [07:27<02:58,  4.96it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 113
-V3.3 Multi-SKU Inference:  48% 815/1684 [08:02<02:46,  5.21it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  48% 815/1684 [07:36<02:43,  5.32it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 113
-V3.3 Multi-SKU Inference:  49% 831/1684 [08:12<02:26,  5.83it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  49% 831/1684 [07:45<02:22,  5.99it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 151
-V3.3 Multi-SKU Inference:  50% 846/1684 [08:21<02:41,  5.19it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  50% 846/1684 [07:54<03:01,  4.61it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 166
-V3.3 Multi-SKU Inference:  51% 863/1684 [08:30<02:10,  6.30it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  51% 863/1684 [08:03<02:10,  6.28it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 166
-V3.3 Multi-SKU Inference:  52% 877/1684 [08:39<02:49,  4.75it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  52% 878/1684 [08:12<02:30,  5.35it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 166
-V3.3 Multi-SKU Inference:  53% 895/1684 [08:49<02:32,  5.18it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  53% 894/1684 [08:21<02:56,  4.47it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  54% 911/1684 [08:58<02:22,  5.44it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  54% 909/1684 [08:30<03:01,  4.26it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  55% 926/1684 [09:07<02:30,  5.05it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  55% 926/1684 [08:39<02:13,  5.68it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  56% 943/1684 [09:16<02:14,  5.52it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  56% 943/1684 [08:48<02:06,  5.88it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  57% 958/1684 [09:25<02:15,  5.37it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  57% 959/1684 [08:58<02:10,  5.55it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  58% 974/1684 [09:35<02:10,  5.42it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  58% 975/1684 [09:07<02:18,  5.11it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  59% 990/1684 [09:44<01:55,  6.02it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  59% 989/1684 [09:16<02:26,  4.75it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  60% 1007/1684 [09:53<01:56,  5.80it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  60% 1007/1684 [09:25<01:53,  5.94it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  61% 1023/1684 [10:02<01:53,  5.81it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  61% 1023/1684 [09:34<02:10,  5.07it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  62% 1039/1684 [10:12<02:01,  5.30it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  62% 1038/1684 [09:43<02:01,  5.30it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  63% 1055/1684 [10:21<02:21,  4.45it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  64% 1070/1684 [10:30<02:33,  4.00it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  63% 1055/1684 [09:52<02:07,  4.93it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  65% 1087/1684 [10:40<01:56,  5.11it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  63% 1069/1684 [10:01<02:54,  3.53it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  65% 1087/1684 [10:11<01:47,  5.53it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  65% 1103/1684 [10:51<01:50,  5.26it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  65% 1103/1684 [10:20<01:38,  5.92it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  66% 1119/1684 [11:01<01:58,  4.78it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  66% 1119/1684 [10:29<01:37,  5.78it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  67% 1133/1684 [11:10<02:15,  4.07it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  68% 1150/1684 [11:20<01:38,  5.40it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  67% 1135/1684 [10:38<01:40,  5.48it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  69% 1166/1684 [11:29<01:33,  5.55it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  68% 1151/1684 [10:47<01:42,  5.21it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 2 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  69% 1167/1684 [10:56<01:29,  5.78it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  70% 1182/1684 [11:39<01:35,  5.24it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  70% 1182/1684 [11:05<01:38,  5.08it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  71% 1198/1684 [11:49<01:27,  5.54it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  71% 1198/1684 [11:15<01:28,  5.50it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 3 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  72% 1215/1684 [11:59<01:16,  6.13it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  72% 1214/1684 [11:24<01:17,  6.04it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  73% 1230/1684 [12:08<01:32,  4.93it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  73% 1229/1684 [11:33<01:38,  4.61it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  74% 1247/1684 [12:18<01:32,  4.73it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  74% 1247/1684 [11:41<01:26,  5.06it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  75% 1263/1684 [12:27<01:31,  4.59it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  75% 1263/1684 [11:51<01:35,  4.41it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  76% 1279/1684 [12:37<01:36,  4.22it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  76% 1277/1684 [11:59<01:52,  3.62it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  77% 1294/1684 [12:46<01:40,  3.89it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  77% 1295/1684 [12:08<01:23,  4.68it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  78% 1310/1684 [12:56<01:24,  4.45it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  78% 1311/1684 [12:17<01:18,  4.78it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  79% 1327/1684 [13:06<01:08,  5.23it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  79% 1326/1684 [12:26<01:31,  3.92it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  80% 1343/1684 [13:15<01:04,  5.26it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  80% 1342/1684 [12:35<01:14,  4.59it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  81% 1357/1684 [13:25<01:33,  3.50it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  81% 1359/1684 [12:44<01:04,  5.01it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 3 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  82% 1374/1684 [13:34<00:56,  5.51it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  82% 1374/1684 [12:54<01:08,  4.50it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  83% 1390/1684 [13:44<01:00,  4.84it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  83% 1406/1684 [13:54<00:48,  5.69it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  83% 1390/1684 [13:03<00:50,  5.82it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  84% 1422/1684 [14:04<00:47,  5.51it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  84% 1407/1684 [13:12<00:43,  6.38it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  85% 1439/1684 [14:14<00:38,  6.38it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  85% 1423/1684 [13:21<00:43,  5.98it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  85% 1439/1684 [13:31<00:45,  5.42it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  86% 1454/1684 [14:23<00:55,  4.14it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  86% 1455/1684 [13:39<00:51,  4.47it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  87% 1470/1684 [14:33<00:44,  4.86it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  87% 1471/1684 [13:49<00:36,  5.86it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  88% 1487/1684 [14:43<00:33,  5.91it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  88% 1485/1684 [13:58<00:51,  3.89it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  89% 1502/1684 [14:53<00:48,  3.78it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  89% 1502/1684 [14:07<00:36,  5.00it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  90% 1518/1684 [15:03<00:31,  5.21it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  90% 1518/1684 [14:16<00:29,  5.56it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  91% 1534/1684 [15:13<00:28,  5.34it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  91% 1534/1684 [14:26<00:25,  5.85it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  92% 1550/1684 [15:22<00:26,  5.05it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  92% 1551/1684 [14:35<00:22,  5.86it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  93% 1566/1684 [15:32<00:21,  5.49it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  93% 1567/1684 [14:45<00:22,  5.16it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  94% 1583/1684 [15:42<00:16,  6.25it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  94% 1583/1684 [14:54<00:19,  5.30it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  95% 1599/1684 [15:52<00:14,  5.71it/s]INFO:root:For numpy array image, we assume (HxWxC) format
-INFO:root:Computing image embeddings for the provided image...
-INFO:root:Image embeddings computed.
-[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
-INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  96% 1615/1684 [16:02<00:13,  5.12it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  95% 1599/1684 [15:03<00:14,  6.05it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  97% 1631/1684 [16:12<00:09,  5.78it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  96% 1615/1684 [15:12<00:11,  5.92it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+INFO:root:Computing image embeddings for the provided image...
+INFO:root:Image embeddings computed.
+[SegmentationEngine] Filtered 1 objects (outside ROI/area range)
+INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
+V3.3 Multi-SKU Inference:  97% 1631/1684 [15:21<00:09,  5.39it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  98% 1647/1684 [16:21<00:06,  5.59it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  98% 1647/1684 [15:31<00:06,  5.85it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference:  99% 1662/1684 [16:31<00:05,  4.21it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference:  99% 1662/1684 [15:40<00:04,  4.44it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 2 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference: 100% 1679/1684 [16:40<00:00,  5.16it/s]INFO:root:For numpy array image, we assume (HxWxC) format
+V3.3 Multi-SKU Inference: 100% 1679/1684 [15:49<00:00,  5.57it/s]INFO:root:For numpy array image, we assume (HxWxC) format
 INFO:root:Computing image embeddings for the provided image...
 INFO:root:Image embeddings computed.
 [SegmentationEngine] Filtered 1 objects (outside ROI/area range)
 INFO:v2_logic.models.count_vid_engine:[CountVid] Final Tally: 167
-V3.3 Multi-SKU Inference: 100% 1683/1684 [16:49<00:00,  1.67it/s]
+V3.3 Multi-SKU Inference: 100% 1683/1684 [15:57<00:00,  1.76it/s]
 INFO:v2_logic.pipeline.engine_v2:Visualizer complete. Saved to /content/output_v2.mp4
 
 
