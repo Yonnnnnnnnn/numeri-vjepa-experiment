@@ -1,0 +1,26 @@
+# Task: Refine Discovery Loop with Focal-Aware Logic (V5.1)
+
+- [x] **Phase 1: State & Parameter Prep**
+  - [x] Add `focal_trigger_threshold`, `causal_buffer_frames` to [GlobalContext](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/types/graph_state.py#75-122)
+  - [x] Add `latent_focus_scores`, `causal_frame_buffer` to [PerceptionState](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/types/graph_state.py#129-307)
+- [x] **Phase 2: Persistent Centrality Tracking**
+  - [x] Implement focus score accumulation in [vjepa_brain_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#305-393)
+  - [x] Implement rolling frame buffer for "Latent Anticipation"
+- [x] **Phase 3: Wait-and-Watch Focal Trigger**
+  - [x] Implement focal trigger logic in [latent_director_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#340-608)
+  - [x] Implement "Back-in-Time" best frame retrieval
+- [x] **Phase 4: Identity Sovereignty & LNN Gatekeeping**
+  - [x] Implement `Spatial Anchor Guard` for genesis deduplication
+  - [x] Integrate LNN as "Last Gate" for focal triggered analysis
+  - [x] Refine Step 12 (Discovery) with LNN validation for new objects
+- [x] **Phase 5: Refinement & Clean-up**
+  - [x] Fix indentation and scope issues in [recursive_flow.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py)
+  - [x] Verify integration of PointBeam ROI and SLM Override logic
+- [x] **Phase 6: V5.1 Structural Execution Fixes (NEW)**
+  - [x] Update `DecisionState.status` in [graph_state.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/types/graph_state.py) to accept `"continue_perception"`
+  - [x] Modify [logic_gate_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1419-1491) in [recursive_flow.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py) to return `"continue_perception"` instead of `"exit"` for stale volumetric data
+  - [x] Modify [route_after_logic_gate](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1548-1565) to route `"continue_perception"` bypassing SLM
+  - [x] Validate [run_recursive_system.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/run_recursive_system.py) state carry-over for Wait-and-Watch scores across `app.invoke()` calls
+- [x] **Phase 7: Verification**
+  - [x] Final code review and walkthrough update
+  - [ ] Runtime execution test (USER verification)

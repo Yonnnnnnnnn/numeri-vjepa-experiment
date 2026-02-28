@@ -320,7 +320,7 @@ class DecisionState(BaseModel):
     - Represents the current state of the decision machine.
     """
 
-    status: Literal["processing", "looping", "exit"] = Field(
+    status: Literal["processing", "looping", "exit", "continue_perception"] = Field(
         default="processing", description="Current workflow status"
     )
 

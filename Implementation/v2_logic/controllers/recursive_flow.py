@@ -1401,22 +1401,23 @@ def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
         )
 
         # --- STEP 3.6: CIRCUIT BREAKER (Stale Data Guard) ---
+        # V5.1: Instead of forcing exit, allow perception to continue (Wait-and-Watch)
         if (
             gate_decision.anomaly_type.value == "volumetric"
             and not perception.is_volumetric_data_fresh
         ):
             logger.warning(
-                "[logic_gate_node] CIRCUIT BREAKER: Volumetric anomaly with STALE data detected. Forcing Exit."
+                "[logic_gate_node] CIRCUIT BREAKER: Volumetric anomaly with STALE data detected. Continuing perception (Wait-and-Watch)."
             )
             return {
                 "decision": {
-                    "status": "exit",
+                    "status": "continue_perception",
                     "anomaly_type": "none",
                     "logic_gate_result": {
                         "rule_applied": "CIRCUIT_BREAKER_STALE_DATA",
                         "confidence": 0.0,
-                        "action": "exit",
-                        "reasoning": "Circuit Breaker: Volumetric data is stale (V3 Math did not update). Terminating to prevent loop deadlock.",
+                        "action": "continue_perception",
+                        "reasoning": "Circuit Breaker: Volumetric data is stale (V3 Math did not update). Bypassing SLM and continuing perception accumulation.",
                     },
                 }
             }
@@ -1503,9 +1504,11 @@ def route_to_genesis_or_brain(
 
 def route_after_logic_gate(
     state: RecursiveFlowState,
-) -> Literal["exit", "targeted_slm_node"]:
+) -> Literal["exit", "targeted_slm_node", "interpolation_node"]:
     """
     Conditional edge: Route based on Logic Gate decision.
+    
+    V5.1: Added 'continue_perception' route to bypass SLM when volumetric data is stale.
     """
     decision = state["decision"]
 
@@ -1516,6 +1519,10 @@ def route_after_logic_gate(
     elif decision.loop_count >= state["ctx"].max_loop_count:
         logger.warning("[route] Max loop count reached, forcing exit")
         return "exit"
+    elif decision.status == "continue_perception":
+        # V5.1: Bypass SLM and route directly to interpolation → latent_director
+        logger.info("[route] Continue perception detected, bypassing SLM")
+        return "interpolation_node"
     else:
         return "targeted_slm_node"
 
@@ -1650,12 +1657,14 @@ def build_recursive_graph() -> StateGraph:
     graph.add_edge("fusion_engine_node", "logic_gate_node")
 
     # Logic Gate → Conditional Edge
+    # V5.1: Added 'interpolation_node' route for 'continue_perception' status
     graph.add_conditional_edges(
         "logic_gate_node",
         route_after_logic_gate,
         {
             "exit": END,
             "targeted_slm_node": "targeted_slm_node",
+            "interpolation_node": "interpolation_node",
         },
     )
 

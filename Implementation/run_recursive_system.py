@@ -464,6 +464,11 @@ def main():
             logger.info(f"  - Volumetric Range: {p.n_volumetric_range}")
             logger.info(f"  - Spike Energy: {p.spike_energy:.2f}")
             logger.info(f"  - Anomaly Status: {d.status}")
+            # V5.1: Log accumulated focus scores for Wait-and-Watch validation
+            if p.latent_focus_scores:
+                logger.info(
+                    f"  - V5.1 Focus Scores: { {k: f'{v:.2f}' for k, v in p.latent_focus_scores.items()} }"
+                )
             if d.slm_triggered:
                 logger.info(f"  - SLM Reasoning: {d.slm_reasoning}")
 
