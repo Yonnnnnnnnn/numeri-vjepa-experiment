@@ -106,10 +106,10 @@ class GlobalContext(BaseModel):
     )
     # V5.0: Focal Discovery parameters
     focal_trigger_threshold: float = Field(
-        default=5.0,
+        default=4.0,
         description=(
             "Accumulated centrality score threshold to trigger focal VLM analysis. "
-            "Higher = more patient (requires longer dwell-time)"
+            "Lowered to 4.0 to be mathematically reachable (score = score * 0.8 + 1.0 converges to 5.0)"
         ),
     )
     causal_buffer_frames: int = Field(

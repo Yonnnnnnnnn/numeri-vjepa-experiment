@@ -86,9 +86,15 @@ from v2_logic.types.graph_state import create_initial_state
 
 
 def setup_logging():
+    """
+    Setup logging with forced stdout streaming for visibility.
+    V5.1: Added force=True and stream=sys.stdout to ensure all node logs are visible.
+    """
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        force=True,
+        stream=sys.stdout,
     )
 
 

@@ -21,6 +21,11 @@
   - [x] Modify [logic_gate_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1419-1491) in [recursive_flow.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py) to return `"continue_perception"` instead of `"exit"` for stale volumetric data
   - [x] Modify [route_after_logic_gate](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1548-1565) to route `"continue_perception"` bypassing SLM
   - [x] Validate [run_recursive_system.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/run_recursive_system.py) state carry-over for Wait-and-Watch scores across `app.invoke()` calls
-- [x] **Phase 7: Verification**
+- [x] **Phase 7: V5.1 Discovery Loop Execution Fixes**
+  - [x] Fix Mathematical Deadlock: Lower `focal_trigger_threshold` to `4.0` in [graph_state.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/types/graph_state.py)
+  - [x] Fix Circuit Breaker Suicide: Update [logic_gate_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1375-1448) and routing in [recursive_flow.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py)
+  - [x] Fix Identity Mismatch: Align `latent_id` and `label` handling in [vjepa_brain_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#305-335) and [latent_director_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#340-608) with pre-built label_to_bbox lookup map
+  - [x] Fix Invisible Logs: Force sys.stdout in [run_recursive_system.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/run_recursive_system.py) logging config
+- [x] **Phase 8: Verification**
   - [x] Final code review and walkthrough update
   - [ ] Runtime execution test (USER verification)

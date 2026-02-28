@@ -432,14 +432,26 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
     threshold = ctx.focal_trigger_threshold
     buffer = perception.causal_frame_buffer
 
+    # Build a lookup map: label -> bbox for fast retrieval
+    label_to_bbox = {
+        gi.get("label"): gi.get("bbox")
+        for gi in perception.genesis_intents
+        if gi.get("label") and gi.get("bbox")
+    }
+    logger.info(
+        "[FocalTrigger] Available genesis labels: %s",
+        list(label_to_bbox.keys()),
+    )
+
     for latent_id, score in focus_scores.items():
         # Trigger focal analysis if score reached threshold
         if score >= threshold and latent_id not in current_intent:
             logger.info(
                 "[FocalTrigger] V5.0 WAIT-AND-WATCH: Latent '%s' reached "
-                "focus score %.2f. Triggering focal analysis.",
+                "focus score %.2f (threshold=%.1f). Triggering focal analysis.",
                 latent_id,
                 score,
+                threshold,
             )
 
             # --- LATENT ANTICIPATION: Back-in-Time Retrieval ---
@@ -454,13 +466,21 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
             if best_frame is not None and slm:
                 try:
                     # Find the bbox for this latent from genesis_intents
-                    target_bbox = next(
-                        (
-                            gi.get("bbox")
-                            for gi in perception.genesis_intents
-                            if gi.get("label") == latent_id
-                        ),
-                        None,
+                    # Use the pre-built lookup map for reliability
+                    target_bbox = label_to_bbox.get(latent_id)
+                    
+                    if target_bbox is None:
+                        logger.warning(
+                            "[FocalTrigger] No bbox found for latent_id '%s'. Available: %s",
+                            latent_id,
+                            list(label_to_bbox.keys()),
+                        )
+                        continue
+
+                    logger.info(
+                        "[FocalTrigger] Found bbox for '%s': %s",
+                        latent_id,
+                        target_bbox,
                     )
 
                     focal_label = slm.generate_focal_intent(
@@ -497,7 +517,7 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
                             )
                             updates["contra_intents"] = updated_contras
                 except Exception as exc:
-                    logger.warning("[FocalTrigger] Focal analysis failed: %s", exc)
+                    logger.error("[FocalTrigger] Focal analysis failed: %s", exc, exc_info=True)
 
     # Phase 9: Adaptive Intent Update from SLM Hypothesis
     if decision.slm_hypothesis:
