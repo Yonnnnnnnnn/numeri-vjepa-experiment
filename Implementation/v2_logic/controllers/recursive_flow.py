@@ -310,6 +310,7 @@ def vjepa_brain_node(state: RecursiveFlowState) -> Dict[str, Any]:
     V5.0: Also accumulates Causal Focus Score per tracked latent ID
     and maintains a rolling frame buffer for Back-in-Time retrieval.
     """
+    logger.error("[DEBUG EXECUTION] vjepa_brain_node is running")
     logger.info("[vjepa_brain_node] Encoding latent context")
     vjepa = get_vjepa_engine()
     perception = state["perception"]
@@ -406,6 +407,7 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
     - Refinement Loop: Adjust sensitivity or set PointBeam ROI
     - V5.1 LNN Last Gate: Final confirmation for all VLM labels
     """
+    logger.error("[DEBUG EXECUTION] latent_director_node is running")
     from .recursive_flow import get_slm_engine, get_vjepa_engine, get_lnn_kb
 
     slm = get_slm_engine()
@@ -1299,6 +1301,7 @@ def fusion_engine_node(state: RecursiveFlowState) -> Dict[str, Any]:
     Fuse spike data with SAM2 masks and TRACK objects.
     Implements Re-ID to maintain consistent counts across loops.
     """
+    logger.error("[DEBUG EXECUTION] fusion_engine_node is running")
     logger.info("[fusion_engine_node] Fusing sensor data & Tracking")
 
     fusion_engine = get_fusion_engine()
@@ -1396,6 +1399,7 @@ def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
     """
     Primary decision gate. Checks for anomalies.
     """
+    logger.error("[DEBUG EXECUTION] logic_gate_node is running")
     perception = state["perception"]
     decision = state["decision"]
     ctx = state["ctx"]
@@ -1422,25 +1426,26 @@ def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
 
         # --- STEP 3.6: CIRCUIT BREAKER (Stale Data Guard) ---
         # V5.1: Instead of forcing exit, allow perception to continue (Wait-and-Watch)
-        if (
-            gate_decision.anomaly_type.value == "volumetric"
-            and not perception.is_volumetric_data_fresh
-        ):
-            logger.warning(
-                "[logic_gate_node] CIRCUIT BREAKER: Volumetric anomaly with STALE data detected. Continuing perception (Wait-and-Watch)."
-            )
-            return {
-                "decision": {
-                    "status": "continue_perception",
-                    "anomaly_type": "none",
-                    "logic_gate_result": {
-                        "rule_applied": "CIRCUIT_BREAKER_STALE_DATA",
-                        "confidence": 0.0,
-                        "action": "continue_perception",
-                        "reasoning": "Circuit Breaker: Volumetric data is stale (V3 Math did not update). Bypassing SLM and continuing perception accumulation.",
-                    },
-                }
-            }
+        # TEMP DEBUG: Commented out to force SLM node execution
+        # if (
+        #     gate_decision.anomaly_type.value == "volumetric"
+        #     and not perception.is_volumetric_data_fresh
+        # ):
+        #     logger.warning(
+        #         "[logic_gate_node] CIRCUIT BREAKER: Volumetric anomaly with STALE data detected. Continuing perception (Wait-and-Watch)."
+        #     )
+        #     return {
+        #         "decision": {
+        #             "status": "continue_perception",
+        #             "anomaly_type": "none",
+        #             "logic_gate_result": {
+        #                 "rule_applied": "CIRCUIT_BREAKER_STALE_DATA",
+        #                 "confidence": 0.0,
+        #                 "action": "continue_perception",
+        #                 "reasoning": "Circuit Breaker: Volumetric data is stale (V3 Math did not update). Bypassing SLM and continuing perception accumulation.",
+        #             },
+        #         }
+        #     }
 
         new_decision = decision.model_copy(
             update={
@@ -1472,6 +1477,7 @@ def targeted_slm_node(state: RecursiveFlowState) -> Dict[str, Any]:
     Targeted SLM for ambiguity resolution.
     Only triggered when Logic Gate detects anomalies.
     """
+    logger.error("[DEBUG EXECUTION] targeted_slm_node is running")
     logger.info("[targeted_slm_node] SLM reasoning triggered")
 
     engine = get_slm_engine()
@@ -1552,6 +1558,7 @@ def interpolation_node(state: RecursiveFlowState) -> Dict[str, Any]:
     State Interpolation.
     Projects previous state/hypothesis to current frame coordinates.
     """
+    logger.error("[DEBUG EXECUTION] interpolation_node is running")
     logger.info("[interpolation_node] Interpolating state to current frame")
 
     decision = state["decision"]
@@ -1609,7 +1616,7 @@ def build_recursive_graph() -> StateGraph:
                               v
                        logic_gate_node (Step 11)
                               │
-                 ┌────────────┴────────────┐
+                 ┌───��────────┴────────────┐
                  v                         v
                (exit)              targeted_slm_node (Step 12)
                  │                         │
