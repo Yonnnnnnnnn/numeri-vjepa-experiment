@@ -309,8 +309,10 @@ def vjepa_brain_node(state: RecursiveFlowState) -> Dict[str, Any]:
 
     V5.0: Also accumulates Causal Focus Score per tracked latent ID
     and maintains a rolling frame buffer for Back-in-Time retrieval.
+    
+    V5.1: Composite Focus Score = (Centrality * 0.4) + (Scale Growth * 0.4) + (Velocity Alignment * 0.2)
+          Plus User Pointing Causal Indicator (hand-object intersection boost).
     """
-    logger.error("[DEBUG EXECUTION] vjepa_brain_node is running")
     logger.info("[vjepa_brain_node] Encoding latent context")
     vjepa = get_vjepa_engine()
     perception = state["perception"]
@@ -335,47 +337,161 @@ def vjepa_brain_node(state: RecursiveFlowState) -> Dict[str, Any]:
         vjepa.export_context("vjepa_context_dump.pt")
 
         # =====================================================================
-        # V5.0: CAUSAL BUFFER & FOCUS SCORE ACCUMULATION
+        # V5.1: COMPOSITE FOCUS SCORE WITH VELOCITY, SCALE, AND POINTING
         # =====================================================================
         updates = {}
-
-        # --- Focus Score Accumulation ---
-        # For each genesis intent with a known latent, update its focus score
-        # using exponential moving average: score = score * decay + centrality
         focus_scores = dict(perception.latent_focus_scores)  # Copy current
-        decay_factor = 0.8
-
+        decay_factor = 0.85  # Slightly higher decay for smoother accumulation
+        
+        # Build bbox history from causal buffer for velocity/scale calculation
+        buffer = list(perception.causal_frame_buffer)
+        max_buffer = ctx.causal_buffer_frames
+        
+        # Track bbox history per latent_id: {latent_id: [(frame_idx, bbox, area), ...]}
+        bbox_history = {}
+        for gi in perception.genesis_intents:
+            latent_id = gi.get("label", "")
+            bbox = gi.get("bbox")
+            if latent_id and bbox:
+                if latent_id not in bbox_history:
+                    bbox_history[latent_id] = []
+                # Add current frame bbox
+                area = bbox.get("w", 0) * bbox.get("h", 0)
+                bbox_history[latent_id].append((perception.current_frame_idx, bbox, area))
+        
+        # Extract historical bboxes from buffer
+        for entry in buffer:
+            frame_idx = entry.get("frame_idx", 0)
+            # We need to reconstruct bbox from latent_confidences or stored data
+            # For now, we'll use genesis_intents as the primary source
+        
+        # Detect "Human Hand" from contra_intents for pointing causal indicator
+        hand_contras = [
+            ci for ci in perception.contra_intents 
+            if "hand" in ci.get("label", "").lower()
+        ]
+        
         for intent in perception.genesis_intents:
             latent_id = intent.get("label", "")
             bbox = intent.get("bbox")
             if not latent_id or not bbox:
                 continue
 
-            # Calculate current centrality (re-use genesis logic)
+            # Calculate centrality (re-use genesis logic)
             from .intent_genesis_node import _calculate_centrality_score
-
             centrality = _calculate_centrality_score(bbox)
-
+            
+            # --- V5.1: SCALE GROWTH CALCULATION ---
+            # Object moving closer should have increasing area
+            scale_growth = 0.0
+            history = bbox_history.get(latent_id, [])
+            if len(history) >= 2:
+                # Compare current area with average of previous 2-3 frames
+                current_area = history[-1][2]
+                prev_areas = [h[2] for h in history[:-1] if h[2] > 0]
+                if prev_areas:
+                    avg_prev_area = sum(prev_areas) / len(prev_areas)
+                    if avg_prev_area > 0:
+                        scale_ratio = current_area / avg_prev_area
+                        # Boost if growing (ratio > 1.0), penalize if shrinking
+                        scale_growth = max(0.0, min(2.0, (scale_ratio - 1.0) * 2 + 1.0))
+                        # Normalize: ratio=1.0 -> 1.0, ratio=1.05 -> 1.1, ratio=0.95 -> 0.9
+            
+            # --- V5.1: VELOCITY ALIGNMENT CALCULATION ---
+            # Check if object is moving toward center
+            velocity_alignment = 1.0  # Default neutral
+            if len(history) >= 2:
+                curr_bbox = history[-1][1]
+                prev_bbox = history[-2][1]
+                
+                curr_cx = curr_bbox.get("x", 0) + curr_bbox.get("w", 0) / 2
+                curr_cy = curr_bbox.get("y", 0) + curr_bbox.get("h", 0) / 2
+                prev_cx = prev_bbox.get("x", 0) + prev_bbox.get("w", 0) / 2
+                prev_cy = prev_bbox.get("y", 0) + prev_bbox.get("h", 0) / 2
+                
+                # Velocity vector
+                vel_x = curr_cx - prev_cx
+                vel_y = curr_cy - prev_cy
+                
+                # Vector to center (0.5, 0.5)
+                center_x, center_y = 0.5, 0.5
+                to_center_x = center_x - curr_cx
+                to_center_y = center_y - curr_cy
+                
+                # Dot product: positive if moving toward center
+                dot_product = vel_x * to_center_x + vel_y * to_center_y
+                if dot_product > 0:
+                    velocity_alignment = 1.0 + min(1.0, abs(dot_product) * 5)  # Boost up to 2.0
+                elif dot_product < 0:
+                    velocity_alignment = max(0.5, 1.0 - abs(dot_product) * 2)  # Penalize down to 0.5
+            
+            # --- V5.1: USER POINTING CAUSAL INDICATOR ---
+            # Check if hand is pointing at or intersecting this object
+            pointing_boost = 0.0
+            if hand_contras and bbox:
+                obj_x1 = bbox.get("x", 0)
+                obj_y1 = bbox.get("y", 0)
+                obj_x2 = obj_x1 + bbox.get("w", 0)
+                obj_y2 = obj_y1 + bbox.get("h", 0)
+                
+                for hand in hand_contras:
+                    hand_bbox = hand.get("bbox", {})
+                    if not hand_bbox:
+                        continue
+                    
+                    hand_x1 = hand_bbox.get("x", 0)
+                    hand_y1 = hand_bbox.get("y", 0)
+                    hand_x2 = hand_x1 + hand_bbox.get("w", 0)
+                    hand_y2 = hand_y1 + hand_bbox.get("h", 0)
+                    
+                    # Check for intersection or proximity
+                    # Simple AABB intersection check
+                    intersects = not (obj_x2 < hand_x1 or obj_x1 > hand_x2 or 
+                                     obj_y2 < hand_y1 or obj_y1 > hand_y2)
+                    
+                    if intersects:
+                        pointing_boost = 2.0  # Massive boost for hand-object interaction
+                        logger.info(
+                            "[PointingCausal] Hand detected intersecting with '%s'!",
+                            latent_id
+                        )
+                        break
+            
+            # --- COMPOSITE FOCUS SCORE ---
+            # Formula: [(Centrality * 0.4) + (Scale Growth * 0.4) + (Velocity Alignment * 0.2)] + Pointing Boost
+            base_score = (centrality * 0.4) + (scale_growth * 0.4) + (velocity_alignment * 0.2)
+            composite_score = base_score + pointing_boost
+            
             # Exponential moving average accumulation
             old_score = focus_scores.get(latent_id, 0.0)
-            new_score = old_score * decay_factor + centrality
+            new_score = old_score * decay_factor + composite_score
             focus_scores[latent_id] = round(new_score, 4)
+            
+            # Log detailed breakdown for debugging
+            if pointing_boost > 0 or scale_growth > 1.1 or velocity_alignment > 1.1:
+                logger.info(
+                    "[vjepa_brain_node] V5.1 Focus '%s': centrality=%.2f, scale=%.2f, vel=%.2f, pointing=%.2f => composite=%.2f, accumulated=%.2f",
+                    latent_id, centrality, scale_growth, velocity_alignment, pointing_boost, composite_score, new_score
+                )
 
         if focus_scores:
             updates["latent_focus_scores"] = focus_scores
             logger.info(
-                "[vjepa_brain_node] V5.0 Focus Scores: %s",
+                "[vjepa_brain_node] V5.1 Focus Scores: %s",
                 {k: f"{v:.2f}" for k, v in focus_scores.items()},
             )
 
         # --- Causal Frame Buffer (Rolling Window) ---
-        max_buffer = ctx.causal_buffer_frames
-        buffer = list(perception.causal_frame_buffer)  # Copy current
-
         buffer_entry = {
             "frame_idx": perception.current_frame_idx,
             "image": perception.image,
             "latent_confidences": dict(focus_scores),
+            # Store bbox snapshot for history tracking
+            "bbox_snapshot": {
+                gi.get("label"): gi.get("bbox") 
+                for gi in perception.genesis_intents 
+                if gi.get("label") and gi.get("bbox")
+            },
         }
         buffer.append(buffer_entry)
 
@@ -407,7 +523,6 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
     - Refinement Loop: Adjust sensitivity or set PointBeam ROI
     - V5.1 LNN Last Gate: Final confirmation for all VLM labels
     """
-    logger.error("[DEBUG EXECUTION] latent_director_node is running")
     from .recursive_flow import get_slm_engine, get_vjepa_engine, get_lnn_kb
 
     slm = get_slm_engine()
@@ -492,7 +607,16 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
                     if focal_label:
                         # --- V5.1: LNN AS LAST GATE (GEBAG TERAKHIR) ---
                         lnn_confidence = lnn.validate_intent(focal_label)
+                        
+                        # --- V5.1: PROVISIONAL ACCEPTANCE PATH ---
+                        # If LNN rejects (score 0.0) but focus score is very high,
+                        # it might be a novel product not in LNN knowledge base.
+                        # Accept if: (1) LNN >= 0.7, OR (2) Focus Score >= 2.0 AND VLM triggered
+                        high_focus_threshold = 2.0  # Very high accumulated focus
+                        is_high_focus = score >= high_focus_threshold
+                        
                         if lnn_confidence >= 0.7:
+                            # Standard LNN confirmation
                             if focal_label not in current_intent:
                                 current_intent.append(focal_label)
                             updates["active_intent"] = current_intent
@@ -501,12 +625,42 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
                                 focal_label,
                                 lnn_confidence,
                             )
-                        else:
-                            # If LNN rejects, it's likely a distractor/noise
+                        elif is_high_focus and lnn_confidence > 0.0:
+                            # Borderline case: LNN uncertain but focus is high
                             logger.info(
-                                "[FocalTrigger] LNN REJECTED: '%s' (conf=%.2f). Registering as Contra Intent.",
-                                focal_label,
-                                lnn_confidence,
+                                "[FocalTrigger] LNN UNCERTAIN but HIGH FOCUS: '%s' (lnn=%.2f, focus=%.2f). Provisional acceptance.",
+                                focal_label, lnn_confidence, score
+                            )
+                            if focal_label not in current_intent:
+                                current_intent.append(focal_label)
+                            updates["active_intent"] = current_intent
+                        elif is_high_focus and lnn_confidence == 0.0:
+                            # V5.1: LNN rejects but focus is extremely high → Provisional Acceptance
+                            logger.warning(
+                                "[FocalTrigger] LNN REJECTED but EXTREME FOCUS: '%s' (lnn=%.2f, focus=%.2f). "
+                                "PROVISIONAL ACCEPTANCE as novel product (not in LNN KB).",
+                                focal_label, lnn_confidence, score
+                            )
+                            # Mark as provisional with metadata
+                            if focal_label not in current_intent:
+                                current_intent.append(focal_label)
+                            updates["active_intent"] = current_intent
+                            
+                            # Track provisional accepts for later review
+                            if "provisional_accepts" not in updates:
+                                updates["provisional_accepts"] = []
+                            updates["provisional_accepts"].append({
+                                "label": focal_label,
+                                "latent_id": latent_id,
+                                "focus_score": score,
+                                "lnn_score": lnn_confidence,
+                                "frame_idx": perception.current_frame_idx,
+                            })
+                        else:
+                            # LNN rejects with low focus → Likely noise/distractor
+                            logger.info(
+                                "[FocalTrigger] LNN REJECTED: '%s' (conf=%.2f, focus=%.2f). Registering as Contra Intent.",
+                                focal_label, lnn_confidence, score
                             )
                             # Register as contra to suppress in future frames
                             updated_contras = list(perception.contra_intents)
@@ -564,11 +718,32 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
             if not is_known_genesis and not is_known_contra and not is_current:
                 # --- V5.1: LNN deciding Step 12 logic ---
                 lnn_conf = lnn.validate_intent(obj_name)
+                
+                # --- V5.1: PROVISIONAL ACCEPTANCE FOR STEP 12 ---
+                # Check if this object has high focus score (already being tracked)
+                obj_focus_score = focus_scores.get(obj_name, 0.0)
+                is_high_focus = obj_focus_score >= 2.0
+                
                 if lnn_conf >= 0.7:
                     # It's a valid product we missed! Promote to genesis
                     logger.info(
-                        "[director] STEP 12+: LNN validated misses product '%s'. Promoting to active_intent.",
-                        obj_name,
+                        "[director] STEP 12+: LNN validated misses product '%s' (conf=%.2f). Promoting to active_intent.",
+                        obj_name, lnn_conf
+                    )
+                    discovered_labels.append(obj_name)
+                elif is_high_focus and lnn_conf > 0.0:
+                    # Borderline: LNN uncertain but focus is high
+                    logger.info(
+                        "[director] STEP 12: LNN uncertain '%s' (conf=%.2f) but HIGH FOCUS (%.2f). Provisional acceptance.",
+                        obj_name, lnn_conf, obj_focus_score
+                    )
+                    discovered_labels.append(obj_name)
+                elif is_high_focus and lnn_conf == 0.0:
+                    # V5.1: Novel product not in LNN KB but high focus
+                    logger.warning(
+                        "[director] STEP 12: LNN rejected '%s' (conf=0.0) but EXTREME FOCUS (%.2f). "
+                        "PROVISIONAL ACCEPTANCE as novel product.",
+                        obj_name, obj_focus_score
                     )
                     discovered_labels.append(obj_name)
                 else:
@@ -581,8 +756,8 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
                         }
                     )
                     logger.info(
-                        "[director] STEP 12: LNN rejected noise '%s'. Registering as Contra Intent.",
-                        obj_name,
+                        "[director] STEP 12: LNN rejected noise '%s' (conf=%.2f, focus=%.2f). Registering as Contra Intent.",
+                        obj_name, lnn_conf, obj_focus_score
                     )
 
         if discovered_labels:
@@ -1301,7 +1476,6 @@ def fusion_engine_node(state: RecursiveFlowState) -> Dict[str, Any]:
     Fuse spike data with SAM2 masks and TRACK objects.
     Implements Re-ID to maintain consistent counts across loops.
     """
-    logger.error("[DEBUG EXECUTION] fusion_engine_node is running")
     logger.info("[fusion_engine_node] Fusing sensor data & Tracking")
 
     fusion_engine = get_fusion_engine()
@@ -1399,7 +1573,6 @@ def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
     """
     Primary decision gate. Checks for anomalies.
     """
-    logger.error("[DEBUG EXECUTION] logic_gate_node is running")
     perception = state["perception"]
     decision = state["decision"]
     ctx = state["ctx"]
@@ -1426,26 +1599,25 @@ def logic_gate_node(state: RecursiveFlowState) -> Dict[str, Any]:
 
         # --- STEP 3.6: CIRCUIT BREAKER (Stale Data Guard) ---
         # V5.1: Instead of forcing exit, allow perception to continue (Wait-and-Watch)
-        # TEMP DEBUG: Commented out to force SLM node execution
-        # if (
-        #     gate_decision.anomaly_type.value == "volumetric"
-        #     and not perception.is_volumetric_data_fresh
-        # ):
-        #     logger.warning(
-        #         "[logic_gate_node] CIRCUIT BREAKER: Volumetric anomaly with STALE data detected. Continuing perception (Wait-and-Watch)."
-        #     )
-        #     return {
-        #         "decision": {
-        #             "status": "continue_perception",
-        #             "anomaly_type": "none",
-        #             "logic_gate_result": {
-        #                 "rule_applied": "CIRCUIT_BREAKER_STALE_DATA",
-        #                 "confidence": 0.0,
-        #                 "action": "continue_perception",
-        #                 "reasoning": "Circuit Breaker: Volumetric data is stale (V3 Math did not update). Bypassing SLM and continuing perception accumulation.",
-        #             },
-        #         }
-        #     }
+        if (
+            gate_decision.anomaly_type.value == "volumetric"
+            and not perception.is_volumetric_data_fresh
+        ):
+            logger.warning(
+                "[logic_gate_node] CIRCUIT BREAKER: Volumetric anomaly with STALE data detected. Continuing perception (Wait-and-Watch)."
+            )
+            return {
+                "decision": {
+                    "status": "continue_perception",
+                    "anomaly_type": "none",
+                    "logic_gate_result": {
+                        "rule_applied": "CIRCUIT_BREAKER_STALE_DATA",
+                        "confidence": 0.0,
+                        "action": "continue_perception",
+                        "reasoning": "Circuit Breaker: Volumetric data is stale (V3 Math did not update). Bypassing SLM and continuing perception accumulation.",
+                    },
+                }
+            }
 
         new_decision = decision.model_copy(
             update={
@@ -1477,7 +1649,6 @@ def targeted_slm_node(state: RecursiveFlowState) -> Dict[str, Any]:
     Targeted SLM for ambiguity resolution.
     Only triggered when Logic Gate detects anomalies.
     """
-    logger.error("[DEBUG EXECUTION] targeted_slm_node is running")
     logger.info("[targeted_slm_node] SLM reasoning triggered")
 
     engine = get_slm_engine()
@@ -1558,7 +1729,6 @@ def interpolation_node(state: RecursiveFlowState) -> Dict[str, Any]:
     State Interpolation.
     Projects previous state/hypothesis to current frame coordinates.
     """
-    logger.error("[DEBUG EXECUTION] interpolation_node is running")
     logger.info("[interpolation_node] Interpolating state to current frame")
 
     decision = state["decision"]

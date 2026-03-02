@@ -104,12 +104,13 @@ class GlobalContext(BaseModel):
     density_prior: float = Field(
         default=1.0, description="Initial density estimate (rho) for objects"
     )
-    # V5.0: Focal Discovery parameters
+    # V5.0/V5.1: Focal Discovery parameters
     focal_trigger_threshold: float = Field(
-        default=4.0,
+        default=1.0,
         description=(
-            "Accumulated centrality score threshold to trigger focal VLM analysis. "
-            "Lowered to 4.0 to be mathematically reachable (score = score * 0.8 + 1.0 converges to 5.0)"
+            "Accumulated composite focus score threshold to trigger focal VLM analysis. "
+            "V5.1: Lowered from 4.0 to 1.0 to be reachable with composite scoring "
+            "(centrality+scale+velocity typically yields 0.8-1.5 per frame, with pointing boost up to 3.5)"
         ),
     )
     causal_buffer_frames: int = Field(

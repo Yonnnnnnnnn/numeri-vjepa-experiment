@@ -81,8 +81,8 @@ class LogicGate:
 
     def __init__(
         self,
-        high_confidence_threshold: float = 1.01,  # TEMP DEBUG: Prevent early PASS
-        low_confidence_threshold: float = 0.0,  # TEMP DEBUG: Prevent early FAIL
+        high_confidence_threshold: float = 0.85,
+        low_confidence_threshold: float = 0.4,
         unexplained_area_threshold: float = 0.10,
         residue_threshold: float = 0.15,
         max_loop_count: int = 3,
@@ -94,8 +94,6 @@ class LogicGate:
             unexplained_area_threshold: Max unexplained blob area ratio.
             residue_threshold: Max residue ratio before triggering loop.
             max_loop_count: Maximum recursive loops before forced exit.
-        
-        NOTE: Thresholds modified for debugging discovery loop execution.
         """
         self.high_conf = high_confidence_threshold
         self.low_conf = low_confidence_threshold

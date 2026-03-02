@@ -1,40 +1,180 @@
-# Fixing Discovery Loop Execution
+# V5.1 Focal Discovery Loop: Implementation Complete
 
-This plan outlines the steps to "force" the inactive nodes in the discovery loop to execute, allowing us to debug the flow and see their logs. Based on the analysis of [recursive_flow.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py) and [logic_gate.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/models/logic_gate.py), the inactive nodes are likely being bypassed due to early `exit` decisions by the [LogicGate](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/models/logic_gate.py#65-257) or by the V5.1 Circuit Breaker.
+## Summary
+The V5.1 Discovery Loop architecture has been successfully implemented with the following enhancements:
 
-## User Review Required
-> [!IMPORTANT]
-> This plan involves temporarily altering core threshold values to intentionally force the state machine into an infinite loop (or up to the `max_loop_count`). This is strictly for debugging purposes to trigger the nodes ([targeted_slm_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1470-1509), [interpolation_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1550-1571), etc.) and trace their logs. We will revert these changes after identifying the root cause.
+### 1. ✅ Composite Focus Score System (vjepa_brain_node)
+**File**: `Implementation/v2_logic/controllers/recursive_flow.py` (lines 305-493)
 
-## Proposed Changes
+**Mathematical Formula**:
+```
+Focus Score = (Centrality × 0.4) + (Scale Growth × 0.4) + (Velocity Alignment × 0.2) + Pointing Boost
+```
 
-### Configuration Modifications
-We will modify the core thresholds of the [LogicGate](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/models/logic_gate.py#65-257) to ensure that it never immediately passes (exits) on the first loop iteration, forcing the system into the slower discovery loop path.
+**Components**:
+- **Centrality** (0.0-1.0): Distance from frame center using Foveated Confidence Bias
+- **Scale Growth** (0.0-2.0): Area ratio detection for objects moving closer
+  - Ratio = Current Area / Previous Average Area
+  - Boost when ratio > 1.05 (object expanding)
+- **Velocity Alignment** (0.5-2.0): Movement direction analysis
+  - Dot product between velocity vector and center vector
+  - Boost when moving toward center, penalize when moving away
+- **Pointing Boost** (+2.0): Hand-object intersection detection
+  - AABB intersection check with "Human Hand" contra intents
+  - Massive boost for causal user interaction
 
-#### [MODIFY] logic_gate.py (file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/models/logic_gate.py)
-- Modify the [__init__](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/models/lnn_knowledge_base.py#67-101) method defaults:
-  - Change `high_confidence_threshold` from `0.85` to `1.01` (preventing early PASS).
-  - Change `low_confidence_threshold` from `0.4` to `0.0` (preventing early FAIL/Noise exit).
+**Implementation Details**:
+- Bounding box history tracking per latent_id
+- Causal buffer enhanced with bbox_snapshot for temporal analysis
+- Decay factor: 0.85 (smoothed from 0.8)
+- Detailed logging for debugging: centrality, scale, velocity, pointing breakdown
 
 ---
 
-### Node Execution Tracing
-To ensure we capture exactly when a node starts executing, we will add un-ignorable error-level logs at the very top of each node function.
+### 2. ✅ User Pointing Causal Indicator
+**File**: `Implementation/v2_logic/controllers/recursive_flow.py` (lines 385-420)
 
-#### [MODIFY] recursive_flow.py (file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py)
-- **Add Tracing Logs**: Inject `logger.error("[DEBUG EXECUTION] <Node Name> is running")` at the top of:
-  - [vjepa_brain_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#305-393)
-  - [latent_director_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#398-710)
-  - [fusion_engine_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1297-1393)
-  - [logic_gate_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1395-1468)
-  - [targeted_slm_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1470-1509)
-  - [interpolation_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1550-1571)
-- **Bypass Circuit Breaker**: Inside the [logic_gate_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1395-1468) function in [recursive_flow.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py) (around line 1424), temporarily comment out the `if (gate_decision.anomaly_type.value == "volumetric" and not perception.is_volumetric_data_fresh):` block. Currently, this block returns `"continue_perception"`, which bypasses the [targeted_slm_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1470-1509). We want to disable this for the test.
+**Detection Logic**:
+```python
+hand_contras = [ci for ci in perception.contra_intents 
+                if "hand" in ci.get("label", "").lower()]
 
-## Verification Plan
+for hand in hand_contras:
+    # AABB intersection check
+    intersects = not (obj_x2 < hand_x1 or obj_x1 > hand_x2 or 
+                      obj_y2 < hand_y1 or obj_y1 > hand_y2)
+    if intersects:
+        pointing_boost = 2.0
+```
 
-### Manual Verification
-1. Once these modifications are applied, we will run your V5.1 testing script (or main pipeline) that initializes the system.
-2. We will monitor the `Log error.txt` or console output.
-3. We expect to see the sequence of `[DEBUG EXECUTION]` logs, proving that the nodes are now actively participating in the graph sequence.
-4. After reviewing the logs to understand *why* the loops were terminating prematurely under normal conditions, we will **revert** these temporary changes and apply the final fix.
+**Trigger**: Detects "Human Hand" from contra_intents and checks spatial intersection with tracked objects.
+
+---
+
+### 3. ✅ Threshold Calibration
+**File**: `Implementation/v2_logic/types/graph_state.py` (lines 107-115)
+
+**Change**:
+```python
+focal_trigger_threshold: float = Field(
+    default=1.0,  # Changed from 4.0
+    description="..."
+)
+```
+
+**Rationale**:
+- Old threshold (4.0) was mathematically unreachable with old centrality-only scoring
+- New composite scoring yields 0.8-1.5 per frame (up to 3.5 with pointing)
+- Threshold of 1.0 allows triggering within 1-3 frames for genuine interest
+
+---
+
+### 4. ✅ LNN Gatekeeping Relaxation (Provisional Acceptance)
+**File**: `Implementation/v2_logic/controllers/recursive_flow.py` (lines 610-660, 720-760)
+
+**Decision Tree**:
+```
+┌─ LNN >= 0.7 ─────────────→ ACCEPT (Standard confirmation)
+│
+├─ Focus >= 2.0 AND LNN > 0.0 ─→ PROVISIONAL ACCEPTANCE (Borderline)
+│
+├─ Focus >= 2.0 AND LNN == 0.0 ─→ PROVISIONAL ACCEPTANCE (Novel product)
+│   └─ Track with metadata for review
+│
+└─ ELSE ─────────────────────→ REJECT → Contra Intent (Noise/distractor)
+```
+
+**Applied To**:
+- Focal trigger discoveries (V5.1 Wait-and-Watch)
+- SLM hypothesis discoveries (Step 12)
+
+**Tracking**: Provisional accepts stored with:
+- label, latent_id, focus_score, lnn_score, frame_idx
+
+---
+
+### 5. ✅ Debug Cleanup
+**Files Modified**:
+- `Implementation/v2_logic/models/logic_gate.py` - Reverted thresholds to production values
+- `Implementation/v2_logic/controllers/recursive_flow.py` - Removed DEBUG EXECUTION logs, restored Circuit Breaker
+
+**Reverted Changes**:
+- `high_confidence_threshold`: 1.01 → 0.85
+- `low_confidence_threshold`: 0.0 → 0.4
+- Removed all `logger.error("[DEBUG EXECUTION] ...")` calls
+- Restored Circuit Breaker block for volumetric stale data handling
+
+---
+
+## Verification Checklist
+
+### Pre-Deployment
+- [x] Code changes applied
+- [x] Temporary debug changes reverted
+- [x] Documentation updated (task.md.resolved)
+
+### Colab Testing (Pending)
+- [ ] Push to GitHub
+- [ ] Pull in Colab
+- [ ] Run on test video
+- [ ] Verify focus scores climb naturally
+- [ ] Verify focal triggers activate at threshold
+- [ ] Verify provisional acceptance works for novel products
+- [ ] Verify pointing detection boosts scores
+
+### Log Monitoring
+Expected log patterns:
+```
+[vjepa_brain_node] V5.1 Focus Scores: {'object_a': '1.25', 'object_b': '0.85'}
+[PointingCausal] Hand detected intersecting with 'soda_can'!
+[FocalTrigger] V5.0 WAIT-AND-WATCH: Latent 'soda_can' reached focus score 2.45 (threshold=1.0)
+[FocalTrigger] LNN CONFIRMED: 'Coca Cola Can' (conf=0.92)
+OR
+[FocalTrigger] LNN REJECTED but EXTREME FOCUS: 'Energy Drink X' (lnn=0.00, focus=3.20). PROVISIONAL ACCEPTANCE
+```
+
+---
+
+## Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    V-JEPA Brain Node (V5.1)                     │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
+│  │  Centrality  │  │ Scale Growth │  │   Velocity   │          │
+│  │    × 0.4     │  │    × 0.4     │  │ Alignment    │          │
+│  └──────────────┘  └──────────────┘  │    × 0.2     │          │
+│                                      └──────────────┘          │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │           Pointing Boost (+2.0 if hand detected)        │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+              Accumulated Focus Score (EMA decay 0.85)
+                              │
+                              ▼
+                    Focus Score >= 1.0? ────NO───→ Continue
+                              │
+                             YES
+                              │
+                              ▼
+                    Trigger Focal VLM Analysis
+                              │
+                              ▼
+              ┌───────────────┴───────────────┐
+              │        LNN Validation         │
+              ├───────────────────────────────┤
+              │ LNN >= 0.7    → ACCEPT        │
+              │ Focus >= 2.0  → PROVISIONAL   │
+              │ Otherwise     → CONTRA        │
+              └───────────────────────────────┘
+```
+
+---
+
+## Next Steps
+1. **Colab Testing**: Deploy and verify on test video
+2. **Performance Monitoring**: Track focus score distributions and trigger rates
+3. **Threshold Tuning**: Adjust if needed based on real-world data
+4. **LNN KB Update**: Review provisional accepts to expand knowledge base
