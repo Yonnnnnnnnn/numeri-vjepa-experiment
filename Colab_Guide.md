@@ -109,7 +109,13 @@ def setup_repo():
             token = input("Masukkan GitHub PAT: ").strip()
             REPO_URL_TOKEN = REPO_URL.replace("https://", f"https://{token}@")
             !git clone {REPO_URL_TOKEN} {PROJECT_DIR}
-        %cd $PROJECT_DIR
+
+    %cd $PROJECT_DIR
+    # --- VERIFIKASI VERSI (Sangat Penting) ---
+    print("\n" + "="*60)
+    print("📜 VERSI KODE SAAT INI:")
+    !git log -1 --format="   Hash   : %H%n   Author : %an%n   Date   : %ad%n   Message: %s"
+    print("="*60 + "\n")
 
     # 1. Pastikan folder Techs Lengkap (Auto-Clone jika hilang)
     TECHS_DIR = os.path.join(PROJECT_DIR, "Techs")
@@ -202,6 +208,28 @@ if setup_repo():
 
     print("🚀 PENTING: Lakukan RESTART SESSION (Menu: Runtime -> Restart session)")
 ```
+
+---
+
+## Langkah 1.1: Sync & Refresh Code (Hanya jika ada Update di GitHub)
+
+Gunakan cell ini jika Anda baru saja melakukan `push` dari PC lokal dan ingin memperbarui kode di Colab tanpa instalasi ulang.
+
+```python
+%cd /content/numeri-vjepa-experiment
+print("🔄 Mengambil update terbaru dari GitHub...")
+!git fetch origin
+!git reset --hard origin/master
+
+print("\n" + "="*60)
+print("📜 VERSI KODE TERBARU:")
+!git log -1 --format="   Hash   : %H%n   Author : %an%n   Date   : %ad%n   Message: %s"
+print("="*60 + "\n")
+
+print("🚀 PENTING: Jika Anda mengubah file .py, lakukan 'Restart session' agar Python me-load kode baru!")
+```
+
+---
 
 ## Langkah 2: Verifikasi & Path (Jalankan SETELAH Restart)
 
