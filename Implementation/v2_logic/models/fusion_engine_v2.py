@@ -376,7 +376,8 @@ class FusionEngineV2:
             else:
                 distance = n_visible - max_v
             # Confidence decays with distance from valid range
-            confidence = max(0.0, 1.0 - (distance / range_span))
+            # FIX 11: Floor prevents total collapse during discovery phase
+            confidence = max(0.3, 1.0 - (distance / range_span))
 
         passed = min_v <= n_visible <= max_v
 

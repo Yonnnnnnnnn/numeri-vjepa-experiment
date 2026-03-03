@@ -1259,6 +1259,14 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
     ]
     accounted_labels = set()  # Labels that have at least one visual detection
 
+    # FIX 12: Log loop phase for debugging
+    loop_count = state["decision"].loop_count
+    logger.info(
+        "[v3_math_node] Phase: %s (loop_count=%d)",
+        "DISCOVERY" if loop_count == 0 else "REFINEMENT",
+        loop_count,
+    )
+
     for cluster in filtered_clusters:
         c_vol = cluster.get("volume_m3", 0.0)
         # --- V3.8 Neuro-Symbolic Reconciliation (LNN) ---
@@ -1348,12 +1356,26 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
             u_v = slm.estimate_object_volume(cand_label) if slm else target_unit_v
 
             # 1. Volume Consistency Logic
-            n_est = c_vol / u_v if u_v > 0 else 1e9
-            vol_ratio = 1.0
-            if n_est > 2000:
-                vol_ratio = 0.1
-            elif n_est < 0.3:
-                vol_ratio = 0.2
+            # FIX 10: Discovery-mode bypass for genesis pro-intents
+            is_genesis_label = cand_label.lower() in genesis_pro_labels
+            is_discovery_phase = (loop_count == 0)
+
+            if is_discovery_phase and is_genesis_label:
+                # DISCOVERY MODE: Skip volumetric validation
+                # Rationale: Discovery only asks "does this exist?", not "how many?"
+                vol_ratio = 1.0
+                logger.info(
+                    "[v3_math_node] DISCOVERY PASS: '%s' — volumetric check deferred to refinement",
+                    cand_label,
+                )
+            else:
+                # REFINEMENT MODE: Full volumetric validation (existing logic)
+                n_est = c_vol / u_v if u_v > 0 else 1e9
+                vol_ratio = 1.0
+                if n_est > 2000:
+                    vol_ratio = 0.1
+                elif n_est < 0.3:
+                    vol_ratio = 0.2
 
             # 2. Latent Match (DINOv2 Sovereignty)
             latent_match_score = cand_iou

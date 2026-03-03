@@ -1,89 +1,26 @@
-# V5.1 Discovery Loop Architecture Fixes
+# V5.1 Discovery Loop: All Fixes
 
-**Status**: ✅ COMPLETED
+## Phase 1: Root Cause Fixes (COMPLETED ✅)
+- [x] **Fix 1**: Populate `bbox_history` from `causal_frame_buffer.bbox_snapshot`
+- [x] **Fix 2**: Verify `focal_trigger_threshold` defaults to `1.0`
+- [x] **Fix 3**: Bypass latent veto for known genesis labels
+- [x] **Fix 4**: Verify logic gate thresholds at production values
+- [x] **Fix 5**: Add `[FocalTrigger] Score Check` diagnostic log
 
-## Completed Tasks
-- [x] **Step 1: Enable Velocity & Scale Tracking** in [vjepa_brain_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#305-493) to compute dynamic focus scores based on movement and scale changes.
-- [x] **Step 2: Implement User Pointing Causal Indicator** by checking intersection between objects and known "Human Hand" contra intents over multiple frames.
-- [x] **Step 3: Modify Thresholds & Prompting**. Lowered `focal_trigger_threshold` from 4.0 to 1.0 and implemented composite scoring.
-- [x] **Step 4: Relax LNN Gatekeeping**. Implemented "Provisional Acceptance" path for novel products with high focus scores but LNN rejection.
-- [x] **Step 5: Colab Verification**. Ready to push changes and run pipeline in Colab.
+## Phase 2: V-JEPA Temporal Analysis Fixes (COMPLETED ✅)
+- [x] **Fix 6**: Add `temporal_mode` param — default `"latest"`
+- [x] **Fix 7**: Diagnostic logging for V-JEPA buffer state
+- [x] **Fix 8**: Verify [predict_trajectory()](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/models/v_jepa_engine.py#347-372) intact
+- [x] **Fix 9**: Reduce stride from 15 to 5 (6 FPS temporal resolution)
 
-## Changes Applied
+## Phase 3: Discovery vs Refinement Separation (COMPLETED ✅)
+- [x] **Fix 10**: Discovery-mode bypass in [v3_math_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1120-1472) — skip volumetric validation for genesis intents on first loop
+- [x] **Fix 11**: Volumetric Shield confidence floor (0.3 minimum) in [fusion_engine_v2.py](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/models/fusion_engine_v2.py)
+- [x] **Fix 12**: Log loop phase (`DISCOVERY` vs `REFINEMENT`) in [v3_math_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1120-1472)
 
-### 1. vjepa_brain_node - V5.1 Composite Focus Score (recursive_flow.py)
-**New Formula**: `Focus Score = (Centrality * 0.4) + (Scale Growth * 0.4) + (Velocity Alignment * 0.2) + Pointing Boost`
-
-- **Centrality**: Distance from frame center (existing)
-- **Scale Growth**: Detects objects moving closer (area ratio > 1.05 gets boost)
-- **Velocity Alignment**: Detects objects moving toward center (dot product check)
-- **Pointing Boost**: +2.0 massive boost when hand-object intersection detected
-- **Decay Factor**: Adjusted from 0.8 to 0.85 for smoother accumulation
-- **Bbox History**: Now tracking bounding box history per latent_id for velocity/scale calculation
-- **Causal Buffer**: Enhanced with bbox_snapshot for back-in-time retrieval
-
-### 2. User Pointing Causal Indicator (recursive_flow.py)
-- Detects "Human Hand" from `contra_intents` list
-- Performs AABB intersection check between hand bbox and object bbox
-- Applies +2.0 pointing_boost when intersection detected
-- Logs: `[PointingCausal] Hand detected intersecting with '<label>'!`
-
-### 3. Threshold Calibration (graph_state.py)
-- `focal_trigger_threshold`: Changed from **4.0 → 1.0**
-- Rationale: With composite scoring (typical range 0.8-1.5 per frame, up to 3.5 with pointing), threshold of 1.0 is now mathematically reachable within 1-2 frames
-
-### 4. LNN Gatekeeping Relaxation (recursive_flow.py - latent_director_node)
-**New Decision Logic**:
-```
-IF LNN >= 0.7:
-    → Standard confirmation (ACCEPT)
-ELSE IF focus_score >= 2.0 AND LNN > 0.0:
-    → Borderline case (PROVISIONAL ACCEPTANCE)
-ELSE IF focus_score >= 2.0 AND LNN == 0.0:
-    → Novel product not in LNN KB (PROVISIONAL ACCEPTANCE + tracking)
-ELSE:
-    → Noise/distractor (REJECT → Contra Intent)
-```
-
-**Step 12 Enhancement**: Same provisional acceptance logic applied to SLM hypothesis discoveries
-
-**Tracking**: Provisional accepts are logged with metadata:
-```python
-{
-    "label": str,
-    "latent_id": str,
-    "focus_score": float,
-    "lnn_score": float,
-    "frame_idx": int
-}
-```
-
-### 5. Cleanup (Removed Temporary Debug Changes)
-- Reverted `logic_gate.py` thresholds: `high_confidence_threshold=0.85`, `low_confidence_threshold=0.4`
-- Removed all `[DEBUG EXECUTION]` logger.error calls from nodes
-- Restored Circuit Breaker block in `logic_gate_node` (Wait-and-Watch for stale volumetric data)
-
-## Verification Plan
-
-### Colab Execution Steps
-1. Push changes to GitHub
-2. Pull into Google Colab environment
-3. Run pipeline on test video
-4. Monitor logs for:
-   - `[vjepa_brain_node] V5.1 Focus Scores:` - Should show composite scores climbing
-   - `[PointingCausal]` - Should trigger when hand detected
-   - `[FocalTrigger]` - Should trigger naturally when score >= 1.0
-   - `[FocalTrigger] LNN CONFIRMED/PROVISIONAL ACCEPTANCE` - Should show relaxed gatekeeping
-
-### Expected Behavior
-- Focus scores should now reach threshold (1.0) within 1-3 frames for:
-  - Objects moving toward camera (scale growth)
-  - Objects moving toward center (velocity alignment)
-  - Objects being pointed at (pointing boost)
-- `targeted_slm_node` should trigger naturally based on genuine focus scores
-- Novel products not in LNN KB should get provisional acceptance with high focus
-
-## Files Modified
-1. `Implementation/v2_logic/controllers/recursive_flow.py` - vjepa_brain_node, latent_director_node, cleanup
-2. `Implementation/v2_logic/types/graph_state.py` - focal_trigger_threshold
-3. `Implementation/v2_logic/models/logic_gate.py` - Reverted debug thresholds
+## Phase 4: Verification
+- [ ] Push to GitHub
+- [ ] Run in Colab with Langkah 1.1 sync
+- [ ] Confirm `[v3_math_node] DISCOVERY PASS:` logs appear
+- [ ] Confirm `LNN Identity score > 0.00`
+- [ ] Confirm [logic_gate_node](file:///d:/Antigravity/Test%20VJEPA%20EVENTBASED%20LLM/Implementation/v2_logic/controllers/recursive_flow.py#1593-1666) exits via proper rules, not `MaxLoopSafety`
