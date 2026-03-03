@@ -362,8 +362,13 @@ def vjepa_brain_node(state: RecursiveFlowState) -> Dict[str, Any]:
         # Extract historical bboxes from buffer
         for entry in buffer:
             frame_idx = entry.get("frame_idx", 0)
-            # We need to reconstruct bbox from latent_confidences or stored data
-            # For now, we'll use genesis_intents as the primary source
+            bbox_snap = entry.get("bbox_snapshot", {})
+            for lid, bb in bbox_snap.items():
+                if lid and bb:
+                    if lid not in bbox_history:
+                        bbox_history[lid] = []
+                    area = bb.get("w", 0) * bb.get("h", 0)
+                    bbox_history[lid].append((frame_idx, bb, area))
         
         # Detect "Human Hand" from contra_intents for pointing causal indicator
         hand_contras = [
@@ -562,6 +567,11 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
 
     for latent_id, score in focus_scores.items():
         # Trigger focal analysis if score reached threshold
+        logger.info(
+            "[FocalTrigger] Score Check: '%s' score=%.2f vs threshold=%.2f → %s",
+            latent_id, score, threshold,
+            "TRIGGERED" if score >= threshold else "below"
+        )
         if score >= threshold and latent_id not in current_intent:
             logger.info(
                 "[FocalTrigger] V5.0 WAIT-AND-WATCH: Latent '%s' reached "
@@ -1390,13 +1400,24 @@ def v3_math_node(state: RecursiveFlowState) -> Dict[str, Any]:
 
                 # V4 Strict Semantic Collapse Guard:
                 # If VLM says it's this object, but Latent similarity is bad (<0.85), veto it.
+                # EXCEPTION: Bypass veto for known genesis pro-intent labels
                 if best_sim < 0.85 and cand.get("source") == "grounding_dino":
-                    logger.warning(
-                        "[v3_math_node] Vetoing VLM label '%s' due to low latent sim %.2f",
-                        cand_label,
-                        best_sim,
-                    )
-                    latent_match_score = 0.0
+                    is_genesis_label = cand_label.lower() in genesis_pro_labels
+                    if not is_genesis_label:
+                        logger.warning(
+                            "[v3_math_node] Vetoing VLM label '%s' due to low latent sim %.2f",
+                            cand_label,
+                            best_sim,
+                        )
+                        latent_match_score = 0.0
+                    else:
+                        logger.info(
+                            "[v3_math_node] Genesis Override: '%s' bypasses veto (sim=%.2f, in genesis=%s)",
+                            cand_label,
+                            best_sim,
+                            is_genesis_label,
+                        )
+                        latent_match_score = 0.5  # Neutral: trust genesis but don't blindly accept
 
             # Ask LNN Model for the truth value of: Identity(cluster, sku)
             identity_score = lnn_kb.reconcile_identity(

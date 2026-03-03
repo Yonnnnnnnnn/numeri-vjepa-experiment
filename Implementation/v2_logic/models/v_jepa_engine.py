@@ -244,7 +244,8 @@ class VJEPAEngine:
         return latent
 
     def extract_object_latent(
-        self, bbox: dict, latent_map: torch.Tensor = None
+        self, bbox: dict, latent_map: torch.Tensor = None,
+        temporal_mode: str = "latest"  # NEW: "latest" | "mean" | "weighted"
     ) -> torch.Tensor:
         """
         Extract latent features for a specific object region (Latent-Pose).
@@ -259,6 +260,10 @@ class VJEPAEngine:
             bbox: {'x': float, 'y': float, 'w': float, 'h': float}
                   Coordinates normalized to [0, 1] relative to the image.
             latent_map: Optional override. If None, uses self.latent_context.
+            temporal_mode: How to aggregate temporal dimension:
+                - "latest": Use only the most recent temporal slice (sharp identity)
+                - "mean": Average across all temporal slices (original behavior)
+                - "weighted": Exponential recency weighting (recent frames matter more)
 
         Returns:
             (D,) feature vector for the object.
@@ -283,6 +288,14 @@ class VJEPAEngine:
                 "[V-JEPA] No latent context available. Call encode() first or ensure context dump exists."
             )
 
+        # Diagnostic logging for buffer state
+        logger.info(
+            "[V-JEPA] extract_object_latent: buffer=%d/%d frames, mode=%s, bbox=%s",
+            self.context.frame_count if hasattr(self.context, 'frame_count') else 0,
+            self.context.queue_size if hasattr(self.context, 'queue_size') else 16,
+            temporal_mode, bbox
+        )
+
         with torch.no_grad():
             # V-JEPA ViT outputs (B, N_patches, D) where N_patches = T' * H' * W'
             # For ViT-L with 224px, 16px patch: H' = W' = 14
@@ -297,8 +310,18 @@ class VJEPAEngine:
                 latent_map.shape[0], temporal_t, spatial_h, spatial_w, embed_dim
             )
 
-            # Average over temporal dimension -> (B, H', W', D)
-            latent_spatial = latent_5d.mean(dim=1)
+            # V5.1: TEMPORAL MODE SELECTION
+            # Use ONLY the most recent temporal slice for sharp identity matching
+            # This avoids temporal smearing when buffer has 16 diverse frames
+            if temporal_mode == "latest":
+                latent_spatial = latent_5d[:, -1, :, :, :]  # (B, H', W', D)
+            elif temporal_mode == "weighted":
+                # Exponential recency weighting: recent frames matter more
+                weights = torch.exp(torch.linspace(-2, 0, temporal_t, device=latent_5d.device))
+                weights = weights / weights.sum()
+                latent_spatial = (latent_5d * weights[None, :, None, None, None]).sum(dim=1)
+            else:  # "mean" — original behavior
+                latent_spatial = latent_5d.mean(dim=1)
 
             # Convert normalized bbox to patch coordinates
             patch_x = int(bbox["x"] * spatial_w)

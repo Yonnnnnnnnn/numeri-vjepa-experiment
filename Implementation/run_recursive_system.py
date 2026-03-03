@@ -432,7 +432,9 @@ def main():
         if not ret:
             break
 
-        if frame_idx % 15 != 0:  # Process every 15 frames to save compute during tests
+        if (
+            frame_idx % 5 != 0
+        ):  # Process every 5 frames for better temporal resolution (6 FPS)
             frame_idx += 1
             continue
 
