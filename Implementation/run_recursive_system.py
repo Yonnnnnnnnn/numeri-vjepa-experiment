@@ -98,6 +98,68 @@ def setup_logging():
     )
 
 
+def save_intent_crops(
+    frame_rgb: np.ndarray,
+    frame_idx: int,
+    focus_scores: dict,
+    genesis_intents: list,
+    focal_threshold: float = 1.0,
+    output_dir: str = "intent_crops",
+):
+    """
+    Simpan crop image untuk setiap Intent yang lolos FocalTrigger.
+
+    Pattern: Observer (reaktif, non-destructive terhadap graph state)
+    """
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Bangun lookup bbox dari genesis intents
+    label_to_bbox = {
+        gi.get("label", "").lower(): gi.get("bbox")
+        for gi in genesis_intents
+        if gi.get("label") and gi.get("bbox")
+    }
+
+    h, w = frame_rgb.shape[:2]
+    saved_count = 0
+
+    for label, score in focus_scores.items():
+        if score < focal_threshold:
+            continue  # Hanya simpan yang TRIGGERED
+
+        bbox = label_to_bbox.get(label.lower())
+        if not bbox:
+            continue
+
+        # Ekstrak koordinat crop
+        x = max(0, int(bbox.get("x", 0)))
+        y = max(0, int(bbox.get("y", 0)))
+        bw = int(bbox.get("w", w))
+        bh = int(bbox.get("h", h))
+        x2 = min(w, x + bw)
+        y2 = min(h, y + bh)
+
+        crop = frame_rgb[y:y2, x:x2]
+        if crop.size == 0:
+            continue
+
+        label_slug = label.lower().replace(" ", "_")[:40]
+        filename = f"frame_{frame_idx:05d}_{label_slug}.png"
+        filepath = os.path.join(output_dir, filename)
+
+        # Convert RGB ke BGR untuk OpenCV imwrite
+        cv2.imwrite(filepath, cv2.cvtColor(crop, cv2.COLOR_RGB2BGR))
+        saved_count += 1
+
+    if saved_count > 0:
+        logging.getLogger("intent_crop").info(
+            "[IntentCrop] Frame %d: Saved %d crops to '%s/'",
+            frame_idx,
+            saved_count,
+            output_dir,
+        )
+
+
 def main():
     setup_logging()
     logger = logging.getLogger("run_recursive_system")
@@ -483,6 +545,15 @@ def main():
             # Carry over state for the next frame (tracking, world model)
             # Some things should be reset per frame (like spikes), others persisted (tracked_objects)
             initial_state = final_loop_state
+
+            # [NEW] Save crops for triggered intents
+            save_intent_crops(
+                frame_rgb=frame_rgb,
+                frame_idx=frame_idx,
+                focus_scores=p.latent_focus_scores or {},
+                genesis_intents=p.genesis_intents or [],
+                focal_threshold=initial_state["ctx"].focal_trigger_threshold,
+            )
 
         except Exception as e:
             logger.error(f"Error in graph execution at frame {frame_idx}: {e}")
