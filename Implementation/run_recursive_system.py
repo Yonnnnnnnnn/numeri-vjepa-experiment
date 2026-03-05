@@ -98,6 +98,10 @@ def setup_logging():
     )
 
 
+# Global Logger
+logger = logging.getLogger("run_recursive_system")
+
+
 def save_intent_crops(
     frame_rgb: np.ndarray,
     frame_idx: int,
@@ -135,17 +139,49 @@ def save_intent_crops(
         bbox = label_to_bbox.get(label_clean)
 
         if not bbox:
-            logger.debug("[IntentCrop] No bbox found for label '%s'", label_clean)
+            logger.debug(
+                "[IntentCrop] No bbox found for label '%s'. Skipping crop.", label_clean
+            )
             continue
 
-        # Ekstrak koordinat crop (pastikan integer)
+        # Ekstrak koordinat crop (Handle normalized vs pixel)
         try:
-            x = max(0, int(bbox.get("x", 0)))
-            y = max(0, int(bbox.get("y", 0)))
-            bw = int(bbox.get("w", w))
-            bh = int(bbox.get("h", h))
-            x2 = min(w, x + bw)
-            y2 = min(h, y + bh)
+            bx = float(bbox.get("x", 0))
+            by = float(bbox.get("y", 0))
+            bw = float(bbox.get("w", 0))
+            bh = float(bbox.get("h", 0))
+
+            # Jika normalized (biasanya < 1.0 kecuali objek sangat besar memenuhi layar)
+            # Tapi amannya kita cek jika semua koordinat <= 1.001
+            is_normalized = bx <= 1.001 and by <= 1.001 and bw <= 1.001 and bh <= 1.001
+
+            if is_normalized:
+                x = int(bx * w)
+                y = int(by * h)
+                x2 = int((bx + bw) * w)
+                y2 = int((by + bh) * h)
+            else:
+                x = int(bx)
+                y = int(by)
+                x2 = int(bx + bw)
+                y2 = int(by + bh)
+
+            # Clamp coordinates to frame bounds
+            x = max(0, min(w, x))
+            y = max(0, min(h, y))
+            x2 = max(0, min(w, x2))
+            y2 = max(0, min(h, y2))
+
+            if x >= x2 or y >= y2:
+                logger.debug(
+                    "[IntentCrop] Invalid crop dimensions for '%s': (%d,%d)-(%d,%d)",
+                    label,
+                    x,
+                    y,
+                    x2,
+                    y2,
+                )
+                continue
 
             crop = frame_rgb[y:y2, x:x2]
             if crop.size == 0:
@@ -158,16 +194,18 @@ def save_intent_crops(
             # Convert RGB ke BGR untuk OpenCV imwrite
             cv2.imwrite(filepath, cv2.cvtColor(crop, cv2.COLOR_RGB2BGR))
             saved_count += 1
+            logger.info(
+                "[IntentCrop] Saved focused crop for '%s' -> %s", label, filepath
+            )
         except Exception as e:
             logger.warning("[IntentCrop] Failed to save crop for '%s': %s", label, e)
 
-    if saved_count > 0:
-        logger.info(
-            "[IntentCrop] Frame %d: Saved %d focused crops to '%s'",
-            frame_idx,
-            saved_count,
-            output_dir,
-        )
+    logger.info(
+        "[IntentCrop] Frame %d: Saved %d focused crops to '%s'",
+        frame_idx,
+        saved_count,
+        output_dir,
+    )
 
 
 def main():

@@ -387,7 +387,7 @@ def vjepa_brain_node(state: RecursiveFlowState) -> Dict[str, Any]:
 
             # V5.1 FIX: Sovereignty 4 - Ignore Focus Accumulation for CONTRA intents (e.g. Human Hand)
             # They should act as Causal Indicators (pointing boost) but NEVER as focal targets.
-            if intent.get("is_contra", False):
+            if intent.get("is_contra", False) or "hand" in latent_id.lower():
                 continue
 
             # Calculate centrality (re-use genesis logic)
@@ -593,10 +593,11 @@ def latent_director_node(state: RecursiveFlowState) -> Dict[str, Any]:
     )
 
     # V5.1 FIX: Filter out CONTRA intents (hands) from triggering analysis
+    # Aggressively skip anything labeled 'hand' or marked as contra
     genesis_pro_labels = {
-        gi.get("label", "").lower()
+        gi.get("label", "").lower().strip()
         for gi in (perception.genesis_intents or [])
-        if not gi.get("is_contra", False)
+        if not gi.get("is_contra", False) and "hand" not in gi.get("label", "").lower()
     }
 
     for latent_id, score in focus_scores.items():
