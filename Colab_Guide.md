@@ -404,7 +404,7 @@ video_file = "/content/numeri-vjepa-experiment/Techs/sam2-main/sam2-main/demo/da
 %cd $PROJECT_DIR
 
 print(f"🧠 Menjalankan Focal Discovery Loop untuk: '{prompt}'")
-print("📸 Foto cropped akan otomatis disimpan di folder 'Implementation/intent_crops/'")
+print("📸 Foto cropped akan otomatis disimpan di folder 'intent_crops/' di root project.")
 print("-" * 50)
 !python {PROJECT_DIR}/Implementation/run_recursive_system.py --video "$video_file" --prompt "$prompt"
 
