@@ -389,50 +389,61 @@ print("\n✅ Semua checkpoint & video siap!")
 
 ---
 
-## Langkah 5: End-to-End Validation (Logic + Visual)
+## Langkah 5: Focal Discovery & Intent Crop Extraction
 
-Jalankan cell ini untuk melihat **Logika (Teks)** dan menghasilkan **Video (Visual)** secara berurutan.
+Jalankan cell ini untuk menjalankan **Logic V5.1** dan mengekstraksi foto **Cropped Objects** dari setiap Intent yang memicu FocalTrigger.
 
 ```python
 # 1. Konfigurasi & Eksekusi (Gunakan Form di sebelah kanan ->)
 PROJECT_DIR = "/content/numeri-vjepa-experiment"
-#@title 🧠 Recursive Intent Logic V5.1 (Focal Discovery)
+#@title 🧠 Focal Intent Discovery & Crop Extraction (V5.1)
 prompt = "count red cups" #@param {type:"string"}
 video_file = "/content/numeri-vjepa-experiment/Techs/sam2-main/sam2-main/demo/data/gallery/02_cups.mp4" #@param {type:"string"}
-output_file = "/content/output_v2.mp4" #@param {type:"string"}
 
 # Pastikan kita di folder yang benar
 %cd $PROJECT_DIR
 
-print(f"🧠 BAGIAN 1: Menjalankan Recursive Intent Logic V5.1 untuk: '{prompt}'")
+print(f"🧠 Menjalankan Focal Discovery Loop untuk: '{prompt}'")
+print("📸 Foto cropped akan otomatis disimpan di folder 'Implementation/intent_crops/'")
 print("-" * 50)
 !python {PROJECT_DIR}/Implementation/run_recursive_system.py --video "$video_file" --prompt "$prompt"
 
-print("\n\n👁️ BAGIAN 2: Menghasilkan Video Visualisasi (MP4) dengan Prompt Forwarding V4.2...")
-print("-" * 50)
-# V4.2: Meneruskan prompt ke visualizer agar VLM menggunakan foveated multi-SKU discovery
-!python {PROJECT_DIR}/Implementation/main.py --video "$video_file" --output "$output_file" --prompt "$prompt"
-
-print("\n\n✅ Pengujian Selesai!")
+print("\n\n✅ Proses Selesai! Jalankan cell di bawah untuk melihat fotonya.")
 ```
 
-### Lihat Video Hasil (Visualisasi SAM2 + CountVid)
+### 🖼️ Lihat Hasil Crop Intent (FocalTrigger)
 
-JANGAN jalankan ini sebelum Langkah 5 di atas selesai.
-
-### Lihat Video Hasil di Colab
+Jalankan cell ini untuk memvisualisasikan semua objek yang berhasil "ditangkap" oleh sistem.
 
 ```python
-from IPython.display import HTML
-from base64 import b64encode
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import os
+import glob
 
-def show_video(video_path):
-    mp4 = open(video_path,'rb').read()
-    data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
-    return HTML(f'<video width=600 controls><source src="{data_url}" type="video/mp4"></video>')
+CROP_DIR = "/content/numeri-vjepa-experiment/Implementation/intent_crops"
+image_paths = sorted(glob.glob(os.path.join(CROP_DIR, "*.png")))
 
-show_video("/content/output_v2.mp4")
+if not image_paths:
+    print("❌ Belum ada foto intent yang disimpan. Pastikan FocalTrigger sudah aktif (Skor > 1.0).")
+else:
+    print(f"🎨 Menampilkan {len(image_paths)} foto intent yang ter-detect...")
+    num_imgs = len(image_paths)
+    cols = 4 if num_imgs > 4 else num_imgs
+    rows = (num_imgs + cols - 1) // cols
+
+    plt.figure(figsize=(16, 4 * rows))
+    for i, img_path in enumerate(image_paths):
+        plt.subplot(rows, cols, i + 1)
+        img = mpimg.imread(img_path)
+        plt.imshow(img)
+        plt.title(os.path.basename(img_path), fontsize=9)
+        plt.axis('off')
+    plt.tight_layout()
+    plt.show()
 ```
+
+---
 
 ---
 
