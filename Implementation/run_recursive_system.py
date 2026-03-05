@@ -108,14 +108,17 @@ def save_intent_crops(
 ):
     """
     Simpan crop image untuk setiap Intent yang lolos FocalTrigger.
-
-    Pattern: Observer (reaktif, non-destructive terhadap graph state)
+    Mendukung absolute path untuk lingkungan Colab agar tidak terjadi mismatch.
     """
+    # V5.1 FIX: Gunakan absolute path jika di lingkungan Colab
+    if os.path.exists("/content"):
+        output_dir = os.path.join("/content/numeri-vjepa-experiment", output_dir)
+
     os.makedirs(output_dir, exist_ok=True)
 
     # Bangun lookup bbox dari genesis intents
     label_to_bbox = {
-        gi.get("label", "").lower(): gi.get("bbox")
+        gi.get("label", "").lower().strip(): gi.get("bbox")
         for gi in genesis_intents
         if gi.get("label") and gi.get("bbox")
     }
@@ -124,36 +127,43 @@ def save_intent_crops(
     saved_count = 0
 
     for label, score in focus_scores.items():
-        if score < focal_threshold:
-            continue  # Hanya simpan yang TRIGGERED
+        score_val = float(score)
+        if score_val < focal_threshold:
+            continue
 
-        bbox = label_to_bbox.get(label.lower())
+        label_clean = label.lower().strip()
+        bbox = label_to_bbox.get(label_clean)
+
         if not bbox:
+            logger.debug("[IntentCrop] No bbox found for label '%s'", label_clean)
             continue
 
-        # Ekstrak koordinat crop
-        x = max(0, int(bbox.get("x", 0)))
-        y = max(0, int(bbox.get("y", 0)))
-        bw = int(bbox.get("w", w))
-        bh = int(bbox.get("h", h))
-        x2 = min(w, x + bw)
-        y2 = min(h, y + bh)
+        # Ekstrak koordinat crop (pastikan integer)
+        try:
+            x = max(0, int(bbox.get("x", 0)))
+            y = max(0, int(bbox.get("y", 0)))
+            bw = int(bbox.get("w", w))
+            bh = int(bbox.get("h", h))
+            x2 = min(w, x + bw)
+            y2 = min(h, y + bh)
 
-        crop = frame_rgb[y:y2, x:x2]
-        if crop.size == 0:
-            continue
+            crop = frame_rgb[y:y2, x:x2]
+            if crop.size == 0:
+                continue
 
-        label_slug = label.lower().replace(" ", "_")[:40]
-        filename = f"frame_{frame_idx:05d}_{label_slug}.png"
-        filepath = os.path.join(output_dir, filename)
+            label_slug = label_clean.replace(" ", "_")[:40]
+            filename = f"frame_{frame_idx:05d}_{label_slug}.png"
+            filepath = os.path.join(output_dir, filename)
 
-        # Convert RGB ke BGR untuk OpenCV imwrite
-        cv2.imwrite(filepath, cv2.cvtColor(crop, cv2.COLOR_RGB2BGR))
-        saved_count += 1
+            # Convert RGB ke BGR untuk OpenCV imwrite
+            cv2.imwrite(filepath, cv2.cvtColor(crop, cv2.COLOR_RGB2BGR))
+            saved_count += 1
+        except Exception as e:
+            logger.warning("[IntentCrop] Failed to save crop for '%s': %s", label, e)
 
     if saved_count > 0:
-        logging.getLogger("intent_crop").info(
-            "[IntentCrop] Frame %d: Saved %d crops to '%s/'",
+        logger.info(
+            "[IntentCrop] Frame %d: Saved %d focused crops to '%s'",
             frame_idx,
             saved_count,
             output_dir,

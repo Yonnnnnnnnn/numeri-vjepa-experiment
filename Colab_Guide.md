@@ -421,7 +421,8 @@ import matplotlib.image as mpimg
 import os
 import glob
 
-CROP_DIR = "/content/numeri-vjepa-experiment/Implementation/intent_crops"
+# V5.1 FIX: Path harus sesuai dengan lokasi CWD saat eksekusi run_recursive_system.py
+CROP_DIR = "/content/numeri-vjepa-experiment/intent_crops"
 image_paths = sorted(glob.glob(os.path.join(CROP_DIR, "*.png")))
 
 if not image_paths:
